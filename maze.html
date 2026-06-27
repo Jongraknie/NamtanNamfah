@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberpunk Neon Maze Explorer</title>
+  <style>
+    /* Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Prompt:wght@300;400;700&display=swap');
+    
+    :root {
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #ff007f;
+      --neon-green: #39ff14;
+      --neon-red: #ff3131;
+      --neon-blue: #0076ff;
+      --bg-dark: #070714;
+      --panel-bg: rgba(13, 13, 33, 0.88);
+      --font-cyber: 'Orbitron', 'Prompt', sans-serif;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.12) 0%, transparent 45%);
+      color: #ffffff;
+      font-family: var(--font-cyber);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 15px;
+    }
+    
+    /* Title and Header */
+    .cyber-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #fff;
+      text-shadow: 
+        0 0 5px #fff,
+        0 0 10px var(--neon-cyan),
+        0 0 20px var(--neon-cyan);
+      animation: cyberPulse 3s infinite alternate;
+    }
+    
+    @keyframes cyberPulse {
+      0% { text-shadow: 0 0 5px #fff, 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan); }
+      100% { text-shadow: 0 0 7px #fff, 0 0 15px var(--neon-magenta), 0 0 30px var(--neon-magenta); }
+    }
+    
+    .hud-container {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 15px;
+      width: 100%;
+      max-width: 504px;
+      justify-content: space-between;
+    }
+    
+    .hud-card {
+      background: var(--panel-bg);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hud-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+    }
+    
+    .hud-label {
+      font-size: 0.65rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    
+    .hud-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .hud-value.timer-low {
+      color: var(--neon-red);
+      text-shadow: 0 0 10px var(--neon-red);
+      animation: blink 0.5s infinite alternate;
+    }
+    
+    @keyframes blink {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    
+    /* Game Area */
+    .game-wrapper {
+      position: relative;
+      border: 4px solid var(--neon-cyan);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+      background-color: rgba(5, 5, 12, 0.95);
+      overflow: hidden;
+      margin-bottom: 15px;
+      width: 504px;
+      height: 504px;
+    }
+    
+    canvas {
+      display: block;
+    }
+    
+    /* Mobile Controls Layout */
+    .interaction-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      width: 100%;
+      max-width: 504px;
+      justify-content: center;
+      align-items: center;
+      margin-top: 5px;
+    }
+    
+    .cyber-btn {
+      font-family: var(--font-cyber);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      background: transparent;
+      border: 2px solid var(--neon-magenta);
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 8px rgba(255, 0, 127, 0.25);
+    }
+    
+    .cyber-btn:hover {
+      background: var(--neon-magenta);
+      box-shadow: 0 0 15px var(--neon-magenta);
+      transform: translateY(-2px);
+    }
+    
+    /* Mobile D-Pad Controls */
+    .dpad-container {
+      display: grid;
+      grid-template-areas: 
+        ". up ."
+        "left . right"
+        ". down .";
+      gap: 6px;
+      width: 120px;
+      height: 120px;
+    }
+    
+    .dpad-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .dpad-btn:active {
+      background: rgba(0, 240, 255, 0.22);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px var(--neon-cyan);
+      transform: scale(0.92);
+    }
+    
+    .dpad-up { grid-area: up; }
+    .dpad-left { grid-area: left; }
+    .dpad-right { grid-area: right; }
+    .dpad-down { grid-area: down; }
+    
+    /* Overlay Screen Modals */
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(4, 4, 12, 0.95);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      text-align: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .overlay-title {
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    
+    .overlay-title.win {
+      color: var(--neon-green);
+      text-shadow: 0 0 15px var(--neon-green);
+    }
+    
+    .overlay-title.lose {
+      color: var(--neon-red);
+      text-shadow: 0 0 15px var(--neon-red);
+    }
+    
+    .overlay-text {
+      font-size: 1rem;
+      margin-bottom: 15px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.5;
+    }
+    
+    /* Leaderboard container styles */
+    .mini-leaderboard {
+      margin-top: 15px;
+      width: 100%;
+      max-width: 320px;
+    }
+    
+    .mini-leaderboard h3 {
+      font-size: 0.9rem;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 5px var(--neon-cyan);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    
+    .leaderboard-box {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px dashed rgba(0, 240, 255, 0.3);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    
+    /* Responsive sizing adjustment */
+    @media (max-width: 540px) {
+      .game-wrapper {
+        width: 320px;
+        height: 320px;
+      }
+      .cyber-title {
+        font-size: 1.5rem;
+      }
+      .hud-value {
+        font-size: 1.1rem;
+      }
+      .hud-container {
+        max-width: 320px;
+      }
+      .interaction-panel {
+        max-width: 320px;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .overlay-title {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="cyber-title">Neon Maze Explorer</h1>
+  
+  <div class="hud-container">
+    <div class="hud-card">
+      <span class="hud-label">เวลาที่เหลือ (Time)</span>
+      <span id="hud-timer" class="hud-value">60</span>
+    </div>
+    <div class="hud-card">
+      <span class="hud-label">ด่านที่ (Stage)</span>
+      <span id="hud-stage" class="hud-value">1</span>
+    </div>
+    <div class="hud-card">
+      <span class="hud-label">คะแนนสะสม (Score)</span>
+      <span id="hud-score" class="hud-value">0</span>
+    </div>
+  </div>
+
+  <div class="game-wrapper">
+    <!-- Registration / Name Entry Screen -->
+    <div id="login-overlay" class="overlay active">
+      <h2 class="overlay-title" style="color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);">ลงทะเบียนคนเก่ง</h2>
+      <p class="overlay-text">กรอกชื่อเพื่อบันทึกสถิติและก้าวขึ้นครองบัลลังก์ผู้เล่นคะแนนสูงสุดกันค่ะ!</p>
+      
+      <input type="text" id="player-name" placeholder="ใส่ชื่อคนเก่งตรงนี้ค่ะ..." maxlength="12" style="
+        font-family: var(--font-cyber);
+        font-size: 1.1rem;
+        padding: 12px;
+        border: 2px solid var(--neon-cyan);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        text-align: center;
+        width: 80%;
+        max-width: 280px;
+        margin-bottom: 15px;
+        outline: none;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+      ">
+      
+      <div style="margin-bottom: 20px; display: flex; gap: 20px; justify-content: center; font-size: 0.95rem;">
+        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none;">
+          <input type="radio" name="player-title" value="king" checked style="accent-color: var(--neon-cyan); scale: 1.25;">
+          <span>👑 พระราชา (King)</span>
+        </label>
+        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none;">
+          <input type="radio" name="player-title" value="queen" style="accent-color: var(--neon-magenta); scale: 1.25;">
+          <span>👑 ราชินี (Queen)</span>
+        </label>
+      </div>
+      
+      <button class="cyber-btn" onclick="registerPlayer()">เริ่มสำรวจเขาวงกต 🚀</button>
+      
+      <div class="mini-leaderboard">
+        <h3>🏆 บัลลังก์คะแนนสูงสุด</h3>
+        <div id="leaderboard-list" class="leaderboard-box">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Victory Overlay -->
+    <div id="win-overlay" class="overlay">
+      <h2 class="overlay-title win">You Win!</h2>
+      <p id="win-text" class="overlay-text">ยินดีด้วยค่ะ! คุณพิชิตเขาวงกตสำเร็จ</p>
+      
+      <div id="crowning-message" style="
+        background: rgba(255, 215, 0, 0.15); 
+        border: 2px solid #ffd700; 
+        border-radius: 12px; 
+        padding: 10px; 
+        margin-bottom: 15px; 
+        font-weight: bold;
+        display: none;
+        color: #ffd700;
+        text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+      ">
+        🎉 สุดยอดเลยค่ะ! หนูกลายเป็นอันดับที่ 1 ผู้ครองบัลลังก์คนใหม่แล้ว! 👑
+      </div>
+      
+      <button class="cyber-btn" onclick="startNewGame(true)">ด่านต่อไป ➡️</button>
+      
+      <div class="mini-leaderboard">
+        <h3>🏆 บัลลังก์คะแนนสูงสุด</h3>
+        <div id="win-leaderboard-list" class="leaderboard-box">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Game Over Overlay -->
+    <div id="lose-overlay" class="overlay">
+      <h2 class="overlay-title lose">Game Over</h2>
+      <p id="lose-text" class="overlay-text">หมดเวลาเสียแล้ว! พยายามใหม่อีกครั้งนะ</p>
+      
+      <div id="lose-crowning-message" style="
+        background: rgba(255, 215, 0, 0.15); 
+        border: 2px solid #ffd700; 
+        border-radius: 12px; 
+        padding: 10px; 
+        margin-bottom: 15px; 
+        font-weight: bold;
+        display: none;
+        color: #ffd700;
+        text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+      ">
+        🎉 ยอดเยี่ยมที่สุดค่ะ! หนูจบเกมด้วยการขึ้นนำเป็นที่ 1 บนบัลลังก์คะแนนสูงสุด! 👑
+      </div>
+      
+      <button class="cyber-btn" onclick="exitToRegistration()">เริ่มเกมใหม่ 🔄</button>
+      
+      <div class="mini-leaderboard">
+        <h3>🏆 บัลลังก์คะแนนสูงสุด</h3>
+        <div id="lose-leaderboard-list" class="leaderboard-box">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Canvas for rendering -->
+    <canvas id="mazeCanvas" width="504" height="504" style="width: 100%; height: 100%;"></canvas>
+  </div>
+
+  <div class="interaction-panel">
+    <button class="cyber-btn" onclick="exitToRegistration()">ลงทะเบียนใหม่ 🔄</button>
+    
+    <div class="dpad-container">
+      <div class="dpad-btn dpad-up" id="btn-up">▲</div>
+      <div class="dpad-btn dpad-left" id="btn-left">◀</div>
+      <div class="dpad-btn dpad-right" id="btn-right">▶</div>
+      <div class="dpad-btn dpad-down" id="btn-down">▼</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Maze constants
+    const cols = 21;
+    const rows = 21;
+    const cellSize = 24; // 21 * 24 = 504px grid size
+    
+    // State variables
+    let maze = [];
+    let gameActive = false;
+    let timeRemaining = 60;
+    let timerInterval = null;
+    let stage = 1;
+    let startTime = 0;
+    
+    // Player and Score registration state
+    let currentPlayerName = "";
+    let currentPlayerTitle = "king"; // "king" or "queen"
+    let currentScore = 0;
+    
+    // Player object
+    const player = {
+      x: 1,
+      y: 1,
+      trail: []
+    };
+
+    // Web Audio Synthesizer for self-contained SFX
+    const synth = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+      playMove() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(580, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      },
+      playWall() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(90, this.ctx.currentTime);
+        osc.frequency.setValueAtTime(50, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      },
+      playWin() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.08 + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.25);
+        });
+      },
+      playLose() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.55);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.55);
+      },
+      playFanfare() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [392.00, 392.00, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        const beats = [0, 0.12, 0.24, 0.36, 0.52, 0.68, 0.95];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, now + beats[idx]);
+          gain.gain.setValueAtTime(0.1, now + beats[idx]);
+          gain.gain.linearRampToValueAtTime(0.01, now + beats[idx] + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + beats[idx]);
+          osc.stop(now + beats[idx] + 0.35);
+        });
+      }
+    };
+
+    // Registration and Leaderboard Data management
+    function registerPlayer() {
+      const nameInput = document.getElementById('player-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("กรุณากรอกชื่อก่อนเริ่มเล่นนะคะคนเก่ง! 😊");
+        return;
+      }
+      currentPlayerName = name;
+      
+      const titleRadio = document.querySelector('input[name="player-title"]:checked');
+      currentPlayerTitle = titleRadio ? titleRadio.value : "king";
+      
+      currentScore = 0;
+      stage = 1;
+      
+      document.getElementById('hud-score').innerText = currentScore;
+      document.getElementById('hud-stage').innerText = stage;
+      
+      document.getElementById('login-overlay').classList.remove('active');
+      
+      // Voice greeting
+      synth.init();
+      const roleTh = currentPlayerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      const speakTextStr = `ยินดีต้อนรับ ${roleTh} ${currentPlayerName} เข้าสู่ดินแดนเขาวงกตค่ะ ขอให้เล่นให้สนุกนะคะ!`;
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(speakTextStr);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      
+      startNewGame(false);
+    }
+
+    function exitToRegistration() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      document.getElementById('win-overlay').classList.remove('active');
+      document.getElementById('lose-overlay').classList.remove('active');
+      document.getElementById('login-overlay').classList.add('active');
+      renderLeaderboard();
+    }
+
+    function updateLeaderboardData(finalScore) {
+      let leaderboard = JSON.parse(localStorage.getItem('maze_leaderboard')) || [];
+      
+      const existingIdx = leaderboard.findIndex(item => item.name.toLowerCase() === currentPlayerName.toLowerCase() && item.title === currentPlayerTitle);
+      
+      if (existingIdx !== -1) {
+        if (finalScore > leaderboard[existingIdx].score) {
+          leaderboard[existingIdx].score = finalScore;
+        }
+      } else {
+        leaderboard.push({
+          name: currentPlayerName,
+          title: currentPlayerTitle,
+          score: finalScore
+        });
+      }
+      
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      
+      localStorage.setItem('maze_leaderboard', JSON.stringify(leaderboard));
+      renderLeaderboard();
+      
+      // Check if this player holds absolute #1
+      if (leaderboard.length > 0 && leaderboard[0].name === currentPlayerName && leaderboard[0].score === finalScore) {
+        return true;
+      }
+      return false;
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('maze_leaderboard')) || [];
+      const listContainer = document.getElementById('leaderboard-list');
+      const winList = document.getElementById('win-leaderboard-list');
+      const loseList = document.getElementById('lose-leaderboard-list');
+      
+      const generateHTML = () => {
+        if (leaderboard.length === 0) {
+          return `<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 5px;">ยังไม่มีบัลลังก์ผู้เล่นสูงสุดค่ะ</div>`;
+        }
+        return leaderboard.map((item, idx) => {
+          const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+          const crownColor = item.title === 'king' ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
+          const rankColor = idx === 0 ? 'var(--neon-green)' : idx === 1 ? 'var(--neon-cyan)' : 'rgba(255,255,255,0.85)';
+          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+          
+          return `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}">
+              <span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span>
+              <span>${item.score} คะแนน</span>
+            </div>
+          `;
+        }).join('');
+      };
+      
+      const html = generateHTML();
+      if (listContainer) listContainer.innerHTML = html;
+      if (winList) winList.innerHTML = html;
+      if (loseList) loseList.innerHTML = html;
+    }
+
+    // Depth-First Search (DFS) Randomized Maze Generation
+    function generateMaze() {
+      // 1. Initialize grid to all walls (1)
+      maze = [];
+      for (let r = 0; r < rows; r++) {
+        maze.push(new Array(cols).fill(1));
+      }
+      
+      // 2. DFS Backtracker using a Stack
+      const stack = [];
+      const startR = 1;
+      const startC = 1;
+      maze[startR][startC] = 0;
+      stack.push([startR, startC]);
+      
+      while (stack.length > 0) {
+        const [currR, currC] = stack[stack.length - 1];
+        
+        const neighbors = [];
+        const dirs = [
+          [-2, 0], // Up
+          [2, 0],  // Down
+          [0, -2], // Left
+          [0, 2]   // Right
+        ];
+        
+        for (const [dr, dc] of dirs) {
+          const nextR = currR + dr;
+          const nextC = currC + dc;
+          
+          if (nextR > 0 && nextR < rows - 1 && nextC > 0 && nextC < cols - 1) {
+            if (maze[nextR][nextC] === 1) {
+              neighbors.push([nextR, nextC, dr, dc]);
+            }
+          }
+        }
+        
+        if (neighbors.length > 0) {
+          const [nextR, nextC, dr, dc] = neighbors[Math.floor(Math.random() * neighbors.length)];
+          maze[currR + dr/2][currC + dc/2] = 0;
+          maze[nextR][nextC] = 0;
+          stack.push([nextR, nextC]);
+        } else {
+          stack.pop();
+        }
+      }
+      
+      // 3. Open random path loops (Medium difficulty)
+      for (let i = 0; i < 5; i++) {
+        const r = Math.floor(Math.random() * (rows - 2)) + 1;
+        const c = Math.floor(Math.random() * (cols - 2)) + 1;
+        if (maze[r][c] === 1) {
+          if ((maze[r-1][c] === 0 && maze[r+1][c] === 0) || (maze[r][c-1] === 0 && maze[r][c+1] === 0)) {
+            maze[r][c] = 0;
+          }
+        }
+      }
+      
+      // Force start & goal locations
+      maze[1][1] = 0;
+      maze[rows-2][cols-2] = 0;
+    }
+
+    // Player Movement
+    function movePlayer(dx, dy) {
+      if (!gameActive) return;
+      
+      const targetX = player.x + dx;
+      const targetY = player.y + dy;
+      
+      if (targetX >= 0 && targetX < cols && targetY >= 0 && targetY < rows) {
+        if (maze[targetY][targetX] === 0) {
+          player.trail.push({ x: player.x, y: player.y });
+          if (player.trail.length > 6) {
+            player.trail.shift();
+          }
+          
+          player.x = targetX;
+          player.y = targetY;
+          
+          synth.playMove();
+          
+          if (player.x === cols - 2 && player.y === rows - 2) {
+            winGame();
+          }
+        } else {
+          synth.playWall();
+        }
+      }
+    }
+
+    // Game lifecycle functions
+    function startNewGame(isNextStage = false) {
+      document.getElementById('win-overlay').classList.remove('active');
+      document.getElementById('lose-overlay').classList.remove('active');
+      
+      if (isNextStage) {
+        stage++;
+      } else {
+        stage = 1;
+        currentScore = 0;
+        document.getElementById('hud-score').innerText = currentScore;
+      }
+      
+      document.getElementById('hud-stage').innerText = stage;
+      
+      // Reset variables
+      timeRemaining = Math.max(25, 60 - (stage - 1) * 5); // reduce time as stage goes up
+      document.getElementById('hud-timer').innerText = timeRemaining;
+      document.getElementById('hud-timer').classList.remove('timer-low');
+      
+      player.x = 1;
+      player.y = 1;
+      player.trail = [];
+      
+      generateMaze();
+      
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!gameActive) return;
+        timeRemaining--;
+        document.getElementById('hud-timer').innerText = timeRemaining;
+        
+        if (timeRemaining <= 10) {
+          document.getElementById('hud-timer').classList.add('timer-low');
+        }
+        
+        if (timeRemaining <= 0) {
+          loseGame();
+        }
+      }, 1000);
+      
+      gameActive = true;
+      startTime = Date.now();
+    }
+
+    function winGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      
+      // Calculate score for this stage
+      const stageScore = (timeRemaining * 10) + 100;
+      currentScore += stageScore;
+      document.getElementById('hud-score').innerText = currentScore;
+      
+      // Check leaderboard crowning
+      const isTopOne = updateLeaderboardData(currentScore);
+      
+      const roleTh = currentPlayerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      const text = document.getElementById('win-text');
+      text.innerHTML = `ยินดีด้วยค่ะ <strong>${roleTh} ${currentPlayerName}</strong>! คุณพิชิตด่านที่ ${stage} สำเร็จ 🏆<br>` +
+                       `คะแนนที่ได้รับในด่านนี้: <strong>${stageScore} คะแนน</strong><br>` +
+                       `คะแนนสะสมทั้งหมด: <strong>${currentScore} คะแนน</strong>`;
+      
+      const crownMsg = document.getElementById('crowning-message');
+      if (isTopOne) {
+        crownMsg.style.display = 'block';
+        crownMsg.innerText = `🎉 สุดยอดเลยค่ะ! ${roleTh} ${currentPlayerName} ได้กลายมาเป็นผู้ครองบัลลังก์อันดับที่ 1 คนใหม่แล้ว! 👑`;
+        synth.playFanfare();
+      } else {
+        crownMsg.style.display = 'none';
+        synth.playWin();
+      }
+      
+      document.getElementById('win-overlay').classList.add('active');
+    }
+
+    function loseGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      
+      const isTopOne = updateLeaderboardData(currentScore);
+      const roleTh = currentPlayerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      
+      const text = document.getElementById('lose-text');
+      text.innerHTML = `หมดเวลาเสียแล้วค่ะ <strong>${roleTh} ${currentPlayerName}</strong>! พยายามใหม่อีกครั้งนะ<br>` +
+                       `จบเกมด้วยคะแนนสะสมทั้งหมด: <strong>${currentScore} คะแนน</strong>`;
+      
+      const crownMsg = document.getElementById('lose-crowning-message');
+      if (isTopOne && currentScore > 0) {
+        crownMsg.style.display = 'block';
+        crownMsg.innerText = `🎉 ยอดเยี่ยมที่สุดค่ะ! ${roleTh} ${currentPlayerName} จบเกมด้วยการนำเป็นอันดับ 1 บนบัลลังก์คะแนนสูงสุด! 👑`;
+        synth.playFanfare();
+      } else {
+        crownMsg.style.display = 'none';
+        synth.playLose();
+      }
+      
+      document.getElementById('lose-overlay').classList.add('active');
+    }
+
+    // Canvas drawing/animation loop
+    function draw() {
+      if (maze.length === 0) {
+        requestAnimationFrame(draw);
+        return;
+      }
+      ctx.fillStyle = '#05050f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 1. Draw Maze Blocks
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * cellSize;
+          const y = r * cellSize;
+          
+          if (maze[r][c] === 1) {
+            ctx.fillStyle = '#0d0d21';
+            ctx.fillRect(x, y, cellSize, cellSize);
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, cellSize, cellSize);
+          } else {
+            ctx.fillStyle = '#040409';
+            ctx.fillRect(x, y, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // 2. Draw Neon Outer Glow Walls
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+      
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (maze[r][c] === 1) {
+            const x = c * cellSize;
+            const y = r * cellSize;
+            
+            if (r > 0 && maze[r-1][c] === 0) {
+              ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cellSize, y); ctx.stroke();
+            }
+            if (r < rows - 1 && maze[r+1][c] === 0) {
+              ctx.beginPath(); ctx.moveTo(x, y + cellSize); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke();
+            }
+            if (c > 0 && maze[r][c-1] === 0) {
+              ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + cellSize); ctx.stroke();
+            }
+            if (c < cols - 1 && maze[r][c+1] === 0) {
+              ctx.beginPath(); ctx.moveTo(x + cellSize, y); ctx.lineTo(x + cellSize, y + cellSize); ctx.stroke();
+            }
+          }
+        }
+      }
+      ctx.shadowBlur = 0;
+      
+      // 3. Draw Start portal (Green Glow)
+      const startX = 1 * cellSize + cellSize / 2;
+      const startY = 1 * cellSize + cellSize / 2;
+      ctx.shadowColor = '#39ff14';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#0f290a';
+      ctx.strokeStyle = '#39ff14';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(startX, startY, cellSize / 3.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#39ff14';
+      ctx.font = 'bold 9px Orbitron';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('S', startX, startY);
+      
+      // 4. Draw Goal portal (Red Spinning Star Portal)
+      const goalX = (cols - 2) * cellSize + cellSize / 2;
+      const goalY = (rows - 2) * cellSize + cellSize / 2;
+      const rotationAngle = Date.now() * 0.0035;
+      
+      ctx.shadowColor = '#ff3131';
+      ctx.shadowBlur = 12;
+      ctx.strokeStyle = '#ff3131';
+      ctx.lineWidth = 3;
+      
+      ctx.save();
+      ctx.translate(goalX, goalY);
+      ctx.rotate(rotationAngle);
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        ctx.rotate(Math.PI / 2);
+        ctx.moveTo(0, -cellSize / 3.5);
+        ctx.lineTo(0, cellSize / 3.5);
+      }
+      ctx.stroke();
+      ctx.restore();
+      
+      ctx.beginPath();
+      ctx.arc(goalX, goalY, cellSize / 2.3, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // 5. Draw Player with particle trail (Blue Glow)
+      const playerX = player.x * cellSize + cellSize / 2;
+      const playerY = player.y * cellSize + cellSize / 2;
+      
+      player.trail.forEach((t, idx) => {
+        const opacity = (idx + 1) / player.trail.length * 0.45;
+        ctx.fillStyle = `rgba(0, 118, 255, ${opacity})`;
+        ctx.beginPath();
+        ctx.arc(t.x * cellSize + cellSize / 2, t.y * cellSize + cellSize / 2, cellSize / 2.6 * (idx / player.trail.length), 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#0076ff';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(playerX, playerY, cellSize / 2.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      requestAnimationFrame(draw);
+    }
+
+    // Keyboard navigation listeners
+    window.addEventListener('keydown', (e) => {
+      if (!gameActive) return;
+      let moved = false;
+      
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          movePlayer(0, -1);
+          moved = true;
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          movePlayer(0, 1);
+          moved = true;
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          movePlayer(-1, 0);
+          moved = true;
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          movePlayer(1, 0);
+          moved = true;
+          break;
+      }
+      
+      if (moved) {
+        e.preventDefault(); // suppress scrolling
+      }
+    });
+
+    // Touch D-Pad navigation bindings for mobile/tablet
+    const dpadUp = document.getElementById('btn-up');
+    const dpadDown = document.getElementById('btn-down');
+    const dpadLeft = document.getElementById('btn-left');
+    const dpadRight = document.getElementById('btn-right');
+    
+    function bindDpad(el, dx, dy) {
+      el.addEventListener('mousedown', (e) => { e.preventDefault(); movePlayer(dx, dy); });
+      el.addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer(dx, dy); }, { passive: false });
+    }
+    
+    bindDpad(dpadUp, 0, -1);
+    bindDpad(dpadDown, 0, 1);
+    bindDpad(dpadLeft, -1, 0);
+    bindDpad(dpadRight, 1, 0);
+
+    // Initial render and leaderboard pull
+    renderLeaderboard();
+    draw();
+  </script>
+</body>
+</html>

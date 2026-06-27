@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ห้องเรียนอนาคตใหม่ | สำหรับ น้ำฟ้า 💖</title>
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const div = document.createElement('div');
+      div.style.position = 'fixed';
+      div.style.top = '0';
+      div.style.left = '0';
+      div.style.width = '100%';
+      div.style.background = 'red';
+      div.style.color = 'white';
+      div.style.padding = '20px';
+      div.style.zIndex = '99999';
+      div.style.fontSize = '20px';
+      div.style.fontFamily = 'monospace';
+      div.innerText = 'JS Error: ' + message + ' at ' + source + ':' + lineno + ':' + colno;
+      document.body.appendChild(div);
+      return false;
+    };
+  </script>
+  <!-- Google Fonts for Playful and Kids-Friendly Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Sriracha&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Music/Sound FX Preloader & Web Audio Initiator Screen -->
+  <div id="start-screen" class="screen active-screen">
+    <div class="bubbles-bg-home"></div>
+    <div class="start-card">
+      <div class="logo-container">
+        <!-- Cute Animated SVG Cartoon Cat -->
+        <div class="cat-avatar-container">
+          <svg class="cute-cat-svg" viewBox="0 0 100 100" width="140" height="140">
+            <g class="ear-left">
+              <path d="M 15 35 L 5 5 L 30 25 Z" fill="#ff9f43" stroke="#d35400" stroke-width="2" stroke-linejoin="round" />
+              <path d="M 15 35 L 9 12 L 23 26 Z" fill="#fecdd3" />
+            </g>
+            <g class="ear-right">
+              <path d="M 85 35 L 95 5 L 70 25 Z" fill="#ff9f43" stroke="#d35400" stroke-width="2" stroke-linejoin="round" />
+              <path d="M 85 35 L 91 12 L 77 26 Z" fill="#fecdd3" />
+            </g>
+            <!-- Body -->
+            <path d="M 30 85 C 30 70, 70 70, 70 85 Z" fill="#e67e22" stroke="#d35400" stroke-width="2" />
+            <circle cx="50" cy="76" r="6" fill="#f1c40f" stroke="#f39c12" stroke-width="1" /> <!-- Bell -->
+            
+            <!-- Head -->
+            <circle cx="50" cy="50" r="34" fill="#ff9f43" stroke="#d35400" stroke-width="2" />
+            <!-- Face Cream highlight -->
+            <path d="M 25 55 C 25 72, 75 72, 75 55 C 75 42, 25 42, 25 55 Z" fill="#fffdfa" opacity="0.9" />
+            
+            <!-- Cheeks -->
+            <circle cx="28" cy="56" r="5" fill="#ff8080" opacity="0.5" />
+            <circle cx="72" cy="56" r="5" fill="#ff8080" opacity="0.5" />
+            
+            <!-- Eyes -->
+            <g class="eyes-group">
+              <ellipse cx="38" cy="46" rx="4" ry="4" fill="#2c3e50" class="cat-eye" />
+              <circle cx="36" cy="44" r="1.2" fill="#fff" />
+              <ellipse cx="62" cy="46" rx="4" ry="4" fill="#2c3e50" class="cat-eye" />
+              <circle cx="60" cy="44" r="1.2" fill="#fff" />
+            </g>
+            
+            <!-- Nose -->
+            <polygon points="48,51 52,51 50,53" fill="#e74c3c" />
+            
+            <!-- Mouth -->
+            <path d="M 46 55 Q 50 58, 50 55 Q 50 58, 54 55" fill="transparent" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
+            
+            <!-- Whiskers -->
+            <line x1="20" y1="53" x2="8" y2="52" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="20" y1="58" x2="6" y2="59" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="80" y1="53" x2="92" y2="52" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="80" y1="58" x2="94" y2="59" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h1>ห้องเรียนอนาคตใหม่</h1>
+        <p class="subtitle">สำหรับ น้ำฟ้า 💖 (ป.2)</p>
+      </div>
+      <button id="btn-start-game" class="btn btn-primary btn-large">
+        เข้าสู่ดินแดนแสนสนุก 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- Subject Selection Screen -->
+  <div id="subject-menu" class="screen">
+    <header class="app-header">
+      <div class="logo-header">
+        <span class="logo-emoji-small">🏫</span>
+        <h2>ห้องเรียนอนาคตใหม่</h2>
+      </div>
+    </header>
+
+    <main class="dashboard-content">
+      <section class="welcome-section">
+        <h3>สวัสดีค่ะ น้องน้ำฟ้า! 💖</h3>
+        <p>วันนี้อยากเรียนวิชาอะไรสนุกๆ ดีคะ? เลือกดินแดนผจญภัยได้เลยค่ะ!</p>
+      </section>
+
+      <div class="game-cards-container" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+        <!-- Math Subject Card -->
+        <div class="game-card card-carrot" id="btn-select-math" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">คณิตศาสตร์ ป.2</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🧮🐱</div>
+          <h4>วิชาคณิตศาสตร์</h4>
+          <p>เรียนรู้เรื่องจำนวนนับไม่เกิน 1000 และการบวกแสนสนุก!</p>
+          <button class="btn btn-carrot" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปเรียนเลขกัน 🚀</button>
+        </div>
+
+        <!-- English Subject Card -->
+        <div class="game-card card-geometry" id="btn-select-english" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">ภาษาอังกฤษ ป.2</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🐠🇬🇧</div>
+          <h4>วิชาภาษาอังกฤษ</h4>
+          <p>ฝึกฝนคำศัพท์ สี ไวยากรณ์พื้นฐาน และเรื่องราวในโรงเรียน!</p>
+          <button class="btn btn-geometry" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปเรียนอังกฤษกัน 🚀</button>
+        </div>
+
+        <!-- Maze Subject Card -->
+        <div class="game-card card-icecream" id="btn-select-maze" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">พัฒนาสมอง (EF)</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🌀🧭</div>
+          <h4>เขาวงกตปริศนา</h4>
+          <p>ฝึกฝนทักษะการตัดสินใจและการวางแผนนำทางลูกบอลเรืองแสง!</p>
+          <button class="btn btn-icecream" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปเล่นเขาวงกตกัน 🚀</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- English Dashboard Screen -->
+  <div id="english-menu" class="screen">
+    <header class="app-header">
+      <button class="btn btn-back-subject">⬅️ เลือกวิชา</button>
+      <div class="logo-header">
+        <span class="logo-emoji-small">🐠</span>
+        <h2>English Classroom</h2>
+      </div>
+      <div class="header-controls">
+        <button id="btn-open-settings-english" class="btn btn-secondary-icon" title="ตั้งค่าสำหรับคุณครู">⚙️</button>
+        <button id="btn-toggle-sound-english" class="btn btn-secondary-icon" title="เปิด/ปิดเสียง">🔊</button>
+        <button id="btn-toggle-speech-english" class="btn btn-secondary-icon" title="เปิด/ปิดเสียงอ่านโจทย์">🗣️</button>
+      </div>
+    </header>
+
+    <main class="dashboard-content">
+      <section class="welcome-section">
+        <h3>Welcome, Namfah! 🇬🇧🌟</h3>
+        <p>เลือกบททบทวนและผจญภัยใต้ท้องทะเลลึกไปกับคำศัพท์ภาษาอังกฤษกันเถอะ!</p>
+      </section>
+
+      <div class="game-cards-container">
+        <!-- English Book 1 Card -->
+        <div class="game-card card-icecream" data-game="eng-book1">
+          <div class="card-badge">Book 1: Vocabulary & Grammar</div>
+          <div class="card-image-placeholder">🎨🐡</div>
+          <h4>เล่ม 1: Coral Reef Adventure</h4>
+          <p>ทบทวนคำศัพท์ทั่วไป สีต่างๆ และไวยากรณ์ (have/is/These/an/those/on/in/under/that)</p>
+          <button class="btn btn-icecream btn-play">Play Level 1 🐠</button>
+        </div>
+
+        <!-- English Book 2 Card -->
+        <div class="game-card card-carrot" data-game="eng-book2">
+          <div class="card-badge">Book 2: School Life</div>
+          <div class="card-image-placeholder">🏫🎒</div>
+          <h4>เล่ม 2: The School Life</h4>
+          <p>ทบทวนคำศัพท์สิ่งของในโรงเรียน สิ่งของในห้องเรียน และบทสนทนาที่ใช้ในโรงเรียน!</p>
+          <button class="btn btn-carrot btn-play">Play Level 2 🏫</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Main Game Dashboard -->
+  <div id="main-menu" class="screen">
+    <header class="app-header">
+      <button class="btn btn-back-subject">⬅️ เลือกวิชา</button>
+      <div class="logo-header">
+        <span class="logo-emoji-small">🐱</span>
+        <h2>คณิตศาสตร์ อนาคตใหม่</h2>
+      </div>
+      <div class="header-controls">
+        <button id="btn-open-settings" class="btn btn-secondary-icon" title="ตั้งค่าสำหรับคุณครู">⚙️</button>
+        <button id="btn-toggle-sound" class="btn btn-secondary-icon" title="เปิด/ปิดเสียง">🔊</button>
+        <button id="btn-toggle-speech" class="btn btn-secondary-icon" title="เปิด/ปิดเสียงอ่านโจทย์">🗣️</button>
+      </div>
+    </header>
+
+    <main class="dashboard-content">
+      <section class="welcome-section">
+        <h3>ยินดีต้อนรับนักผจญภัยตัวน้อย! 🌟</h3>
+        <p>เลือกดินแดนที่คุณต้องการไปผจญภัยและฝึกทักษะคณิตศาสตร์แสนสนุกกันเลย!</p>
+      </section>
+
+      <div class="game-cards-container">
+        <!-- Game 1 Card -->
+        <div class="game-card card-carrot" data-game="carrot">
+          <div class="card-badge">บวกเลขไม่เกิน 1000</div>
+          <div class="card-image-placeholder">🥕🐰</div>
+          <h4>ตะลุยป่าแครอท</h4>
+          <p>ช่วยเจ้ากระต่ายน้อยกระโดดเก็บแครอทโดยการฝึกบวกเลขสามหลัก ทั้งแบบไม่มีตัวทดและมีตัวทด!</p>
+          <button class="btn btn-carrot btn-play">เล่นเลย! 🥕</button>
+        </div>
+
+        <!-- Game 2 Card -->
+        <div class="game-card card-icecream" data-game="icecream">
+          <div class="card-badge">ค่าของเลขหลักและรูปกระจาย</div>
+          <div class="card-image-placeholder">🍦🧙‍♂️</div>
+          <h4>ร้านไอศกรีมพ่อมด</h4>
+          <p>ช่วยคุณพ่อมดปรุงสูตรวิเศษโดยทายค่าประจำหลัก (หน่วย/สิบ/ร้อย) และเขียนเลขในรูปกระจาย!</p>
+          <button class="btn btn-icecream btn-play">เล่นเลย! 🍦</button>
+        </div>
+
+        <!-- Game 3 Card -->
+        <div class="game-card card-geometry" data-game="geometry">
+          <div class="card-badge">เปรียบเทียบและเรียงลำดับ</div>
+          <div class="card-image-placeholder">💎🐙</div>
+          <h4>ล่าสมบัติใต้บาดาล</h4>
+          <p>ดำดิ่งลงทะเลลึกและเปิดกล่องสมบัติโดยการฝึกเปรียบเทียบจำนวน มากกว่า/น้อยกว่า และเติมรูปอนุกรม!</p>
+          <button class="btn btn-geometry btn-play">เล่นเลย! 💎</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Game 1 Screen: Carrot Forest (Addition/Subtraction) -->
+  <div id="game-carrot" class="screen game-screen">
+    <header class="game-header">
+      <button class="btn btn-back">⬅️ เมนูหลัก</button>
+      <div class="game-title-area">
+        <h3>🥕 ตะลุยป่าแครอท (บวกเลขไม่เกิน 1000)</h3>
+      </div>
+      <div class="status-indicators">
+        <div class="score-display">คะแนน: <span id="carrot-score">0</span></div>
+        <div class="level-progress">
+          <div class="progress-bar-container">
+            <div id="carrot-progress" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="game-playfield carrot-playfield">
+      <!-- Carrot Path Area where bunny hops -->
+      <div class="path-container" id="carrot-path">
+        <!-- Generated blocks will be here -->
+      </div>
+
+      <!-- Animated Rabbit Container -->
+      <div id="bunny" class="bunny-char">🐰</div>
+
+      <!-- Question & Choice Section -->
+      <div class="question-container">
+        <div class="speech-bubble">
+          <button id="btn-speak-carrot" class="btn-voice-helper" title="ฟังเสียงโจทย์">🔊</button>
+          <p class="question-text" id="carrot-question">กำลังโหลดโจทย์...</p>
+        </div>
+        <div class="choices-grid" id="carrot-choices">
+          <!-- Choice buttons will be generated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game 2 Screen: Wizard's Ice Cream (Multiplication) -->
+  <div id="game-icecream" class="screen game-screen">
+    <header class="game-header">
+      <button class="btn btn-back">⬅️ เมนูหลัก</button>
+      <div class="game-title-area">
+        <h3>🍦 ร้านไอศกรีมพ่อมด (หลักและค่าของเลข)</h3>
+      </div>
+      <div class="status-indicators">
+        <div class="score-display">คะแนน: <span id="icecream-score">0</span></div>
+        <div class="level-progress">
+          <div class="progress-bar-container">
+            <div id="icecream-progress" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="game-playfield icecream-playfield">
+      <div class="icecream-scene-container">
+        <!-- Magic Wizard standing -->
+        <div class="wizard-char animate-float">🧙‍♂️</div>
+        
+        <!-- Ice Cream Stand Area -->
+        <div class="icecream-stand">
+          <!-- The Cone where ice cream layers stack up -->
+          <div id="icecream-stack" class="cone-stack">
+            <div class="waffle-cone"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question & Choice Section -->
+      <div class="question-container">
+        <div class="speech-bubble">
+          <button id="btn-speak-icecream" class="btn-voice-helper" title="ฟังเสียงโจทย์">🔊</button>
+          <p class="question-text" id="icecream-question">กำลังโหลดโจทย์...</p>
+        </div>
+        <div class="choices-grid" id="icecream-choices">
+          <!-- Choice buttons -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game 3 Screen: Undersea Geometry (Shapes) -->
+  <div id="game-geometry" class="screen game-screen">
+    <header class="game-header">
+      <button class="btn btn-back">⬅️ เมนูหลัก</button>
+      <div class="game-title-area">
+        <h3>💎 ล่าสมบัติใต้บาดาล (เปรียบเทียบเลข)</h3>
+      </div>
+      <div class="status-indicators">
+        <div class="score-display">คะแนน: <span id="geometry-score">0</span></div>
+        <div class="level-progress">
+          <div class="progress-bar-container">
+            <div id="geometry-progress" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="game-playfield geometry-playfield">
+      <!-- Rotating shapes container -->
+      <div class="ocean-container">
+        <!-- Bubble particles -->
+        <div class="bubbles-bg"></div>
+        
+        <!-- 3D or 2D display viewport -->
+        <div class="shape-display-viewport">
+          <div id="geometry-shape-container" class="rotating-shape-wrapper">
+            <!-- Dynamic 3D or 2D shape drawing (pure CSS/HTML) -->
+          </div>
+        </div>
+
+        <!-- Treasure Chest -->
+        <div class="treasure-area">
+          <div id="treasure-chest" class="chest-closed">🧰</div>
+        </div>
+      </div>
+
+      <!-- Question & Choice Section -->
+      <div class="question-container">
+        <div class="speech-bubble">
+          <button id="btn-speak-geometry" class="btn-voice-helper" title="ฟังเสียงโจทย์">🔊</button>
+          <p class="question-text" id="geometry-question">เติมเครื่องหมายหรือตอบตัวเลขที่ถูกต้องลงในช่องว่าง</p>
+        </div>
+        <div class="choices-grid" id="geometry-choices">
+          <!-- Choice buttons -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game English Screen: Undersea English Adventure -->
+  <div id="game-english" class="screen game-screen">
+    <header class="game-header">
+      <button class="btn btn-back-english">⬅️ เมนูอังกฤษ</button>
+      <div class="game-title-area">
+        <h3 id="english-title-text">🇬🇧 English Level</h3>
+      </div>
+      <div class="status-indicators">
+        <div class="score-display">Score: <span id="english-score">0</span></div>
+        <div class="level-progress">
+          <div class="progress-bar-container">
+            <div id="english-progress" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="game-playfield english-playfield">
+      <!-- Undersea ocean scene with realistic fish -->
+      <div class="undersea-ocean">
+        <!-- Sun Light Rays -->
+        <div class="light-rays"></div>
+        
+        <!-- Animated seaweed swaying -->
+        <div class="seaweed-container">
+          <div class="seaweed seaweed-1"></div>
+          <div class="seaweed seaweed-2"></div>
+          <div class="seaweed seaweed-3"></div>
+          <div class="seaweed seaweed-4"></div>
+        </div>
+        
+        <!-- Rising bubbles -->
+        <div class="bubbles-bg-english"></div>
+        
+        <!-- Realistic swimming fish -->
+        <div class="fish-tank">
+          <!-- Clownfish (Nemo) -->
+          <div class="swimming-fish clownfish-swim">
+            <svg class="clownfish-svg" viewBox="0 0 120 80" width="90" height="60">
+              <g class="clownfish-tail-group">
+                <!-- Tail Fin -->
+                <path d="M 90 40 L 115 18 L 108 40 L 115 62 Z" fill="#ff7f50" stroke="#d35400" stroke-width="1.5" class="tail-fin-clownfish" />
+                <path d="M 98 40 L 112 26 L 112 54 Z" fill="#ffffff" />
+                <path d="M 104 40 L 111 32 L 111 48 Z" fill="#2c3e50" />
+              </g>
+              <!-- Pectoral Fin -->
+              <path d="M 52 58 C 42 74, 62 74, 58 58 Z" fill="#ff7f50" stroke="#d35400" stroke-width="1" class="pectoral-fin" />
+              <!-- Body -->
+              <ellipse cx="55" cy="40" rx="38" ry="24" fill="#ff7f50" stroke="#d35400" stroke-width="2" />
+              <!-- Stripes -->
+              <path d="M 36 17 C 41 24, 41 56, 36 63 L 42 61 C 47 48, 47 32, 42 19 Z" fill="#ffffff" />
+              <path d="M 36 17 C 41 24, 41 56, 36 63" stroke="#2c3e50" stroke-width="1.5" fill="none" />
+              <path d="M 42 19 C 47 32, 47 48, 42 61" stroke="#2c3e50" stroke-width="1.5" fill="none" />
+              
+              <path d="M 64 17 C 69 24, 69 56, 64 63 L 70 61 C 75 48, 75 32, 70 19 Z" fill="#ffffff" />
+              <path d="M 64 17 C 69 24, 69 56, 64 63" stroke="#2c3e50" stroke-width="1.5" fill="none" />
+              <path d="M 70 19 C 75 32, 75 48, 70 61" stroke="#2c3e50" stroke-width="1.5" fill="none" />
+              <!-- Eye -->
+              <circle cx="26" cy="34" r="4.5" fill="#2c3e50" />
+              <circle cx="24" cy="32" r="1.5" fill="#ffffff" />
+            </svg>
+          </div>
+          
+          <!-- Blue Tang (Dory) -->
+          <div class="swimming-fish blue-tang-swim">
+            <svg class="blue-tang-svg" viewBox="0 0 120 80" width="100" height="70">
+              <g class="blue-tang-tail-group">
+                <!-- Tail Fin -->
+                <path d="M 90 40 L 115 15 L 106 40 L 115 65 Z" fill="#f1c40f" stroke="#f39c12" stroke-width="1.5" class="tail-fin-bluetang" />
+              </g>
+              <!-- Body -->
+              <ellipse cx="50" cy="40" rx="42" ry="28" fill="#2980b9" stroke="#1f3a60" stroke-width="2" />
+              <!-- Black Pattern -->
+              <path d="M 25 35 C 38 18, 78 16, 78 28 C 78 40, 52 44, 46 33 C 40 22, 28 42, 25 35 Z" fill="#2c3e50" />
+              <!-- Yellow fin marking -->
+              <path d="M 74 34 L 92 26 L 92 54 L 74 46 Z" fill="#f1c40f" stroke="#f39c12" stroke-width="1" />
+              <!-- Eye -->
+              <circle cx="23" cy="30" r="5" fill="#2c3e50" />
+              <circle cx="21" cy="28" r="1.8" fill="#ffffff" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question & Choice Section -->
+      <div class="question-container">
+        <div class="speech-bubble">
+          <button id="btn-speak-english" class="btn-voice-helper" title="Listen">🔊</button>
+          <p class="question-text" id="english-question">Loading English Question...</p>
+        </div>
+        <div class="choices-grid" id="english-choices">
+          <!-- Choice buttons -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory & Star Screen -->
+  <div id="victory-screen" class="screen">
+    <div class="victory-card">
+      <div class="sparkles-container">✨🎉✨</div>
+      <h1 class="victory-title animate-pop">ยอดเยี่ยมที่สุด! 🎉</h1>
+      <p class="victory-subtitle">คุณทำกิจกรรมสำเร็จลุล่วงแล้ว</p>
+      
+      <!-- Stars rating system -->
+      <div class="stars-display" id="victory-stars">
+        <span class="star-rating">⭐</span>
+        <span class="star-rating">⭐</span>
+        <span class="star-rating">⭐</span>
+      </div>
+
+      <div class="score-summary-details">
+        <p>ด่านที่สำเร็จ: <span id="summary-game-name">ตะลุยป่าแครอท</span></p>
+        <p>คะแนนรวม: <span id="summary-score">0</span> คะแนน</p>
+        <p>ตอบถูก: <span id="summary-correct">0</span> / <span id="summary-total">10</span> ข้อ</p>
+      </div>
+
+      <!-- Printable Certificate Box (Styled beautifully) -->
+      <div id="certificate-print-area" class="certificate-box">
+        <div class="cert-border">
+          <div class="cert-content">
+            <h2 class="cert-title">ใบประกาศเกียรติคุณ</h2>
+            <p class="cert-subtitle">มอบให้สำหรับนักสำรวจคณิตศาสตร์คนเก่ง</p>
+            <div class="cert-name-input-wrapper">
+              <input type="text" id="cert-child-name" class="cert-input" placeholder="พิมพ์ชื่อเด็กตรงนี้เพื่อบันทึกใบรับรอง" value="นักเรียนคนเก่ง">
+            </div>
+            <p class="cert-text">ที่ได้ผ่านการผจญภัยฝึกฝนวิชาคณิตศาสตร์ชั้นประถมศึกษาปีที่ 2</p>
+            <div class="cert-footer">
+              <div class="cert-badge">🏅</div>
+              <div class="cert-date">วันที่: <span id="cert-current-date">--/--/----</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="victory-actions">
+        <button id="btn-print-certificate" class="btn btn-secondary btn-large">🖨️ พิมพ์ใบประกาศ</button>
+        <button id="btn-victory-home" class="btn btn-primary btn-large">กลับเมนูหลัก 🏡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teacher/Parent Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" id="btn-close-settings">&times;</span>
+      <h3>⚙️ ตั้งค่าความยากสำหรับคุณครู</h3>
+      
+      <div class="settings-group">
+        <h4>1. ตั้งค่าเลขบวก (ป่าแครอท)</h4>
+        <label>
+          <input type="radio" name="carrot-difficulty" value="easy" checked> 
+          ระดับง่าย (ผลบวกไม่เกิน 100, ไม่มีการทด)
+        </label>
+        <label>
+          <input type="radio" name="carrot-difficulty" value="medium"> 
+          ระดับปานกลาง (ผลบวกไม่เกิน 500, มีการทด)
+        </label>
+        <label>
+          <input type="radio" name="carrot-difficulty" value="hard"> 
+          ระดับท้าทาย (ผลบวกไม่เกิน 1000, มีการทด)
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <h4>2. รูปแบบที่ต้องการฝึก (ไอศกรีมพ่อมด)</h4>
+        <div class="checkbox-grid">
+          <label><input type="checkbox" name="icecream-types" value="place-value" checked> ค่าประจำหลักและเลขโดด</label>
+          <label><input type="checkbox" name="icecream-types" value="expanded-form" checked> การเขียนในรูปกระจาย</label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h4>3. การล่าสมบัติใต้ทะเล (เปรียบเทียบและเรียงลำดับ)</h4>
+        <div class="checkbox-grid">
+          <label><input type="checkbox" name="geometry-types" value="compare" checked> เปรียบเทียบจำนวน (>, <, =)</label>
+          <label><input type="checkbox" name="geometry-types" value="pattern" checked> แบบรูปและเรียงลำดับจำนวน</label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h4>4. ตัวเลือกช่วยเหลือการอ่านโจทย์</h4>
+        <label>
+          <input type="checkbox" id="setting-auto-speak" checked>
+          อ่านโจทย์ออกเสียงอัตโนมัติเมื่อขึ้นโจทย์ข้อใหม่ (ภาษาไทย)
+        </label>
+      </div>
+
+      <button id="btn-save-settings" class="btn btn-primary btn-full-width">บันทึกและใช้ตั้งค่า 💾</button>
+    </div>
+  </div>
+
+  <!-- Explanation Overlay/Popup -->
+  <div id="explanation-overlay" class="explanation-overlay">
+    <div class="explanation-card animate-pop">
+      <div class="explanation-header">
+        <span id="explanation-avatar" class="explanation-character-avatar">🐱</span>
+        <h4 id="explanation-title">คำอธิบายแสนสนุก</h4>
+      </div>
+      <div class="explanation-body">
+        <p id="explanation-text">นี่คือคำอธิบายเฉลยแสนสนุก...</p>
+      </div>
+      <button id="btn-next-question" class="btn btn-primary">ข้อถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- JavaScript Main Script -->
+  <script src="script.js"></script>
+</body>
+</html>

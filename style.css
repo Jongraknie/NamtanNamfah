@@ -1508,6 +1508,17 @@ body {
   50% { transform: scale(1.05); box-shadow: 0 10px 25px rgba(255, 117, 140, 0.6); }
 }
 
+/* Thai Card and Button styles */
+.card-thai::after {
+  background: #10b981;
+}
 
+.card-thai:hover {
+  box-shadow: 0 20px 45px rgba(16, 185, 129, 0.28);
+  border-color: rgba(16, 185, 129, 0.45);
+}
 
-
+.btn-thai {
+  background: #10b981;
+  color: white;
+}

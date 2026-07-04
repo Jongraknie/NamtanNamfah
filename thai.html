@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ป่าสะกดคำภาษาไทยแสนสนุก | สำหรับ น้ำฟ้า 💖</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-forest-dark: #064e3b;
+      --color-forest-medium: #059669;
+      --color-forest-light: #34d399;
+      --color-forest-bg: #ecfdf5;
+      --color-accent-orange: #f59e0b;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --color-text-light: #ffffff;
+      --grad-main: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-forest-bg);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(52, 211, 153, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .app-header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 12px 25px;
+      border-radius: 25px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(6, 78, 59, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-back {
+      font-family: var(--font-playful);
+      font-size: 1rem;
+      padding: 8px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      background: white;
+      color: var(--color-text-dark);
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      background: #f1f5f9;
+      transform: translateX(-3px);
+    }
+
+    .logo-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-header h2 {
+      font-size: 1.4rem;
+      color: var(--color-forest-dark);
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      transform: scale(1.1);
+      border-color: var(--color-forest-medium);
+    }
+
+    /* Main Container */
+    .game-container {
+      width: 100%;
+      max-width: 650px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    /* HUD */
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .hud-card {
+      background: white;
+      border-radius: 20px;
+      padding: 10px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(6, 78, 59, 0.04);
+      border-bottom: 4px solid var(--color-forest-light);
+    }
+
+    .hud-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .hud-value {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--color-forest-dark);
+    }
+
+    /* Question Bubble */
+    .question-card {
+      background: white;
+      border-radius: 30px;
+      padding: 30px 25px;
+      box-shadow: 0 10px 30px rgba(6, 78, 59, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      border: 3px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .avatar-area {
+      font-size: 3.5rem;
+      margin-bottom: 15px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .sentence-display {
+      font-size: 1.5rem;
+      line-height: 1.6;
+      color: var(--color-text-dark);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .blank-space {
+      display: inline-block;
+      min-width: 100px;
+      border-bottom: 3px dashed var(--color-forest-medium);
+      color: var(--color-forest-medium);
+      padding: 0 10px;
+    }
+
+    .btn-speak-question {
+      background: var(--color-forest-bg);
+      border: 2px solid var(--color-forest-light);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-speak-question:hover {
+      transform: scale(1.1);
+      background: var(--color-forest-light);
+      color: white;
+    }
+
+    /* Choices Group */
+    .choices-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .choice-btn {
+      font-family: var(--font-playful);
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--color-text-dark);
+      background: white;
+      border: 3px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 20px 15px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .choice-btn:hover {
+      transform: translateY(-5px);
+      border-color: var(--color-forest-light);
+      box-shadow: 0 10px 20px rgba(6, 78, 59, 0.08);
+    }
+
+    .choice-btn:active {
+      transform: scale(0.95);
+    }
+
+    .choice-btn.correct-ui {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #065f46;
+    }
+
+    .choice-btn.incorrect-ui {
+      background: #fdf2f2;
+      border-color: #f87171;
+      color: #991b1b;
+    }
+
+    /* Explanation Overlay */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(6, 78, 59, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 30px;
+      width: 100%;
+      max-width: 500px;
+      padding: 30px 25px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      border: 4px solid var(--color-forest-light);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .result-icon {
+      font-size: 4rem;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+
+    /* 3 Step Explanation Layout */
+    .explanation-box {
+      text-align: left;
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .exp-step {
+      margin-bottom: 12px;
+    }
+
+    .exp-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .exp-step-title {
+      font-weight: bold;
+      color: var(--color-forest-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .btn-action {
+      font-family: var(--font-playful);
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      background: var(--grad-main);
+      border: none;
+      border-radius: 50px;
+      padding: 12px 35px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 153, 142, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(16, 153, 142, 0.4);
+    }
+
+    /* Score summary page */
+    .summary-screen {
+      background: white;
+      border-radius: 30px;
+      padding: 40px 30px;
+      box-shadow: 0 10px 30px rgba(6, 78, 59, 0.08);
+      text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      border: 4px solid var(--color-forest-light);
+    }
+
+    .stars-display {
+      font-size: 3rem;
+      color: var(--color-accent-orange);
+      margin: 15px 0;
+      letter-spacing: 5px;
+    }
+
+    /* Certificate Box for Print preview */
+    .certificate-card {
+      border: 8px double var(--color-forest-medium);
+      background: #fcfdfd;
+      border-radius: 20px;
+      padding: 25px;
+      width: 100%;
+      max-width: 480px;
+      margin: 20px 0;
+      position: relative;
+      text-align: center;
+    }
+
+    .cert-title {
+      font-size: 1.5rem;
+      color: var(--color-forest-dark);
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cert-subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cert-name-input {
+      font-family: var(--font-playful);
+      font-size: 1.4rem;
+      border: none;
+      border-bottom: 2px solid var(--color-forest-medium);
+      background: transparent;
+      text-align: center;
+      color: var(--color-accent-pink);
+      font-weight: bold;
+      width: 70%;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    .cert-desc {
+      font-size: 1rem;
+      line-height: 1.4;
+      color: var(--color-text-dark);
+    }
+
+    .cert-score {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--color-forest-medium);
+      margin-top: 5px;
+    }
+
+    /* Media query print styles for Certificate */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * {
+        visibility: visible;
+      }
+      .summary-screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+      .certificate-card {
+        border: 15px double var(--color-forest-medium);
+        width: 90%;
+        max-width: 100%;
+        margin: 50px auto;
+        padding: 40px;
+      }
+      .cert-name-input {
+        border: none;
+        font-size: 2.2rem;
+      }
+      .btn-action, .btn-back, .hud-bar, .app-header {
+        display: none !important;
+      }
+    }
+
+    /* Registration Overlay styles */
+    .register-input {
+      font-family: var(--font-playful);
+      font-size: 1.1rem;
+      padding: 10px 15px;
+      border: 2px solid var(--color-forest-medium);
+      border-radius: 12px;
+      width: 80%;
+      max-width: 280px;
+      text-align: center;
+      margin-bottom: 15px;
+      outline: none;
+    }
+
+    .register-title-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .register-label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    /* Leaderboard */
+    .leaderboard-container {
+      margin-top: 15px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .leaderboard-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--color-forest-dark);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .leaderboard-box {
+      background: #f8fafc;
+      border: 1.5px dashed var(--color-forest-light);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    @media (max-width: 500px) {
+      .choices-grid {
+        grid-template-columns: 1fr;
+      }
+      .sentence-display {
+        font-size: 1.25rem;
+      }
+      .choice-btn {
+        font-size: 1.2rem;
+        padding: 15px 10px;
+      }
+      .hud-value {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🌲</span>
+      <h2>ป่าสะกดคำภาษาไทย</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านคำศัพท์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <!-- Registration Screen -->
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🐼</div>
+      <h3 style="font-size: 1.6rem; color: var(--color-forest-dark); margin-bottom: 10px;">ลงทะเบียนท้าสะกดคำ</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">กรอกชื่อเพื่อบันทึกสถิติคะแนนและชิงแชมป์พระราชา/ราชินีภาษาไทยกันค่ะ!</p>
+      
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อคนเก่งตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      
+      <div class="register-title-group">
+        <label class="register-label">
+          <input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--color-forest-medium); scale: 1.2;">
+          <span>👑 พระราชา (King)</span>
+        </label>
+        <label class="register-label">
+          <input type="radio" name="reg-player-title" value="queen" style="accent-color: var(--color-accent-pink); scale: 1.2;">
+          <span>👑 ราชินี (Queen)</span>
+        </label>
+      </div>
+
+      <button class="btn-action" onclick="registerAndStart()">เริ่มตะลุยป่า 🚀</button>
+
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 ทำคะแนนสูงสุดประจำป่า</div>
+        <div id="leaderboard-box" class="leaderboard-box">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Game Screen -->
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card">
+          <span class="hud-label">ชื่อผู้เล่น</span>
+          <span id="hud-name" class="hud-value">-</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">ความคืบหน้า</span>
+          <span id="hud-progress" class="hud-value">1/20</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">คะแนนสะสม</span>
+          <span id="hud-score" class="hud-value">0</span>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🐵</div>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        
+        <div class="choices-grid" style="width: 100%;">
+          <button class="choice-btn" id="choice-a" onclick="checkChoice(0)">ตัวเลือก A</button>
+          <button class="choice-btn" id="choice-b" onclick="checkChoice(1)">ตัวเลือก B</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Explanation Overlay -->
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        
+        <div class="explanation-box">
+          <div class="exp-step">
+            <span class="exp-step-title">1. คำตอบที่ถูกต้อง:</span>
+            <div id="exp-correct" style="color: #059669; font-weight: 600;">-</div>
+          </div>
+          <div class="exp-step">
+            <span class="exp-step-title">2. วิเคราะห์ข้อผิดพลาดของช้อยส์อื่น:</span>
+            <div id="exp-incorrect" style="color: #4b5563;">-</div>
+          </div>
+          <div class="exp-step">
+            <span class="exp-step-title">3. สรุปความรู้รอบตัว:</span>
+            <div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div>
+          </div>
+        </div>
+        
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <!-- Summary / Finished Screen -->
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">👑🎓</div>
+      <h2 style="font-size: 2rem; color: var(--color-forest-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 10px;">คุณท้าทายสะกดคำผ่านป่าแสนสนุกครบถ้วน 20 ข้อแล้ว</p>
+      
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+
+      <!-- Certificate Frame -->
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศเกียรติคุณคนเก่ง</div>
+        <div class="cert-subtitle">เกียรติบัตรยอดนักสะกดคำภาษาไทย ป.2</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
+        <p class="cert-desc">ได้ก้าวผ่านการผจญภัยท้าทายสะกดคำพ้องเสียงและคำสะกดผิดบ่อย</p>
+        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 2000 คะแนนเต็ม!</p>
+      </div>
+
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 ท้าทายใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State variables
+    let playerName = "";
+    let playerTitle = "king";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+
+    // Web Speech API synthesis reference
+    let isSpeaking = false;
+
+    // Web Audio Synthesizer for SFX
+    const synth = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+      playCorrect() {
+        if (!soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+    };
+
+    // 20 Thai Spelling Questions for Grade 2
+    const questions = [
+      {
+        word: "กะเพรา",
+        incorrect: "กระเพรา",
+        sentence: "คุณแม่ผัด ______ หมูสับกลิ่นหอมฟุ้งน่ารับประทานมาก",
+        explanation1: "เฉลยคำตอบคือ 'กะเพรา' ค่ะ! เป็นคำสะกดพิเศษโดยไม่มี ร.เรือ ควบกล้ำในพยางค์แรก",
+        explanation2: "เนื่องจากคำว่า 'กระเพรา' สะกดผิด เพราะสับสนนำไปคิดว่ามีคำควบกล้ำ กระ- เหมือนคำอื่น",
+        explanation3: "สรุปหลักการสะกด: พืชผักและอาหารหลายชนิดสะกดด้วย 'กะ' ไม่มี ร.เรือ เช่น กะทิ กะเพรา กะหล่ำปลี"
+      },
+      {
+        word: "อนุญาต",
+        incorrect: "อนุญาติ",
+        sentence: "คุณพ่อคุณแม่ ______ ให้น้องน้ำฟ้าออกไปวิ่งเล่นสวนสาธารณะได้",
+        explanation1: "เฉลยคำตอบคือ 'อนุญาต' ค่ะ! สะกดด้วย ต.เต่า โดยไม่มีสระอุอยู่ด้านล่าง",
+        explanation2: "คำว่า 'อนุญาติ' สะกดผิด เพราะมักนำไปจำสลับปะปนกับคำว่า 'ญาติพี่น้อง'",
+        explanation3: "สรุปหลักการสะกด: คำว่า 'อนุญาต' แปลว่า ยินยอม ไม่เกี่ยวข้องกับญาติพี่น้อง จึงไม่มีสระอุค่ะ"
+      },
+      {
+        word: "รสชาติ",
+        incorrect: "รสชาด",
+        sentence: "ขนมเค้กช็อกโกแลตก้อนนี้มี ______ อร่อยหวานมันกำลังดี",
+        explanation1: "เฉลยคำตอบคือ 'รสชาติ' ค่ะ! ใช้ตัวสะกดตัว 'ต' และสระ 'ิ' เหมือนคำว่า ชาติบ้านเมือง",
+        explanation2: "คำว่า 'รสชาด' สะกดผิด เพราะ ด.เด็ก เป็นการพยายามเขียนสะกดตามเสียงอ่านโดยไม่ตรงตามหลักภาษา",
+        explanation3: "สรุปหลักการสะกด: รสชาติ หมายถึง แง่ของรสของสิ่งต่างๆ จึงสะกดด้วยคำว่า 'ชาติ' เสมอค่ะ"
+      },
+      {
+        word: "สังเกต",
+        incorrect: "สังเกตุ",
+        sentence: "น้องน้ำฟ้าเป็นเด็กดีชอบเรียนรู้และหมั่น ______ สิ่งต่างๆ รอบตัว",
+        explanation1: "เฉลยคำตอบคือ 'สังเกต' ค่ะ! สะกดด้วย ต.เต่า โดยไม่มีสระอุเช่นกัน",
+        explanation2: "คำว่า 'สังเกตุ' สะกดไม่ถูกต้อง เนื่องจากผู้เขียนมักสับสนนำไปเทียบกับคำว่า 'สาเหตุ'",
+        explanation3: "สรุปหลักการสะกด: คำจำพวก สังเกต ปฏิเสธ มักไม่มีสระอุควบคู่ที่พยัญชนะสะกดท้ายค่ะ"
+      },
+      {
+        word: "โอกาส",
+        incorrect: "โอกาศ",
+        sentence: "ปีใหม่นี้เป็น ______ ดีที่พวกเราทุกคนจะได้ไปเที่ยวพักผ่อน",
+        explanation1: "เฉลยคำตอบคือ 'โอกาส' ค่ะ! สะกดคำลงท้ายด้วย ส.เสือ เป็นตัวสะกด",
+        explanation2: "คำว่า 'โอกาศ' ที่ใช้ ศ.ศาลา สะกดผิด เพราะเกิดจากความสับสนจำสลับกับคำว่า 'อากาศ'",
+        explanation3: "สรุปหลักการสะกด: 'โอกาส' แปลว่าจังหวะเวลาที่เหมาะใช้ ส.เสือ ส่วน 'อากาศ' ท้องฟ้าใช้ ศ.ศาลา เสมอนะคะ"
+      },
+      {
+        word: "กฎหมาย",
+        incorrect: "กดหมาย",
+        sentence: "ตำรวจจราจรคอยแนะนำให้ทุกคนปฏิบัติตาม ______ อย่างเคร่งครัด",
+        explanation1: "เฉลยคำตอบคือ 'กฎหมาย' ค่ะ! ใช้ตัว ฎ.ชฎา (หัวหยักเดียว) เป็นตัวสะกดสะกดคำ",
+        explanation2: "คำว่า 'กดหมาย' สะกดผิดเพราะเกิดจากการนำเอาเสียงสะกดตรงตัวของคำกิริยา 'กด' มาเขียนสะกด",
+        explanation3: "สรุปหลักการสะกด: คำที่เกี่ยวข้องกับกฎระเบียบ กติกา และกฎหมาย จะใช้ ฎ.ชฎา (เช่น กฎหมาย กฎเกณฑ์) เสมอ"
+      },
+      {
+        word: "กระดาษ",
+        incorrect: "กะดาษ",
+        sentence: "น้องน้ำฟ้าใช้ดินสอวาดรูปบ้านแสนสวยลงบนแผ่น ______ สีขาว",
+        explanation1: "เฉลยคำตอบคือ 'กระดาษ' ค่ะ! สะกดด้วย กระ- (มี ร.เรือ ควบกล้ำ) และสะกดท้ายด้วย ษ.ฤๅษี",
+        explanation2: "คำว่า 'กะดาษ' เขียนไม่ถูกต้องตามพจนานุกรมไทย เนื่องจากตัดตัว ร.เรือ ควบกล้ำของคำทิ้งไป",
+        explanation3: "สรุปหลักการสะกด: กระดาษ เป็นคำโบราณควบกล้ำ เขียนด้วย ษ.ฤๅษี เป็นตัวสะกดในแม่กดค่ะ"
+      },
+      {
+        word: "กะทิ",
+        incorrect: "กระทิ",
+        sentence: "ขนมบัวลอยแสนอร่อยราดน้ำ ______ สีขาวข้นหวานมันน่ากิน",
+        explanation1: "เฉลยคำตอบคือ 'กะทิ' ค่ะ! พยางค์แรกสะกดว่า 'กะ' โดยไม่มี ร.เรือ ควบกล้ำ",
+        explanation2: "คำว่า 'กระทิ' เขียนไม่ถูกต้อง เพราะจำเสียงสับสนและนำไปปนกับกลุ่มคำกิริยาจำพวก กระทืบ กระทบ",
+        explanation3: "สรุปหลักการสะกด: ผลไม้แปรรูปแป้ง เช่น กะทิ กะเทียม หรือกะหล่ำปลี ส่วนใหญ่จะสะกดด้วย 'กะ' ไม่มี ร.เรือ ค่ะ"
+      },
+      {
+        word: "ศีรษะ",
+        incorrect: "ศรีษะ",
+        sentence: "เวลาสวมหมวกกันน็อกจะช่วยปกป้อง ______ ของเราให้ปลอดภัย",
+        explanation1: "เฉลยคำตอบคือ 'ศีรษะ' ค่ะ! สระอีจะวางอยู่บนตัว ศ.ศาลา และตามด้วย ร.เรือ",
+        explanation2: "คำว่า 'ศรีษะ' เขียนผิดอย่างรุนแรง เนื่องจากสับสนนำสระอีไปวางไว้บน ร.เรือ ซึ่งไม่ตรงคำอ่าน",
+        explanation3: "สรุปหลักการสะกด: คำว่า ศีรษะ (หัว) สระอีต้องเขียนไว้บน ศ.ศาลา จำไว้ว่า ศีลธรรม และ ศีรษะ สระอีอยู่บน ศ.ศาลา นะคะ"
+      },
+      {
+        word: "บันได",
+        incorrect: "บรรได",
+        sentence: "น้องน้ำฟ้าค่อยๆ เดินลง ______ บ้านอย่างระมัดระวังเพื่อไม่ให้สะดุด",
+        explanation1: "เฉลยคำตอบคือ 'บันได' ค่ะ! สะกดตรงตัวด้วย บ.ใบไม้ และไม้พายสระไอไม้มลาย",
+        explanation2: "คำว่า 'บรรได' สะกดไม่ถูกต้องตามพจนานุกรม เพราะใช้ตัว ร.หัน (รร) ผิดหลักของคำไทยแท้",
+        explanation3: "สรุปหลักการสะกด: ในภาษาไทยมีคำที่ใช้ บัน- เพียงแค่ 5 คำหลักๆ ได้แก่ บันดาล บันได บันทึก บันเทิง บันลือ ค่ะ"
+      },
+      {
+        word: "หอยแครง",
+        incorrect: "หอยแคลง",
+        sentence: "คุณตาชอบรับประทาน ______ ลวกจิ้มกับน้ำจิ้มซีฟู้ดรสจัดจ้าน",
+        explanation1: "เฉลยคำตอบคือ 'หอยแครง' ค่ะ! คำว่า แครง ใช้ ร.เรือ ควบกล้ำ",
+        explanation2: "คำว่า 'หอยแคลง' สะกดผิด เพราะใช้ ล.ลิง ควบกล้ำ ซึ่งเปลี่ยนเสียงและทำให้คำไม่มีความหมาย",
+        explanation3: "สรุปหลักการสะกด: สิ่งมีชีวิตที่มีเปลือกขรุขระตัวนี้ เรียกว่า หอยแครง (ร.เรือ) ส่วน แคลงใจ (สงสัย) ใช้ ล.ลิง นะคะ"
+      },
+      {
+        word: "ปะการัง",
+        incorrect: "ประการัง",
+        sentence: "ในทะเลลึกมีฝูงปลาแหวกว่ายอยู่ท่ามกลาง ______ สีสันสวยงาม",
+        explanation1: "เฉลยคำตอบคือ 'ปะการัง' ค่ะ! ใช้พยางค์แรกว่า 'ปะ' ไม่มี ร.เรือ ควบกล้ำ",
+        explanation2: "คำว่า 'ประการัง' สะกดไม่ถูกต้องเนื่องจากคุ้นชินกับการนำคำว่า 'ประ' จากคำอื่นๆ มาสะกดปะปน",
+        explanation3: "สรุปหลักการสะกด: ปะการัง เติบโตใต้ทะเล ใช้ 'ปะ' สระอะ ส่วนคำว่า ประกาย หรือ ประกัน จะใช้ ร.เรือ ควบกล้ำค่ะ"
+      },
+      {
+        word: "ไอศกรีม",
+        incorrect: "ไอศครีม",
+        sentence: "วันอากาศร้อนๆ ได้ทาน ______ รสสตรอว์เบอร์รีเย็นใจก็ชื่นใจสุดๆ",
+        explanation1: "เฉลยคำตอบคือ 'ไอศกรีม' ค่ะ! พยางค์หลังใช้ ก.ไก่ (กรีม) เป็นตัวพยัญชนะต้นต้นของเสียงควบกล้ำ",
+        explanation2: "คำว่า 'ไอศครีม' เขียนสะกดผิดอย่างแพร่หลายเนื่องจากใช้ ค.ควาย ควบกล้ำตามสัทอักษรภาษาอังกฤษ (Cream)",
+        explanation3: "สรุปหลักการสะกด: คำทับศัพท์ภาษาอังกฤษคำนี้ ราชบัณฑิตยสภากำหนดให้ใช้เสียง ก.ไก่ เป็น 'กรีม' เสมอนะคะ"
+      },
+      {
+        word: "สุนัข",
+        incorrect: "สุนัก",
+        sentence: "เจ้าตูบเป็น ______ แสนรู้ที่คอยวิ่งมารับหน้าบ้านทุกวัน",
+        explanation1: "เฉลยคำตอบคือ 'สุนัข' ค่ะ! สะกดด้วย ข.ไข่ เป็นตัวสะกดในมาตราแม่กด",
+        explanation2: "คำว่า 'สุนัก' เขียนสะกดผิดเพราะใช้ตัวสะกด ก.ไก่ ซึ่งเป็นการสะกดตรงตามมาตราแม่กกเฉยๆ",
+        explanation3: "สรุปหลักการสะกด: สุนัข เป็นคำยืมบาลีสันสกฤต แปลว่าผู้มีเล็บงาม จึงสะกดท้ายด้วยตัว ข.ไข่ ค่ะ"
+      },
+      {
+        word: "ผลลัพธ์",
+        incorrect: "ผลลับ",
+        sentence: "น้องน้ำฟ้าได้ทำโจทย์คณิตศาสตร์และหา ______ ของเลขบวกข้อนี้ออกมาได้",
+        explanation1: "เฉลยคำตอบคือ 'ผลลัพธ์' ค่ะ! สะกดท้ายด้วย พ.พาน และมี ธ.ธง การันต์ (ธ์)",
+        explanation2: "คำว่า 'ผลลับ' สะกดผิด เพราะใช้ตัวสะกด บ.ใบไม้ ซึ่งจะหมายความว่า ความลับ หรือ ความลี้ลับ",
+        explanation3: "สรุปหลักการสะกด: ลัพธ์ หมายถึงสิ่งที่ได้มาหรือการรับมา จึงใช้ พ.พาน และ ธ.ธงการันต์ เสมอสำหรับคำตอบเลข"
+      },
+      {
+        word: "ทะเลสาบ",
+        incorrect: "ทะเลสาป",
+        sentence: "พวกเราชอบไปปิกนิกและขี่เรือถีบเล่นกันในบริเวณ ______ ขนาดใหญ่",
+        explanation1: "เฉลยคำตอบคือ 'ทะเลสาบ' ค่ะ! ใช้ตัวสะกด บ.ใบไม้ ในมาตราแม่กบ",
+        explanation2: "คำว่า 'ทะเลสาป' สะกดผิดเพราะใช้ ป.ปลา ซึ่งคำว่า 'สาป' ป.ปลา นั้นจะหมายถึงคำสาปแช่ง",
+        explanation3: "สรุปหลักการสะกด: ผืนน้ำขนาดใหญ่มีบกโอบล้อมรอบใช้ 'สาบ' บ.ใบไม้ ส่วน ป.ปลา ใช้กับคำสาปแช่ง สาปส่งค่ะ"
+      },
+      {
+        word: "ตะกร้า",
+        incorrect: "ทะกร้า",
+        sentence: "คุณยายเตรียมจัดขนมใส่ลงใน ______ เพื่อนำไปทำบุญตักบาตรที่วัด",
+        explanation1: "เฉลยคำตอบคือ 'ตะกร้า' ค่ะ! พยางค์แรกสะกดด้วย ต.เต่า (ตะ-)",
+        explanation2: "คำว่า 'ทะกร้า' สะกดผิดเพราะใช้ ท.ทหาร ซึ่งไม่ตรงตามตัวสะกดและคำอ่านของไทยแท้",
+        explanation3: "สรุปหลักการสะกด: เครื่องจักสานรูปทรงเปิดสำหรับใส่ของใช้ ต.เต่า สะกดว่า 'ตะกร้า' นะคนเก่ง"
+      },
+      {
+        word: "กะทันหัน",
+        incorrect: "กระทันหัน",
+        sentence: "คนขี่จักรยานเบรกกะทัดรัดและกุดหลบหลุมอย่าง ______ ทำให้คนข้างหลังตกใจ",
+        explanation1: "เฉลยคำตอบคือ 'กะทันหัน' ค่ะ! พยางค์แรกสะกดด้วย 'กะ' แบบไม่มี ร.เรือ ควบกล้ำ",
+        explanation2: "คำว่า 'กระทันหัน' สะกดไม่ถูกต้องเนื่องจากออกเสียงควบกล้ำรวบรัดเสียงจนจำสับสนปะปนกับ ร.เรือ",
+        explanation3: "สรุปหลักการสะกด: คำที่มีความหมายว่าเกิดขึ้นในทันทีทันใด ด่วนมากๆ สะกดว่า 'กะทันหัน' ไม่มี ร.เรือ ค่ะ"
+      },
+      {
+        word: "กะพริบ",
+        incorrect: "กระพริบ",
+        sentence: "แสงดาวระยิบระยับส่งแสง ______ ไปมาบนท้องฟ้ายามค่ำคืน",
+        explanation1: "เฉลยคำตอบคือ 'กะพริบ' ค่ะ! คำว่า 'กะ' ไม่มี ร.เรือ ควบกล้ำ ส่วน 'พริบ' มี ร.เรือ ควบกล้ำถูกต้อง",
+        explanation2: "คำว่า 'กระพริบ' เขียนไม่ถูกต้องเนื่องจากใส่ตัวสะกด ร.เรือ ลงในพยางค์หน้าโดยเกินความจำเป็น",
+        explanation3: "สรุปหลักการสะกด: คำกิริยาเกี่ยวกับการลืมตา-หลับตาถี่ๆ หรือไฟกะพริบ ใช้ 'กะ' (ไม่มี ร.เรือ) นะคนเก่ง"
+      },
+      {
+        word: "วันพุธ",
+        incorrect: "วันพุด",
+        sentence: "คุณครูจัดกิจกรรมพิเศษเล่านิทานในห้องสมุดในเวลา ______ ของทุกสัปดาห์",
+        explanation1: "เฉลยคำตอบคือ 'วันพุธ' ค่ะ! ใช้ตัวสะกดตัว ธ.ธง ในมาตราแม่กด",
+        explanation2: "คำว่า 'วันพุด' สะกดผิดเพราะใช้ ด.เด็ก ซึ่งจะแปลว่า ดอกพุด หรือการนำสิ่งของมากองสุมรวมกัน",
+        explanation3: "สรุปหลักการสะกด: วันพุธ เป็นชื่อดาวเคราะห์และวันที่ 4 ของสัปดาห์ สะกดด้วย ธ.ธง เสมอนะคะ"
+      }
+    ];
+
+    // Avatar lists for questions to make it animated
+    const avatars = ["🐵", "🐼", "🦊", "🦁", "🐰", "🐨", "🐸", "🐻", "🐙", "🐠"];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+
+    // Toggle options
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    // Registration and Leaderboard logic
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊");
+        return;
+      }
+      playerName = name;
+      
+      const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
+      playerTitle = titleRadio ? titleRadio.value : "king";
+      
+      document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;
+      
+      // Hide registration, show play screen
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      
+      // Voice greeting
+      synth.init();
+      const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      const welcomeMsg = `ยินดีต้อนรับ ${roleTh} ${playerName} เข้าสู่การท้าทายป่าสะกดคำภาษาไทยค่ะ`;
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      
+      score = 0;
+      currentIdx = 0;
+      answersCorrectCount = 0;
+      loadQuestion();
+    }
+
+    // Setup active question
+    function loadQuestion() {
+      if (currentIdx >= questions.length) {
+        finishGame();
+        return;
+      }
+      
+      // Update HUD
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
+      document.getElementById('hud-score').innerText = score;
+      
+      const q = questions[currentIdx];
+      
+      // Setup Sentence display with Blank
+      const sentenceHTML = q.sentence.replace("______", "<span class='blank-space' id='blank-word'>______</span>");
+      document.getElementById('question-sentence').innerHTML = sentenceHTML;
+      
+      // Set random avatar
+      const randAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+      document.getElementById('question-avatar').innerText = randAvatar;
+      
+      // Randomly assign choices to A and B
+      const isCorrectOnA = Math.random() < 0.5;
+      
+      const btnA = document.getElementById('choice-a');
+      const btnB = document.getElementById('choice-b');
+      
+      // Reset UIs
+      btnA.className = "choice-btn";
+      btnB.className = "choice-btn";
+      
+      if (isCorrectOnA) {
+        btnA.innerText = `ก) ${q.word}`;
+        btnA.setAttribute('data-correct', 'true');
+        btnB.innerText = `ข) ${q.incorrect}`;
+        btnB.setAttribute('data-correct', 'false');
+      } else {
+        btnA.innerText = `ก) ${q.incorrect}`;
+        btnA.setAttribute('data-correct', 'false');
+        btnB.innerText = `ข) ${q.word}`;
+        btnB.setAttribute('data-correct', 'true');
+      }
+      
+      // Auto-read question if Speech is enabled
+      if (speechEnabled) {
+        setTimeout(() => {
+          speakCurrentQuestion();
+        }, 500);
+      }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel(); // Stop any active reading
+      
+      const q = questions[currentIdx];
+      // Clean sentence blank for reading
+      const sentenceRead = q.sentence.replace("______", "ช่องว่าง");
+      const readText = `คำถามข้อที่ ${currentIdx + 1}. ประโยคกล่าวว่า. ${sentenceRead}. เลือกตัวสะกดคำเติมในช่องว่างระหว่าง. ตัวเลือกที่หนึ่ง. ${q.word}. หรือ ตัวเลือกที่สอง. ${q.incorrect}`;
+      
+      const utterance = new SpeechSynthesisUtterance(readText);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(choiceNum) {
+      window.speechSynthesis.cancel();
+      
+      const btnClicked = choiceNum === 0 ? document.getElementById('choice-a') : document.getElementById('choice-b');
+      const isCorrect = btnClicked.getAttribute('data-correct') === 'true';
+      
+      const q = questions[currentIdx];
+      
+      // Lock elements on board and show UI changes
+      if (isCorrect) {
+        synth.playCorrect();
+        btnClicked.classList.add('correct-ui');
+        score += 100;
+        answersCorrectCount++;
+        
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnClicked.classList.add('incorrect-ui');
+        
+        // highlight correct one
+        const btnA = document.getElementById('choice-a');
+        const btnB = document.getElementById('choice-b');
+        if (btnA.getAttribute('data-correct') === 'true') btnA.classList.add('correct-ui');
+        if (btnB.getAttribute('data-correct') === 'true') btnB.classList.add('correct-ui');
+        
+        document.getElementById('result-icon').innerText = "😢";
+        document.getElementById('result-title').innerText = "พยายามใหม่นะคนเก่ง!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+      
+      // Update blank space text
+      document.getElementById('blank-word').innerText = q.word;
+      document.getElementById('blank-word').style.borderBottomStyle = "solid";
+      
+      // Setup Explanation modal
+      document.getElementById('exp-correct').innerText = q.explanation1;
+      document.getElementById('exp-incorrect').innerText = q.explanation2;
+      document.getElementById('exp-summary').innerText = q.explanation3;
+      
+      // Open explanation overlay
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        
+        // Speak the explanation automatically
+        if (speechEnabled) {
+          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} คำอธิบายบอกว่า ${q.explanation1}. ${q.explanation2}. ${q.explanation3}`;
+          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
+          utterance.lang = 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      
+      // Update Leaderboard Data
+      saveLeaderboardData();
+      
+      // Display Summary
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      
+      // Set Star levels
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 18) {
+        starStr = "⭐⭐⭐";
+      } else if (answersCorrectCount >= 12) {
+        starStr = "⭐⭐";
+      } else {
+        starStr = "⭐";
+      }
+      starsDisplay.innerText = starStr;
+      
+      // Set Certificate descriptions
+      const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
+      document.getElementById('cert-score-desc').innerText = `สะกดคำได้ถูกต้องทั้งหมด ${answersCorrectCount} จาก 20 ข้อ (คะแนนสะสม: ${score} คะแนน)`;
+      
+      // Speak final congratulations
+      if (speechEnabled) {
+        const speakFinish = `เก่งมากๆ เลยค่ะ! ${titleTh} ${playerName} ท้าทายป่าสะกดคำเสร็จสิ้นด้วยคะแนนสะสม ${score} คะแนนค่ะ`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() {
+      window.print();
+    }
+
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    // Leaderboard utilities
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('thai_spelling_leaderboard')) || [];
+      
+      // check if player name exists
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
+      
+      if (idx !== -1) {
+        if (score > leaderboard[idx].score) {
+          leaderboard[idx].score = score;
+        }
+      } else {
+        leaderboard.push({
+          name: playerName,
+          title: playerTitle,
+          score: score
+        });
+      }
+      
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('thai_spelling_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('thai_spelling_leaderboard')) || [];
+      const box = document.getElementById('leaderboard-box');
+      
+      if (leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีบัลลังก์เกียรติยศสูงสุดค่ะ</div>`;
+        return;
+      }
+      
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+        const crownColor = item.title === 'king' ? 'var(--color-secondary)' : 'var(--color-accent-pink)';
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        
+        return `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}">
+            <span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span>
+            <span>${item.score} คะแนน</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initial render
+    renderLeaderboard();
+  </script>
+</body>
+</html>

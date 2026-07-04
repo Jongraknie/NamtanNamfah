@@ -1090,6 +1090,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   });
   
+  document.getElementById('btn-select-thai').addEventListener('click', () => {
+    sounds.init();
+    speakText('ไปผจญภัยในดินแดนสะกดคำภาษาไทยกันเลยค่ะน้ำฟ้า!', 'th-TH');
+    setTimeout(() => {
+      window.location.href = 'thai.html';
+    }, 1000);
+  });
+  
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

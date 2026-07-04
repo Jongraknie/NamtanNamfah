@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ยานอวกาศสะกดคำทายเดือน | สำหรับ น้ำฟ้า 💖</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Orbitron:wght@400;700;900&family=Prompt:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #ff007f;
+      --neon-yellow: #ffea00;
+      --neon-green: #39ff14;
+      --bg-space: #0b0b1a;
+      --panel-bg: rgba(18, 18, 48, 0.85);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+      --font-space: 'Orbitron', 'Prompt', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-space);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(255, 0, 127, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.12) 0%, transparent 45%);
+      color: #ffffff;
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .app-header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--panel-bg);
+      padding: 12px 25px;
+      border-radius: 25px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+      border: 1.5px solid rgba(0, 240, 255, 0.25);
+    }
+
+    .btn-back {
+      font-family: var(--font-playful);
+      font-size: 1rem;
+      padding: 8px 16px;
+      border: 1.5px solid var(--neon-cyan);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--neon-cyan);
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
+    }
+
+    .btn-back:hover {
+      background: var(--neon-cyan);
+      color: var(--bg-space);
+      box-shadow: 0 0 15px var(--neon-cyan);
+      transform: translateX(-3px);
+    }
+
+    .logo-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-header h2 {
+      font-family: var(--font-space);
+      font-size: 1.3rem;
+      color: #ffffff;
+      text-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      transform: scale(1.1);
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 10px var(--neon-magenta);
+    }
+
+    /* Main Container */
+    .game-container {
+      width: 100%;
+      max-width: 650px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    /* HUD */
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .hud-card {
+      background: var(--panel-bg);
+      border-radius: 20px;
+      padding: 10px 15px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1.5px solid rgba(0, 240, 255, 0.2);
+      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.05);
+    }
+
+    .hud-label {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+    }
+
+    .hud-value {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 5px var(--neon-cyan);
+    }
+
+    /* Rocket Track Progress */
+    .rocket-track-container {
+      background: var(--panel-bg);
+      border-radius: 25px;
+      padding: 15px 20px;
+      border: 1.5px solid rgba(255, 0, 127, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-line {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      position: relative;
+      margin: 20px 10px;
+    }
+
+    .track-progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.6s ease;
+      box-shadow: 0 0 10px var(--neon-magenta);
+    }
+
+    .rocket-node {
+      position: absolute;
+      top: -18px;
+      left: 0%;
+      transform: translateX(-50%);
+      font-size: 1.8rem;
+      transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+      filter: drop-shadow(0 0 8px var(--neon-cyan));
+    }
+
+    /* Play Area Card */
+    .question-card {
+      background: var(--panel-bg);
+      border-radius: 30px;
+      padding: 30px 25px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border: 2px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .speaker-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn-speak-dictation {
+      background: rgba(0, 240, 255, 0.1);
+      border: 2px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 2.2rem;
+      transition: all 0.25s;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); transform: scale(1); }
+      100% { box-shadow: 0 0 25px rgba(0, 240, 255, 0.5); transform: scale(1.05); }
+    }
+
+    .btn-speak-dictation:hover {
+      background: var(--neon-cyan);
+      color: var(--bg-space);
+      box-shadow: 0 0 30px var(--neon-cyan);
+    }
+
+    .btn-speak-dictation:active {
+      transform: scale(0.95);
+    }
+
+    .hint-text {
+      font-size: 1.25rem;
+      color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    /* Spelling Input */
+    .answer-input-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .spelling-input {
+      flex: 1;
+      font-family: var(--font-space);
+      font-size: 1.6rem;
+      font-weight: bold;
+      padding: 10px 15px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      text-align: center;
+      outline: none;
+      letter-spacing: 2px;
+      transition: all 0.3s;
+    }
+
+    .spelling-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    }
+
+    .btn-clear {
+      background: rgba(255, 0, 127, 0.1);
+      border: 2px solid var(--neon-magenta);
+      color: var(--neon-magenta);
+      border-radius: 16px;
+      width: 60px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .btn-clear:hover {
+      background: var(--neon-magenta);
+      color: #fff;
+      box-shadow: 0 0 15px var(--neon-magenta);
+    }
+
+    /* Scrambled Letter Tiles */
+    .letter-tiles-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 25px;
+      max-width: 500px;
+    }
+
+    .letter-tile {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      font-family: var(--font-space);
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .letter-tile:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .letter-tile:active {
+      transform: scale(0.9);
+    }
+
+    /* Actions */
+    .btn-submit {
+      font-family: var(--font-playful);
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-magenta) 100%);
+      border: none;
+      border-radius: 50px;
+      padding: 12px 40px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+      transition: all 0.25s;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(255, 0, 127, 0.5);
+    }
+
+    /* Explanation Overlay */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 11, 26, 0.9);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--panel-bg);
+      border-radius: 30px;
+      width: 100%;
+      max-width: 500px;
+      padding: 30px 25px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+      text-align: center;
+      border: 3px solid var(--neon-cyan);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .result-icon {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      font-family: var(--font-space);
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+
+    .result-title.correct {
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
+    }
+
+    .result-title.incorrect {
+      color: var(--neon-red);
+      text-shadow: 0 0 10px var(--neon-red);
+    }
+
+    .explanation-box {
+      text-align: left;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 20px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .exp-step {
+      margin-bottom: 12px;
+    }
+
+    .exp-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .exp-step-title {
+      font-weight: bold;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    /* Score summary page */
+    .summary-screen {
+      background: var(--panel-bg);
+      border-radius: 30px;
+      padding: 40px 30px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+      text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      border: 3px solid var(--neon-cyan);
+    }
+
+    .stars-display {
+      font-size: 3rem;
+      color: var(--neon-yellow);
+      margin: 15px 0;
+      letter-spacing: 5px;
+      text-shadow: 0 0 10px var(--neon-yellow);
+    }
+
+    /* Certificate Box for Print preview */
+    .certificate-card {
+      border: 8px double var(--neon-cyan);
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 20px;
+      padding: 25px;
+      width: 100%;
+      max-width: 480px;
+      margin: 20px 0;
+      position: relative;
+      text-align: center;
+      box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .cert-title {
+      font-family: var(--font-space);
+      font-size: 1.5rem;
+      color: #ffffff;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    .cert-subtitle {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cert-name-input {
+      font-family: var(--font-playful);
+      font-size: 1.4rem;
+      border: none;
+      border-bottom: 2px solid var(--neon-magenta);
+      background: transparent;
+      text-align: center;
+      color: var(--neon-magenta);
+      font-weight: bold;
+      width: 70%;
+      margin-bottom: 10px;
+      outline: none;
+      text-shadow: 0 0 5px var(--neon-magenta);
+    }
+
+    .cert-desc {
+      font-size: 1rem;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .cert-score {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--neon-green);
+      margin-top: 5px;
+      text-shadow: 0 0 5px var(--neon-green);
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * {
+        visibility: visible;
+      }
+      .summary-screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        background: transparent;
+      }
+      .certificate-card {
+        border: 15px double #00f0ff !important;
+        background: white !important;
+        color: black !important;
+        width: 90%;
+        max-width: 100%;
+        margin: 50px auto;
+        padding: 40px;
+        box-shadow: none;
+      }
+      .cert-title {
+        color: black !important;
+        text-shadow: none !important;
+      }
+      .cert-name-input {
+        color: #ff007f !important;
+        border-bottom-color: #ff007f !important;
+        text-shadow: none !important;
+        font-size: 2.2rem;
+      }
+      .cert-desc, .cert-subtitle {
+        color: black !important;
+      }
+      .cert-score {
+        color: green !important;
+        text-shadow: none !important;
+      }
+      .btn-submit, .btn-back, .hud-bar, .app-header {
+        display: none !important;
+      }
+    }
+
+    /* Registration Input */
+    .register-input {
+      font-family: var(--font-playful);
+      font-size: 1.1rem;
+      padding: 10px 15px;
+      border: 2px solid var(--neon-cyan);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      width: 80%;
+      max-width: 280px;
+      text-align: center;
+      margin-bottom: 15px;
+      outline: none;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+    }
+
+    .register-input:focus {
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+    }
+
+    .register-title-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .register-label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .leaderboard-container {
+      margin-top: 15px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .leaderboard-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--neon-cyan);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      text-align: center;
+      text-shadow: 0 0 5px var(--neon-cyan);
+    }
+
+    .leaderboard-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1.5px dashed var(--neon-cyan);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    @media (max-width: 500px) {
+      .answer-input-container {
+        max-width: 100%;
+      }
+      .letter-tile {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+      }
+      .spelling-input {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🚀</span>
+      <h2>Space Months Spelling</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงสะกดเดือน" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <!-- Registration Screen -->
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">👩‍🚀</div>
+      <h3 style="font-family: var(--font-space); font-size: 1.5rem; color: #ffffff; margin-bottom: 10px; text-shadow: 0 0 8px var(--neon-cyan);">เดือนดาราจักรสะกดคำ</h3>
+      <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; font-size: 0.95rem;">กรอกชื่อเพื่อบันทึกคะแนนสูงสุดและชิงตำแหน่งพระราชา/ราชินีดวงดาวกันค่ะ!</p>
+      
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อนักบินอวกาศน้อย..." maxlength="12" class="register-input">
+      
+      <div class="register-title-group">
+        <label class="register-label">
+          <input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--neon-cyan); scale: 1.2;">
+          <span>👑 พระราชา (King)</span>
+        </label>
+        <label class="register-label">
+          <input type="radio" name="reg-player-title" value="queen" style="accent-color: var(--neon-magenta); scale: 1.2;">
+          <span>👑 ราชินี (Queen)</span>
+        </label>
+      </div>
+
+      <button class="btn-submit" onclick="registerAndStart()">เริ่มทะยานอวกาศ 🚀</button>
+
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 ผู้ครองดวงดาวคะแนนสูงสุด</div>
+        <div id="leaderboard-box" class="leaderboard-box">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Game Screen -->
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card">
+          <span class="hud-label">ชื่อผู้เล่น</span>
+          <span id="hud-name" class="hud-value">-</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">เดือนลำดับที่</span>
+          <span id="hud-progress" class="hud-value">1/12</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">คะแนนสะสม</span>
+          <span id="hud-score" class="hud-value">0</span>
+        </div>
+      </div>
+
+      <!-- Rocket progress track -->
+      <div class="rocket-track-container">
+        <div class="track-line">
+          <div class="track-progress" id="rocket-progress"></div>
+          <div class="rocket-node" id="rocket-icon">🚀</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 5px; font-family: var(--font-space);">
+          <span>START</span>
+          <span>GOAL</span>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <div class="speaker-section">
+          <button class="btn-speak-dictation" id="btn-speak" onclick="speakCurrentMonth()" title="ฟังเสียงอ่านเพื่อเขียนตามคำบอก">🔊</button>
+          <span style="font-size: 0.85rem; color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan); text-transform: uppercase;">ฟังเสียงเดือน (Listen)</span>
+        </div>
+        
+        <p class="hint-text" id="question-hint">เดือนที่ 1 ของปี</p>
+        
+        <div class="answer-input-container">
+          <input type="text" id="spelling-input" class="spelling-input" placeholder="สะกดตรงนี้..." readonly>
+          <button class="btn-clear" onclick="backspace()" title="ลบพยัญชนะท้ายสุด">⌫</button>
+        </div>
+
+        <div class="letter-tiles-container" id="tiles-container">
+          <!-- Filled by JS -->
+        </div>
+        
+        <button class="btn-submit" onclick="checkSpelling()">ตรวจคำตอบ (Check) 🎯</button>
+      </div>
+    </div>
+
+    <!-- Results Explanation Overlay -->
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">Correct!</h3>
+        
+        <div class="explanation-box">
+          <div class="exp-step">
+            <span class="exp-step-title">1. สะกดคำที่ถูกต้อง:</span>
+            <div id="exp-correct" style="color: var(--neon-green); font-weight: 600; font-family: var(--font-space); font-size: 1.2rem;">-</div>
+          </div>
+          <div class="exp-step">
+            <span class="exp-step-title">2. ข้อผิดพลาดที่ควรสังเกต:</span>
+            <div id="exp-incorrect" style="color: rgba(255,255,255,0.85);">-</div>
+          </div>
+          <div class="exp-step">
+            <span class="exp-step-title">3. ความรู้และที่มาของเดือน:</span>
+            <div id="exp-summary" style="color: var(--neon-cyan); font-style: italic;">-</div>
+          </div>
+        </div>
+        
+        <button class="btn-submit" onclick="nextQuestion()">ไปดาวดวงถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <!-- Summary / Finished Screen -->
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area" style="font-size: 4rem;">🏆🛸</div>
+      <h2 style="font-family: var(--font-space); font-size: 1.8rem; color: #ffffff; text-shadow: 0 0 10px var(--neon-cyan); margin-bottom: 10px;">พิชิตระบบสุริยะสำเร็จ!</h2>
+      <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">คุณได้เขียนสะกดเดือนภาษาอังกฤษครบทั้ง 12 เดือนแล้ว</p>
+      
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+
+      <!-- Certificate Frame -->
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบรับรองผู้พิชิตดวงดาว</div>
+        <div class="cert-subtitle">Space Months spelling champion</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
+        <p class="cert-desc">ได้พิชิตเกมนวัตกรรมเขียนตามคำบอก เดือนดาราจักร 12 เดือน</p>
+        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนสะสม 1200 คะแนนเต็ม!</p>
+      </div>
+
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-submit" onclick="printCertificate()" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);">🖨️ พิมพ์ใบรับรอง</button>
+        <button class="btn-submit" onclick="resetToHome()">🔄 ทะยานใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State variables
+    let playerName = "";
+    let playerTitle = "king";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+    let currentSpellingText = "";
+
+    // Web Audio Synthesizer for SFX
+    const synth = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+      playCorrect() {
+        if (!soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.25);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(110, now);
+        osc.frequency.linearRampToValueAtTime(65, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+    };
+
+    // 12 Months Data with Hints and Explanations
+    const months = [
+      {
+        word: "January",
+        thai: "มกราคม",
+        hint: "เดือนที่ 1 ของปี (มกราคม)",
+        mistake: "มักจะสะกดผิดโดยสะกดสลับเป็น Janury หรือลืมตัว a ท้ายคำค่ะ",
+        summary: "January ตั้งชื่อตามเทพเจ้าโรมัน Janus ผู้มีสองใบหน้า หันมองไปข้างหน้าและข้างหลัง สื่อถึงการสิ้นสุดปีเก่าและเริ่มต้นปีใหม่นั่นเองค่ะ"
+      },
+      {
+        word: "February",
+        thai: "กุมภาพันธ์",
+        hint: "เดือนที่ 2 ของปี (กุมภาพันธ์)",
+        mistake: "เป็นเดือนที่เขียนยาก มักสะกดสลับและลืมตัวอักษร 'r' พยางค์แรกเป็น Febuary ค่ะ",
+        summary: "คำนี้ให้สะกดและจำว่า Feb-ru-ary เสมอนะคะ! ตั้งชื่อตามพิธีกรรมชำระล้างบาปของชาวโรมันโบราณ (Februa)"
+      },
+      {
+        word: "March",
+        thai: "มีนาคม",
+        hint: "เดือนที่ 3 ของปี (มีนาคม)",
+        mistake: "มักสะกดสับสนโดยลืมตัวอักษร 'r' ตัวสะกดกลางคำเป็น Mach ค่ะ",
+        summary: "March ตั้งชื่อตามเทพเจ้าสงครามของโรมัน Mars เพราะเป็นช่วงฤดูใบไม้ผลิที่หิมะละลาย เหมาะแก่การส่งกองทัพออกไปปกป้องบ้านเมือง"
+      },
+      {
+        word: "April",
+        thai: "เมษายน",
+        hint: "เดือนที่ 4 ของปี (เมษายน)",
+        mistake: "มักสะกดไม่ถูกต้องโดยเติมตัวอักษร 'e' เป็น Aprile ค่ะ",
+        summary: "April มาจากรากศัพท์ละติน Aperire แปลว่า 'การเปิดออก' ซึ่งหมายถึงช่วงเวลาที่ดอกไม้ต่างๆ บานเปิดต้อนรับแสงแดดนั่นเองค่ะ"
+      },
+      {
+        word: "May",
+        thai: "พฤษภาคม",
+        hint: "เดือนที่ 5 ของปี (พฤษภาคม)",
+        mistake: "แม้สะกดสั้นและง่ายมาก แต่มักลืมขึ้นต้นพยัญชนะด้วยตัวพิมพ์ใหญ่ตัว M เสมอนะคะ",
+        summary: "May ตั้งชื่อตามเทพธิดากรีก Maia ผู้ดูแลรักษาพืชพรรณเจริญเติบโต และความอุดมสมบูรณ์ของดิน"
+      },
+      {
+        word: "June",
+        thai: "มิถุนายน",
+        hint: "เดือนที่ 6 ของปี (มิถุนายน)",
+        mistake: "มักจะสับสนนำพยัญชนะไปปะปนกับ July และสะกดสลับตำแหน่งเป็น Juen หรือ Juyn ค่ะ",
+        summary: "June ตั้งชื่อตามเทพธิดา Juno เทพธิดาผู้ปกป้องผู้หญิงและการแต่งงานของอารยธรรมโรมัน"
+      },
+      {
+        word: "July",
+        thai: "กรกฎาคม",
+        hint: "เดือนที่ 7 ของปี (กรกฎาคม)",
+        mistake: "พบบ่อยว่าเขียนสะกดผิดโดยเปลี่ยนเป็น Julay ค่ะ",
+        summary: "July ตั้งขึ้นตามชื่อของ Julius Caesar ผู้นำที่เก่งที่สุดคนหนึ่งของประวัติศาสตร์โรมัน ซึ่งเกิดในเดือนนี้นั่นเองค่ะ"
+      },
+      {
+        word: "August",
+        thai: "สิงหาคม",
+        hint: "เดือนที่ 8 ของปี (สิงหาคม)",
+        mistake: "คำนี้สระยาก มักเขียนสะกดผิดเป็น Aguest หรือ Augest ค่ะ",
+        summary: "August ตั้งชื่อเพื่อเป็นเกียรติแก่จักรพรรดิโรมันคนแรก Augustus Caesar ผู้มีความสง่างามและมีเกียรติยศ"
+      },
+      {
+        word: "September",
+        thai: "กันยายน",
+        hint: "เดือนที่ 9 ของปี (กันยายน)",
+        mistake: "มักจะสับสนตรงตัวสระกลางคำ สะกดผิดเป็น Septamber (ใช้ a แทน e) หรือลืมตัว m ค่ะ",
+        summary: "September มาจากคำละติน Septem แปลว่า เจ็ด เพราะเดิมทีในปฏิทินโรมันโบราณ เดือนนี้เคยเป็นเดือนที่ 7 มาก่อนค่ะ"
+      },
+      {
+        word: "October",
+        thai: "ตุลาคม",
+        hint: "เดือนที่ 10 ของปี (ตุลาคม)",
+        mistake: "มักเขียนผิดบ่อยตรงส่วนสะกดลงท้ายคำเป็น Octobar (ใช้ a แทน e) ค่ะ",
+        summary: "October มาจากรากศัพท์ Octo แปลว่า แปด เช่นเดียวกับ Octopus ที่แปลว่าปลาหมึกแปดหนวด"
+      },
+      {
+        word: "November",
+        thai: "พฤศจิกายน",
+        hint: "เดือนที่ 11 ของปี (พฤศจิกายน)",
+        mistake: "มักสะกดสับสนระหว่างตัว 'n' และตัว 'm' หรือเขียนเป็น November (ลืมตัว m) ค่ะ",
+        summary: "November มาจากคำละติน Novem แปลว่า เก้า ซึ่งสอดคล้องกับตำแหน่งลำดับที่เก้าในอดีต"
+      },
+      {
+        word: "December",
+        thai: "ธันวาคม",
+        hint: "เดือนที่ 12 ของปี (ธันวาคม)",
+        hint: "เดือนที่ 12 ของปี (ธันวาคม)",
+        mistake: "พบบ่อยว่าสะกดคำท้ายผิดเป็น Decamber (ใช้ a แทน e) ค่ะ",
+        summary: "December มาจากรากศัพท์ละติน Decem แปลว่า สิบ (เช่นเดียวกับเลขฐานสิบในคำว่า Decimal) เป็นเดือนสุดท้ายของปีแสนอบอุ่น"
+      }
+    ];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    // Register Player
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("กรุณากรอกชื่อนักบินอวกาศก่อนทะยานฟ้านะคะ! 😊");
+        return;
+      }
+      playerName = name;
+      
+      const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
+      playerTitle = titleRadio ? titleRadio.value : "king";
+      
+      document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;
+      
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      
+      synth.init();
+      const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      const welcomeMsg = `Welcome ${roleTh} ${playerName} to Space Months spelling game! Let's start!`;
+      
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+      
+      score = 0;
+      currentIdx = 0;
+      answersCorrectCount = 0;
+      loadQuestion();
+    }
+
+    // Load active month spelling
+    function loadQuestion() {
+      if (currentIdx >= months.length) {
+        finishGame();
+        return;
+      }
+      
+      // Update HUD
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${months.length}`;
+      document.getElementById('hud-score').innerText = score;
+      
+      // Update Rocket Progress
+      const pct = (currentIdx / months.length) * 100;
+      document.getElementById('rocket-progress').style.width = `${pct}%`;
+      document.getElementById('rocket-icon').style.left = `${pct}%`;
+      
+      const m = months[currentIdx];
+      document.getElementById('question-hint').innerText = `เดือนที่ ${currentIdx + 1} ของปี: ${m.thai}`;
+      
+      // Reset input spelling text
+      currentSpellingText = "";
+      document.getElementById('spelling-input').value = "";
+      
+      // Generate scrambled letter tiles
+      generateTiles(m.word);
+      
+      // Auto-read month word
+      if (speechEnabled) {
+        setTimeout(() => {
+          speakCurrentMonth();
+        }, 600);
+      }
+    }
+
+    // Speak month pronunciation in native accent
+    function speakCurrentMonth() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      
+      const m = months[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(m.word);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.85; // slower rate for dictation
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Generate Scrambled Tiles
+    function generateTiles(word) {
+      const container = document.getElementById('tiles-container');
+      container.innerHTML = "";
+      
+      // Split word to letters, shuffle them
+      let letters = word.split('');
+      
+      // Fisher-Yates shuffle
+      for (let i = letters.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [letters[i], letters[j]] = [letters[j], letters[i]];
+      }
+      
+      // Draw tiles
+      letters.forEach(char => {
+        const tile = document.createElement('div');
+        tile.className = "letter-tile";
+        tile.innerText = char;
+        tile.addEventListener('click', () => {
+          appendChar(char);
+        });
+        container.appendChild(tile);
+      });
+    }
+
+    function appendChar(char) {
+      currentSpellingText += char;
+      document.getElementById('spelling-input').value = currentSpellingText;
+      synth.playMove(); // simple key tone sound
+    }
+
+    function backspace() {
+      if (currentSpellingText.length > 0) {
+        currentSpellingText = currentSpellingText.slice(0, -1);
+        document.getElementById('spelling-input').value = currentSpellingText;
+      }
+    }
+
+    // Check spelling
+    function checkSpelling() {
+      window.speechSynthesis.cancel();
+      const m = months[currentIdx];
+      const answer = currentSpellingText.trim();
+      
+      // Case sensitive check: Months in English must start with Capital Letter!
+      const isCorrect = (answer === m.word); 
+      
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        answersCorrectCount++;
+        
+        document.getElementById('result-icon').innerText = "🛸";
+        document.getElementById('result-title').innerText = "Correct! 🌟";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        
+        document.getElementById('result-icon').innerText = "💥";
+        document.getElementById('result-title').innerText = "Oops! Incorrect";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+      
+      // Setup Explanation modal
+      document.getElementById('exp-correct').innerText = m.word;
+      document.getElementById('exp-incorrect').innerText = m.mistake;
+      document.getElementById('exp-summary').innerText = m.summary;
+      
+      // Open explanation overlay
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        
+        // Speak the month's spelling in English
+        if (speechEnabled) {
+          const speakText = `${isCorrect ? 'Correct!' : 'Incorrect!'} Spelling is ${m.word.split('').join(' ')}`;
+          const utterance = new SpeechSynthesisUtterance(speakText);
+          utterance.lang = 'en-US';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 600);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      
+      // Draw Rocket final destination
+      document.getElementById('rocket-progress').style.width = `100%`;
+      document.getElementById('rocket-icon').style.left = `100%`;
+      
+      // Save stats to leaderboard
+      saveLeaderboardData();
+      
+      // Show summary screen
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      
+      // Star rating
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 11) {
+        starStr = "⭐⭐⭐";
+      } else if (answersCorrectCount >= 8) {
+        starStr = "⭐⭐";
+      } else {
+        starStr = "⭐";
+      }
+      starsDisplay.innerText = starStr;
+      
+      // Certificate text
+      const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
+      document.getElementById('cert-score-desc').innerText = `สะกดคำศัพท์เดือนภาษาอังกฤษได้ถูกต้องทั้งหมด ${answersCorrectCount} จาก 12 เดือน (คะแนนสะสม: ${score} คะแนน)`;
+      
+      if (speechEnabled) {
+        const speakFinish = `Congratulations ${titleTh} ${playerName}! You have completed the spelling mission with ${score} points!`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() {
+      window.print();
+    }
+
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    // Leaderboard logic
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('space_months_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
+      
+      if (idx !== -1) {
+        if (score > leaderboard[idx].score) {
+          leaderboard[idx].score = score;
+        }
+      } else {
+        leaderboard.push({
+          name: playerName,
+          title: playerTitle,
+          score: score
+        });
+      }
+      
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('space_months_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('space_months_leaderboard')) || [];
+      const box = document.getElementById('leaderboard-box');
+      
+      if (leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 4px;">ยังไม่มีผู้สร้างบันทึกสถิตินักบินอวกาศสูงสุดค่ะ</div>`;
+        return;
+      }
+      
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+        const crownColor = item.title === 'king' ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
+        const rankColor = idx === 0 ? 'var(--neon-yellow)' : 'rgba(255,255,255,0.85)';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        
+        return `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}">
+            <span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span>
+            <span>${item.score} คะแนน</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initial render
+    renderLeaderboard();
+  </script>
+</body>
+</html>

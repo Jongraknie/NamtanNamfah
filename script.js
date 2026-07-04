@@ -1098,6 +1098,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   });
   
+  document.getElementById('btn-select-months').addEventListener('click', () => {
+    sounds.init();
+    speakText('Let us practice spelling the twelve months of the year!', 'en-US');
+    setTimeout(() => {
+      window.location.href = 'months.html';
+    }, 1000);
+  });
+  
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

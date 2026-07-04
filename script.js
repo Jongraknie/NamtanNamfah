@@ -1066,45 +1066,60 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // Subject Menu clicks
-  document.getElementById('btn-select-math').addEventListener('click', () => {
-    sounds.init();
-    showScreen('main-menu');
-    setTimeout(() => {
-      speakText('มาทบทวนคณิตศาสตร์แสนสนุกกันเลยค่ะน้ำฟ้า!', 'th-TH');
-    }, 200);
-  });
+  const mathBtn = document.getElementById('btn-select-math');
+  if (mathBtn) {
+    mathBtn.addEventListener('click', () => {
+      sounds.init();
+      showScreen('main-menu');
+      setTimeout(() => {
+        speakText('มาทบทวนคณิตศาสตร์แสนสนุกกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      }, 200);
+    });
+  }
   
-  document.getElementById('btn-select-english').addEventListener('click', () => {
-    sounds.init();
-    showScreen('english-menu');
-    setTimeout(() => {
-      speakText("Let's review English under the sea!", 'en-US');
-    }, 200);
-  });
+  const englishBtn = document.getElementById('btn-select-english');
+  if (englishBtn) {
+    englishBtn.addEventListener('click', () => {
+      sounds.init();
+      showScreen('english-menu');
+      setTimeout(() => {
+        speakText("Let's review English under the sea!", 'en-US');
+      }, 200);
+    });
+  }
   
-  document.getElementById('btn-select-maze').addEventListener('click', () => {
-    sounds.init();
-    speakText('ไปผจญภัยในเขาวงกตแสนสนุกกันเลยค่ะน้ำฟ้า!', 'th-TH');
-    setTimeout(() => {
-      window.location.href = 'maze.html';
-    }, 1000);
-  });
+  const mazeBtn = document.getElementById('btn-select-maze');
+  if (mazeBtn) {
+    mazeBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปผจญภัยในเขาวงกตแสนสนุกกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'maze.html';
+      }, 1000);
+    });
+  }
   
-  document.getElementById('btn-select-thai').addEventListener('click', () => {
-    sounds.init();
-    speakText('ไปผจญภัยในดินแดนสะกดคำภาษาไทยกันเลยค่ะน้ำฟ้า!', 'th-TH');
-    setTimeout(() => {
-      window.location.href = 'thai.html';
-    }, 1000);
-  });
+  const thaiBtn = document.getElementById('btn-select-thai');
+  if (thaiBtn) {
+    thaiBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปผจญภัยในดินแดนสะกดคำภาษาไทยกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'thai.html';
+      }, 1000);
+    });
+  }
   
-  document.getElementById('btn-select-months').addEventListener('click', () => {
-    sounds.init();
-    speakText('Let us practice spelling the twelve months of the year!', 'en-US');
-    setTimeout(() => {
-      window.location.href = 'months.html';
-    }, 1000);
-  });
+  const monthsBtn = document.getElementById('btn-select-months');
+  if (monthsBtn) {
+    monthsBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('Let us practice spelling the twelve months of the year!', 'en-US');
+      setTimeout(() => {
+        window.location.href = 'months.html';
+      }, 1000);
+    });
+  }
   
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {

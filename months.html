@@ -820,6 +820,7 @@
     let speechEnabled = true;
     let answersCorrectCount = 0;
     let currentSpellingText = "";
+    let selectedTiles = [];
 
     // Web Audio Synthesizer for SFX
     const synth = {
@@ -1080,28 +1081,41 @@
         [letters[i], letters[j]] = [letters[j], letters[i]];
       }
 
+      // Reset selected tiles list
+      selectedTiles = [];
+
       // Draw tiles
       letters.forEach(char => {
         const tile = document.createElement('div');
         tile.className = "letter-tile";
         tile.innerText = char;
         tile.addEventListener('click', () => {
-          appendChar(char);
+          if (tile.style.visibility !== 'hidden') {
+            appendChar(char, tile);
+          }
         });
         container.appendChild(tile);
       });
     }
 
-    function appendChar(char) {
+    function appendChar(char, tile) {
       currentSpellingText += char;
       document.getElementById('spelling-input').value = currentSpellingText;
       synth.playMove(); // simple key tone sound
+      if (tile) {
+        tile.style.visibility = 'hidden';
+        selectedTiles.push(tile);
+      }
     }
 
     function backspace() {
       if (currentSpellingText.length > 0) {
         currentSpellingText = currentSpellingText.slice(0, -1);
         document.getElementById('spelling-input').value = currentSpellingText;
+        const lastTile = selectedTiles.pop();
+        if (lastTile) {
+          lastTile.style.visibility = 'visible';
+        }
       }
     }
 

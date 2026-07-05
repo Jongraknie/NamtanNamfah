@@ -114,11 +114,12 @@
       .hud-value { font-size: 1.1rem; }
     }
   </style>
+  <script src="exam-db.js"></script>
 </head>
 <body>
 
   <header class="app-header">
-    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <button class="btn-back" onclick="goBack()">⬅️ ย้อนกลับ</button>
     <div class="logo-header">
       <span style="font-size: 1.8rem;">🎓</span>
       <h2>แบบฝึกสอบเข้า ม.1</h2>
@@ -147,12 +148,24 @@
       </div>
     </div>
 
+    <!-- Set Select Screen -->
+    <div id="set-select-screen" style="display: none; width: 100%;">
+      <div class="question-card" style="padding: 30px 25px;">
+        <div class="avatar-area" style="font-size: 2.5rem; margin-bottom: 5px;">🚀</div>
+        <h3 style="font-size: 1.4rem; color: var(--color-dark); margin-bottom: 5px;">เลือกชุดติวเข้มสอบเข้า ม.1</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">มีทั้งหมด 10 ชุดคำถาม เรียงลำดับจากง่ายไปยากค่ะ ✏️</p>
+        <div class="subject-grid" id="set-buttons-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- Subject Select Screen -->
     <div id="subject-screen" style="display: none;">
       <div class="question-card" style="padding: 30px 25px;">
         <div class="avatar-area" style="font-size: 2.5rem; margin-bottom: 5px;">📚</div>
         <h3 style="font-size: 1.3rem; color: var(--color-dark); margin-bottom: 5px;" id="subject-greeting">เลือกวิชาที่จะติวกันเลยค่ะ!</h3>
-        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">คะแนนสะสมรวมตอนนี้: <strong id="subject-total-score">0</strong> คะแนน</p>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">คะแนนสะสมชุดนี้: <strong id="subject-total-score">0</strong> คะแนน</p>
         <div class="subject-grid" id="subject-grid"></div>
       </div>
     </div>
@@ -161,7 +174,7 @@
     <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
       <div class="hud-bar">
         <div class="hud-card"><span class="hud-label">วิชา</span><span id="hud-subject" class="hud-value" style="font-size: 1rem;">-</span></div>
-        <div class="hud-card"><span class="hud-label">ข้อที่</span><span id="hud-progress" class="hud-value">1/10</span></div>
+        <div class="hud-card"><span class="hud-label">ข้อที่</span><span id="hud-progress" class="hud-value">1/20</span></div>
         <div class="hud-card"><span class="hud-label">คะแนนรวม</span><span id="hud-score" class="hud-value">0</span></div>
       </div>
       <div class="question-card">
@@ -186,7 +199,7 @@
       </div>
     </div>
 
-    <!-- Summary Screen (per-subject) -->
+    <!-- Summary Screen -->
     <div id="summary-screen" class="summary-screen">
       <div class="avatar-area">👑🎓</div>
       <h2 style="font-size: 1.7rem; color: var(--color-dark);">เยี่ยมมากค่ะ!</h2>
@@ -216,6 +229,32 @@
     let answersCorrectCount = 0;
     let questions = [];
     let currentSubjectKey = "";
+    let currentSet = 1;
+    let scores = {}; // stores { "set1_math": 18, "set1_english": 20, ... }
+
+    const SET_NAMES = [
+      "", // index 0 not used
+      "ระดับพื้นฐาน (Easy Foundation)",
+      "ระดับเริ่มต้น (Basic Recall)",
+      "ระดับปานกลางค่อนง่าย (Easy-Medium)",
+      "ระดับปานกลางทั่วไป (Medium Concept)",
+      "ระดับปานกลางประยุกต์ (Medium Multi-Step)",
+      "ระดับปานกลางค่อนยาก (Upper-Medium)",
+      "ระดับยากสอบเข้าทั่วไป (Entrance Level 1)",
+      "ระดับยากสอบเข้าแข่งขัน (Entrance Level 2)",
+      "ระดับยากพิเศษแข่งขันสนามดัง (Competitive)",
+      "ระดับห้องเรียนพิเศษ Gifted (Gifted Program)"
+    ];
+
+    const SUBJECTS = {
+      math: { title: "คณิตศาสตร์", icon: "🔢", color: "#6366f1" },
+      english: { title: "ภาษาอังกฤษ", icon: "🌍", color: "#0284c7" },
+      thai: { title: "ภาษาไทย", icon: "📜", color: "#d97706" },
+      science: { title: "วิทยาศาสตร์", icon: "🔬", color: "#059669" },
+      social: { title: "สังคมศึกษา", icon: "🌏", color: "#dc2626" }
+    };
+
+    const avatars = ["🦊", "🐼", "🦉", "🐯", "🐨", "🎓", "🐺", "🐹"];
 
     const synth = {
       ctx: null,
@@ -263,133 +302,51 @@
     };
 
     function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
-    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-    // ---------- MATH generators (ม.1 entrance level) ----------
-    function genGCD() {
-      const g = randInt(2, 8);
-      const a = g * randInt(2, 6);
-      const b = g * randInt(2, 6);
-      const realGcd = gcd(a, b);
-      const choices = new Set([`${realGcd}`]);
-      while (choices.size < 4) { const d = realGcd + randInt(-4, 4); if (d > 0 && d !== realGcd) choices.add(`${d}`); }
-      return { q: `ห.ร.ม. ของ ${a} และ ${b} เท่ากับเท่าใด?`, a: `${realGcd}`, c: shuffle(Array.from(choices)),
-        exp1: `เฉลยคือ ${realGcd} ค่ะ`, exp2: `เพราะตัวประกอบร่วมที่มากที่สุดของ ${a} และ ${b} คือ ${realGcd}`, exp3: `หลักการ ห.ร.ม.: หาตัวประกอบร่วมที่มากที่สุดของสองจำนวน โดยแยกตัวประกอบเฉพาะแล้วเลือกตัวร่วมที่มีเลขชี้กำลังต่ำสุด` };
-    }
-    function genLCM() {
-      const a = [4,6,8][randInt(0,2)];
-      const b = [3,5,9,12][randInt(0,3)];
-      let lcm = a; while (lcm % b !== 0) lcm += a;
-      const choices = new Set([`${lcm}`]);
-      while (choices.size < 4) { const d = lcm + randInt(-1,2) * a; if (d > 0 && d !== lcm) choices.add(`${d}`); }
-      return { q: `ค.ร.น. ของ ${a} และ ${b} เท่ากับเท่าใด?`, a: `${lcm}`, c: shuffle(Array.from(choices)),
-        exp1: `เฉลยคือ ${lcm} ค่ะ`, exp2: `เพราะ ${lcm} เป็นจำนวนที่น้อยที่สุดที่หารด้วย ${a} และ ${b} ลงตัวทั้งคู่`, exp3: `หลักการ ค.ร.น.: หาตัวคูณร่วมที่น้อยที่สุดของสองจำนวน ซึ่งต้องหารด้วยทั้งสองจำนวนลงตัว` };
-    }
-    function genIntegerOps() {
-      const a = randInt(-20, 20);
-      const b = randInt(-20, 20);
-      const isAdd = Math.random() > 0.5;
-      const answer = isAdd ? a + b : a - b;
-      const choices = new Set([`${answer}`]);
-      while (choices.size < 4) { const d = answer + randInt(-6,6); if (d !== answer) choices.add(`${d}`); }
-      return { q: `(${a}) ${isAdd ? '+' : '-'} (${b}) มีค่าเท่ากับเท่าใด?`, a: `${answer}`, c: shuffle(Array.from(choices)),
-        exp1: `เฉลยคือ ${answer} ค่ะ`, exp2: `เพราะการ${isAdd ? 'บวก' : 'ลบ'}จำนวนเต็มบวกลบ ให้พิจารณาเครื่องหมายอย่างระมัดระวัง (${a} ${isAdd ? '+' : '-'} ${b} = ${answer})`, exp3: `หลักการจำนวนเต็ม: จำนวนบวกและลบเมื่อบวกกัน ให้นำค่าสัมบูรณ์มาลบกันแล้วใช้เครื่องหมายของจำนวนที่มีค่าสัมบูรณ์มากกว่า` };
-    }
-    function genSimpleEquation() {
-      const x = randInt(2, 15);
-      const b = randInt(1, 10);
-      const sum = x + b;
-      const choices = new Set([`${x}`]);
-      while (choices.size < 4) { const d = x + randInt(-4,4); if (d > 0 && d !== x) choices.add(`${d}`); }
-      return { q: `ถ้า x + ${b} = ${sum} แล้ว x มีค่าเท่ากับเท่าใด?`, a: `${x}`, c: shuffle(Array.from(choices)),
-        exp1: `เฉลยคือ x = ${x} ค่ะ`, exp2: `เพราะย้ายข้าง ${b} ไปลบทั้งสองข้างของสมการ จะได้ x = ${sum} - ${b} = ${x}`, exp3: `หลักการสมการ: การหาค่าตัวแปร ให้ย้ายข้างตัวเลขไปคนละฝั่งของเครื่องหมายเท่ากับ โดยเปลี่ยนเครื่องหมายเป็นตรงข้าม` };
-    }
-    function genPercentEntrance() {
-      const base = [40, 60, 80, 120, 150, 200, 300, 500][randInt(0,7)];
-      const pct = [10, 20, 25, 50, 75][randInt(0,4)];
-      const answer = base * pct / 100;
-      const choices = new Set([`${answer}`]);
-      while (choices.size < 4) { const d = answer + randInt(-15,15); if (d > 0 && d !== answer) choices.add(`${d}`); }
-      return { q: `${pct}% ของ ${base} เท่ากับเท่าใด?`, a: `${answer}`, c: shuffle(Array.from(choices)),
-        exp1: `เฉลยคือ ${answer} ค่ะ`, exp2: `เพราะนำ ${base} คูณ ${pct} แล้วหารด้วย 100 (${base} x ${pct} ÷ 100 = ${answer})`, exp3: `หลักการร้อยละ: การหาร้อยละของจำนวนใด ให้คูณด้วยร้อยละแล้วหารด้วย 100 เสมอ` };
-    }
-    const mathGens = [genGCD, genLCM, genIntegerOps, genSimpleEquation, genPercentEntrance];
-
-    // ---------- Static question banks ----------
-    const englishBank = [
-      { q: "My father _________ to work by car every day.", a: "goes", c: ["goes", "go", "going", "went"], exp1: "เฉลยคือ goes ค่ะ", exp2: "เพราะประธานเอกพจน์บุรุษที่สาม (My father) ในประโยค Present Simple ต้องเติม s/es ที่กริยา", exp3: "หลักการ Present Simple: he/she/it + verb-s/es" },
-      { q: "They _________ in Bangkok for ten years.", a: "have lived", c: ["have lived", "lived", "live", "living"], exp1: "เฉลยคือ have lived ค่ะ", exp2: "เพราะมี 'for ten years' บอกระยะเวลาที่ต่อเนื่องมาถึงปัจจุบัน จึงใช้ Present Perfect (have/has + V3)", exp3: "หลักการ Present Perfect: ใช้กับเหตุการณ์ที่เริ่มในอดีตและต่อเนื่องถึงปัจจุบัน สังเกตคำว่า for, since" },
-      { q: "If it rains tomorrow, we _________ at home.", a: "will stay", c: ["will stay", "stay", "stayed", "staying"], exp1: "เฉลยคือ will stay ค่ะ", exp2: "เพราะเป็นประโยคเงื่อนไขชนิดที่ 1 (First Conditional) if + present simple, will + verb1", exp3: "หลักการ First Conditional: If + Present Simple, ... will + V1 ใช้พูดถึงเหตุการณ์ในอนาคตที่มีความเป็นไปได้จริง" },
-      { q: "The book _________ by millions of readers around the world.", a: "is read", c: ["is read", "reads", "read", "reading"], exp1: "เฉลยคือ is read ค่ะ", exp2: "เพราะประธาน (the book) เป็นผู้ถูกกระทำ ไม่ใช่ผู้กระทำเอง จึงต้องใช้ Passive Voice (is/am/are + V3)", exp3: "หลักการ Passive Voice: ใช้เมื่อประธานเป็นผู้ถูกกระทำ โครงสร้างคือ be + V3" },
-      { q: "This is the book _________ I told you about.", a: "that", c: ["that", "who", "whose", "whom"], exp1: "เฉลยคือ that ค่ะ", exp2: "เพราะ 'the book' เป็นสิ่งของ คำสรรพนามเชื่อมประโยค (Relative Pronoun) ที่ใช้กับสิ่งของคือ that หรือ which", exp3: "หลักการ Relative Pronouns: who/whom ใช้กับคน, that/which ใช้กับสิ่งของ, whose ใช้แสดงความเป็นเจ้าของ" },
-      { q: "She is the smartest student _________ the class.", a: "in", c: ["in", "on", "at", "of"], exp1: "เฉลยคือ in ค่ะ", exp2: "เพราะเมื่อเปรียบเทียบขั้นสูงสุด (Superlative) กับกลุ่มคนหรือสถานที่ ให้ใช้ in นำหน้ากลุ่ม/สถานที่", exp3: "หลักการ Superlative + Preposition: ใช้ in กับสถานที่/กลุ่ม เช่น in the class, in the world" },
-      { q: "I wish I _________ taller.", a: "were", c: ["were", "am", "was", "be"], exp1: "เฉลยคือ were ค่ะ", exp2: "เพราะประโยค I wish แสดงความปรารถนาที่ตรงข้ามกับความจริงในปัจจุบัน (Subjunctive) ต้องใช้ were กับทุกประธาน", exp3: "หลักการ I wish + Past Simple: แสดงสิ่งที่ตรงข้ามกับความจริงปัจจุบัน ใช้ were แทน was เสมอในรูปทางการ" },
-      { q: "Neither Tom _________ his brother likes vegetables.", a: "nor", c: ["nor", "or", "and", "but"], exp1: "เฉลยคือ nor ค่ะ", exp2: "เพราะ neither ต้องจับคู่กับ nor เสมอในโครงสร้าง neither...nor... (ทั้งสองอย่างไม่จริง)", exp3: "หลักการ Correlative Conjunctions: neither...nor..., either...or..., not only...but also..." },
-      { q: "By the time we arrived, the movie _________.", a: "had started", c: ["had started", "started", "starts", "has started"], exp1: "เฉลยคือ had started ค่ะ", exp2: "เพราะเหตุการณ์หนังเริ่มฉายเกิดขึ้นก่อนเหตุการณ์ที่เรามาถึง (สองเหตุการณ์ในอดีต) จึงใช้ Past Perfect (had + V3) กับเหตุการณ์ที่เกิดก่อน", exp3: "หลักการ Past Perfect: ใช้กับเหตุการณ์ที่เกิดขึ้นก่อนอีกเหตุการณ์หนึ่งในอดีต" },
-      { q: "The teacher asked us _________ our homework on time.", a: "to submit", c: ["to submit", "submit", "submitting", "submitted"], exp1: "เฉลยคือ to submit ค่ะ", exp2: "เพราะ ask someone + to + verb1 เป็นโครงสร้างที่ใช้บอกให้ใครทำสิ่งใด", exp3: "หลักการ Verb + Object + to-infinitive: เช่น ask/tell/want someone to do something" }
-    ];
-
-    const thaiBank = [
-      { q: "คำว่า 'จรลี' มีความหมายตรงกับข้อใด?", a: "เดิน", c: ["เดิน", "นอน", "กิน", "พูด"], exp1: "เฉลยคือ เดิน ค่ะ", exp2: "เพราะ 'จรลี' เป็นคำไทยเก่าแปลว่า เดิน หรือ ดำเนินไป มักพบในวรรณคดี", exp3: "หลักการ: คำศัพท์เก่าหรือคำที่ใช้ในวรรณคดีมักมีความหมายเทียบเคียงกับคำสามัญ ต้องท่องจำคำสำคัญไว้" },
-      { q: "ประโยค 'แม้ฝนจะตก แต่เขาก็ยังไปโรงเรียน' เป็นประโยคชนิดใด?", a: "ประโยคความรวม", c: ["ประโยคความรวม", "ประโยคความเดียว", "ประโยคความซ้อน", "ประโยคคำถาม"], exp1: "เฉลยคือ ประโยคความรวม ค่ะ", exp2: "เพราะมีประโยคความเดียวสองประโยคมาเชื่อมกันด้วยคำเชื่อม 'แม้...แต่' ซึ่งแสดงความขัดแย้ง", exp3: "หลักการ: ประโยคความรวมเกิดจากประโยคความเดียวตั้งแต่สองประโยคเชื่อมกันด้วยคำสันธาน เช่น และ, แต่, หรือ, แม้...แต่" },
-      { q: "คำว่า 'มโนราห์' เป็นคำที่มาจากภาษาใด?", a: "บาลี-สันสกฤต", c: ["บาลี-สันสกฤต", "เขมร", "จีน", "อังกฤษ"], exp1: "เฉลยคือ บาลี-สันสกฤต ค่ะ", exp2: "เพราะ 'มโนราห์' มาจากคำสันสกฤตเกี่ยวกับชื่อการแสดงพื้นบ้าน มีรากศัพท์จากภาษาบาลี-สันสกฤต", exp3: "หลักการ: คำไทยจำนวนมากยืมมาจากภาษาบาลี-สันสกฤต สังเกตจากตัวสะกดที่ซับซ้อนและมีตัวการันต์" },
-      { q: "คำราชาศัพท์ 'ทรงม้า' หมายถึงข้อใด?", a: "ขี่ม้า", c: ["ขี่ม้า", "เลี้ยงม้า", "ซื้อม้า", "วาดรูปม้า"], exp1: "เฉลยคือ ขี่ม้า ค่ะ", exp2: "เพราะคำว่า 'ทรง' นำหน้ากริยาสามัญเพื่อทำให้เป็นคำราชาศัพท์ 'ทรงม้า' จึงหมายถึงการขี่ม้าของพระมหากษัตริย์", exp3: "หลักการ: คำว่า 'ทรง' ใช้นำหน้าคำกริยาสามัญเพื่อยกระดับเป็นคำราชาศัพท์ เช่น ทรงดนตรี ทรงกีฬา" },
-      { q: "คำว่า 'ปทุมมา' และ 'ประทุมมา' ต่างกันอย่างไร?", a: "คำเดียวกัน สะกดต่างกันแต่ความหมายเหมือนกัน", c: ["คำเดียวกัน สะกดต่างกันแต่ความหมายเหมือนกัน", "ความหมายตรงข้ามกันโดยสิ้นเชิง", "เป็นคำพ้องเสียงคนละความหมาย", "เป็นคำภาษาต่างประเทศคนละคำ"], exp1: "เฉลยคือ คำเดียวกัน สะกดต่างกันแต่ความหมายเหมือนกัน ค่ะ", exp2: "เพราะทั้งสองคำหมายถึงดอกบัวเช่นเดียวกัน เป็นคำที่มีการสะกดแตกต่างกันได้ตามธรรมเนียมการเขียน", exp3: "หลักการ: บางคำในภาษาไทยมีวิธีสะกดได้มากกว่าหนึ่งแบบ แต่ความหมายเดียวกัน ต้องสังเกตจากพจนานุกรม" },
-      { q: "สำนวน 'ขี่ช้างจับตั๊กแตน' หมายถึงอะไร?", a: "ลงทุนมากแต่ได้ผลตอบแทนน้อย", c: ["ลงทุนมากแต่ได้ผลตอบแทนน้อย", "ทำงานร่วมกันเป็นทีมใหญ่", "มีความกล้าหาญอย่างยิ่ง", "เดินทางไปที่ไกลๆ"], exp1: "เฉลยคือ ลงทุนมากแต่ได้ผลตอบแทนน้อย ค่ะ", exp2: "เพราะสำนวนนี้เปรียบการทำสิ่งเล็กน้อยด้วยการลงทุนหรือเตรียมการที่ใหญ่โตเกินความจำเป็น ไม่คุ้มค่ากับผลที่ได้", exp3: "หลักการ: สำนวนไทยมักเปรียบเทียบพฤติกรรมกับภาพเหตุการณ์ที่เกินจริง เพื่อสื่อคติสอนใจ" },
-      { q: "คำว่า 'โจทย์' และ 'โจษ' เป็นคำประเภทใด?", a: "คำพ้องเสียง", c: ["คำพ้องเสียง", "คำพ้องรูป", "คำไวพจน์", "คำสมาส"], exp1: "เฉลยคือ คำพ้องเสียง ค่ะ", exp2: "เพราะออกเสียงคล้ายกัน (โจด) แต่เขียนต่างกันและมีความหมายต่างกัน (โจทย์ = ปัญหาที่ต้องแก้, โจษ = พูดกันทั่วไป)", exp3: "หลักการ: คำพ้องเสียงต้องแยกแยะด้วยการสะกดและความหมายที่ถูกต้องตามบริบท" },
-      { q: "ข้อใดคือคำสมาส?", a: "รัฐบาล", c: ["รัฐบาล", "ลูกน้ำ", "ตู้เย็น", "ไก่ย่าง"], exp1: "เฉลยคือ รัฐบาล ค่ะ", exp2: "เพราะ 'รัฐบาล' เกิดจากคำบาลี-สันสกฤตสองคำมาสมาสกัน (รัฐ + บาล) โดยไม่มีการเปลี่ยนเสียงหรือรูปคำ", exp3: "หลักการคำสมาส: เกิดจากคำบาลี-สันสกฤตตั้งแต่สองคำรวมกันเป็นคำใหม่ อ่านออกเสียงต่อเนื่องกัน" },
-      { q: "ประโยค 'ฉันชอบหนังสือที่พ่อซื้อให้' มีส่วนขยายใด?", a: "ที่พ่อซื้อให้ (ขยายหนังสือ)", c: ["ที่พ่อซื้อให้ (ขยายหนังสือ)", "ฉัน (ขยายชอบ)", "หนังสือ (ขยายฉัน)", "ชอบ (ขยายพ่อ)"], exp1: "เฉลยคือ ที่พ่อซื้อให้ (ขยายหนังสือ) ค่ะ", exp2: "เพราะประโยคย่อย 'ที่พ่อซื้อให้' ทำหน้าที่ขยายคำนาม 'หนังสือ' ให้ชัดเจนขึ้นว่าเป็นหนังสือเล่มใด", exp3: "หลักการประโยคความซ้อน: ประโยคย่อยที่ขึ้นต้นด้วย 'ที่ ซึ่ง อัน' ทำหน้าที่ขยายคำนามในประโยคหลัก" },
-      { q: "คำว่า 'ทิวา' และ 'รัตติ' มีความหมายตรงกันข้ามกันอย่างไร?", a: "ทิวา=กลางวัน, รัตติ=กลางคืน", c: ["ทิวา=กลางวัน, รัตติ=กลางคืน", "ทิวา=ฤดูร้อน, รัตติ=ฤดูหนาว", "ทิวา=ท้องฟ้า, รัตติ=พื้นดิน", "ทิวา=ภูเขา, รัตติ=ทะเล"], exp1: "เฉลยคือ ทิวา=กลางวัน, รัตติ=กลางคืน ค่ะ", exp2: "เพราะทั้งสองคำเป็นคำไทยเก่าที่มักพบในวรรณคดี ทิวา แปลว่า กลางวัน ส่วนรัตติ แปลว่า กลางคืน", exp3: "หลักการ: คำศัพท์วรรณคดีมักมาเป็นคู่ความหมายตรงข้าม ต้องท่องจำคู่คำให้แม่นยำ" }
-    ];
-
-    const scienceBank = [
-      { q: "สถานะของสสารที่มีรูปร่างและปริมาตรคงที่คือข้อใด?", a: "ของแข็ง", c: ["ของแข็ง", "ของเหลว", "แก๊ส", "พลาสมา"], exp1: "เฉลยคือ ของแข็ง ค่ะ", exp2: "เพราะของแข็งมีอนุภาคเรียงชิดกันแน่น จึงคงรูปร่างและปริมาตรไม่เปลี่ยนแปลงตามภาชนะ", exp3: "หลักการสถานะของสสาร: ของแข็งรูปร่าง/ปริมาตรคงที่, ของเหลวปริมาตรคงที่แต่รูปร่างเปลี่ยนตามภาชนะ, แก๊สทั้งรูปร่างและปริมาตรเปลี่ยนแปลงได้" },
-      { q: "อวัยวะใดทำหน้าที่สูบฉีดเลือดไปเลี้ยงร่างกาย?", a: "หัวใจ", c: ["หัวใจ", "ปอด", "ตับ", "ไต"], exp1: "เฉลยคือ หัวใจ ค่ะ", exp2: "เพราะหัวใจทำหน้าที่สูบฉีดเลือดไปเลี้ยงส่วนต่างๆ ของร่างกายผ่านหลอดเลือด", exp3: "หลักการระบบหมุนเวียนเลือด: หัวใจ (สูบฉีดเลือด) ปอด (แลกเปลี่ยนแก๊ส) ตับ (กรองสารพิษ) ไต (กรองของเสีย)" },
-      { q: "พืชสร้างอาหารเองได้โดยกระบวนการใด?", a: "การสังเคราะห์ด้วยแสง", c: ["การสังเคราะห์ด้วยแสง", "การหายใจ", "การคายน้ำ", "การดูดซึม"], exp1: "เฉลยคือ การสังเคราะห์ด้วยแสง ค่ะ", exp2: "เพราะพืชใช้แสงแดด น้ำ และแก๊สคาร์บอนไดออกไซด์ ผ่านกระบวนการสังเคราะห์ด้วยแสงเพื่อสร้างอาหารและปล่อยแก๊สออกซิเจน", exp3: "หลักการการสังเคราะห์ด้วยแสง: แสงแดด + น้ำ + คาร์บอนไดออกไซด์ → น้ำตาลกลูโคส + ออกซิเจน (เกิดที่คลอโรฟิลล์ในใบพืช)" },
-      { q: "แรงที่ทำให้วัตถุตกลงสู่พื้นโลกคือแรงใด?", a: "แรงโน้มถ่วง", c: ["แรงโน้มถ่วง", "แรงแม่เหล็ก", "แรงเสียดทาน", "แรงไฟฟ้า"], exp1: "เฉลยคือ แรงโน้มถ่วง ค่ะ", exp2: "เพราะโลกมีแรงดึงดูดวัตถุทุกชิ้นเข้าหาศูนย์กลางของโลก เรียกว่าแรงโน้มถ่วง", exp3: "หลักการแรงโน้มถ่วง: เป็นแรงดึงดูดระหว่างมวลของวัตถุกับโลก ทำให้วัตถุตกลงสู่พื้นเสมอ" },
-      { q: "ในห่วงโซ่อาหาร สิ่งมีชีวิตที่สร้างอาหารเองได้เรียกว่าอะไร?", a: "ผู้ผลิต", c: ["ผู้ผลิต", "ผู้บริโภค", "ผู้ย่อยสลาย", "ผู้ล่า"], exp1: "เฉลยคือ ผู้ผลิต ค่ะ", exp2: "เพราะพืชสามารถสร้างอาหารเองได้ด้วยการสังเคราะห์ด้วยแสง จึงเป็นผู้ผลิตในห่วงโซ่อาหาร", exp3: "หลักการห่วงโซ่อาหาร: ผู้ผลิต (พืช) → ผู้บริโภค (สัตว์กินพืช/สัตว์กินเนื้อ) → ผู้ย่อยสลาย (แบคทีเรีย เชื้อรา)" },
-      { q: "ดาวเคราะห์ดวงใดอยู่ใกล้ดวงอาทิตย์มากที่สุด?", a: "ดาวพุธ", c: ["ดาวพุธ", "ดาวศุกร์", "โลก", "ดาวอังคาร"], exp1: "เฉลยคือ ดาวพุธ ค่ะ", exp2: "เพราะดาวพุธเป็นดาวเคราะห์ที่โคจรอยู่ใกล้ดวงอาทิตย์ที่สุดในระบบสุริยะ", exp3: "หลักการระบบสุริยะ: ลำดับดาวเคราะห์จากใกล้ถึงไกลดวงอาทิตย์ คือ พุธ ศุกร์ โลก อังคาร พฤหัสบดี เสาร์ ยูเรนัส เนปจูน" },
-      { q: "วงจรไฟฟ้าแบบใดที่หากหลอดไฟดวงหนึ่งขาด หลอดอื่นจะยังคงติดอยู่?", a: "วงจรขนาน", c: ["วงจรขนาน", "วงจรอนุกรม", "วงจรผสม", "วงจรปิด"], exp1: "เฉลยคือ วงจรขนาน ค่ะ", exp2: "เพราะวงจรขนานแยกเส้นทางกระแสไฟฟ้าออกจากกัน หากหลอดหนึ่งขาด กระแสไฟยังไหลผ่านเส้นทางอื่นได้", exp3: "หลักการวงจรไฟฟ้า: วงจรอนุกรม หากอุปกรณ์หนึ่งขาดวงจรจะไม่ครบ ส่วนวงจรขนานแต่ละเส้นทางแยกอิสระจากกัน" },
-      { q: "การแยกสารโดยใช้ความแตกต่างของขนาดอนุภาคผ่านวัสดุที่มีรูพรุนเรียกว่าอะไร?", a: "การกรอง", c: ["การกรอง", "การกลั่น", "การระเหย", "การตกตะกอน"], exp1: "เฉลยคือ การกรอง ค่ะ", exp2: "เพราะการกรองใช้แยกของแข็งที่มีขนาดใหญ่กว่ารูพรุนของกระดาษกรองออกจากของเหลว", exp3: "หลักการแยกสาร: การกรอง (แยกของแข็งจากของเหลวโดยขนาดอนุภาค), การกลั่น (แยกโดยจุดเดือด), การระเหย (แยกตัวทำละลายออกจากสารละลาย)" },
-      { q: "อวัยวะใดทำหน้าที่แลกเปลี่ยนแก๊สในระบบหายใจ?", a: "ปอด", c: ["ปอด", "หัวใจ", "กระเพาะอาหาร", "ตับ"], exp1: "เฉลยคือ ปอด ค่ะ", exp2: "เพราะปอดทำหน้าที่แลกเปลี่ยนแก๊สออกซิเจนกับแก๊สคาร์บอนไดออกไซด์ระหว่างอากาศกับเลือด", exp3: "หลักการระบบหายใจ: อากาศเข้าสู่จมูก หลอดลม ไปยังปอด ซึ่งเป็นที่แลกเปลี่ยนแก๊สกับเส้นเลือดฝอย" },
-      { q: "น้ำเปลี่ยนสถานะจากของเหลวเป็นแก๊สเรียกว่ากระบวนการใด?", a: "การระเหย", c: ["การระเหย", "การควบแน่น", "การหลอมเหลว", "การแข็งตัว"], exp1: "เฉลยคือ การระเหย ค่ะ", exp2: "เพราะเมื่อน้ำได้รับความร้อนเพียงพอ อนุภาคของน้ำจะเคลื่อนที่เร็วขึ้นจนหลุดออกจากผิวน้ำกลายเป็นไอน้ำ (แก๊ส)", exp3: "หลักการเปลี่ยนสถานะ: การระเหย (ของเหลว→แก๊ส), การควบแน่น (แก๊ส→ของเหลว), การหลอมเหลว (ของแข็ง→ของเหลว), การแข็งตัว (ของเหลว→ของแข็ง)" }
-    ];
-
-    const socialBank = [
-      { q: "แม่น้ำสายใดยาวที่สุดในประเทศไทย?", a: "แม่น้ำโขง", c: ["แม่น้ำโขง", "แม่น้ำเจ้าพระยา", "แม่น้ำปิง", "แม่น้ำมูล"], exp1: "เฉลยคือ แม่น้ำโขง ค่ะ", exp2: "เพราะแม่น้ำโขงไหลผ่านและเป็นพรมแดนของไทยเป็นระยะทางยาวที่สุดเมื่อเทียบกับแม่น้ำสายอื่นในประเทศ", exp3: "หลักการภูมิศาสตร์ไทย: แม่น้ำสำคัญของไทย ได้แก่ เจ้าพระยา โขง ปิง วัง ยม น่าน มูล และชี" },
-      { q: "ประเทศไทยแบ่งเขตการปกครองส่วนภูมิภาคออกเป็นกี่ภาค?", a: "6 ภาค", c: ["6 ภาค", "4 ภาค", "5 ภาค", "8 ภาค"], exp1: "เฉลยคือ 6 ภาค ค่ะ", exp2: "เพราะประเทศไทยแบ่งตามภูมิศาสตร์เป็น 6 ภาค ได้แก่ เหนือ กลาง ตะวันออกเฉียงเหนือ ตะวันออก ตะวันตก และใต้", exp3: "หลักการภูมิศาสตร์ไทย: 6 ภาคหลักของไทย คือ ภาคเหนือ ภาคกลาง ภาคตะวันออกเฉียงเหนือ ภาคตะวันออก ภาคตะวันตก ภาคใต้" },
-      { q: "อาณาจักรใดที่มีสุโขทัยเป็นราชธานีแห่งแรกของไทย?", a: "อาณาจักรสุโขทัย", c: ["อาณาจักรสุโขทัย", "อาณาจักรอยุธยา", "อาณาจักรธนบุรี", "อาณาจักรรัตนโกสินทร์"], exp1: "เฉลยคือ อาณาจักรสุโขทัย ค่ะ", exp2: "เพราะอาณาจักรสุโขทัยถือเป็นราชธานีแห่งแรกของชนชาติไทยตามประวัติศาสตร์ที่เรียนกันทั่วไป", exp3: "หลักการประวัติศาสตร์ไทย: ลำดับอาณาจักร คือ สุโขทัย → อยุธยา → ธนบุรี → รัตนโกสินทร์" },
-      { q: "กฎหมายสูงสุดในการปกครองประเทศไทยคือข้อใด?", a: "รัฐธรรมนูญ", c: ["รัฐธรรมนูญ", "พระราชบัญญัติ", "พระราชกฤษฎีกา", "กฎกระทรวง"], exp1: "เฉลยคือ รัฐธรรมนูญ ค่ะ", exp2: "เพราะรัฐธรรมนูญเป็นกฎหมายสูงสุดที่กำหนดรูปแบบการปกครองและสิทธิเสรีภาพของประชาชน กฎหมายอื่นต้องไม่ขัดกับรัฐธรรมนูญ", exp3: "หลักการกฎหมายไทย: ลำดับศักดิ์กฎหมายจากสูงสุด คือ รัฐธรรมนูญ พระราชบัญญัติ พระราชกฤษฎีกา กฎกระทรวง" },
-      { q: "เมื่อสินค้ามีปริมาณน้อยแต่ความต้องการซื้อมาก จะส่งผลต่อราคาสินค้าอย่างไร?", a: "ราคาสินค้าจะสูงขึ้น", c: ["ราคาสินค้าจะสูงขึ้น", "ราคาสินค้าจะลดลง", "ราคาสินค้าจะคงที่", "ไม่มีผลต่อราคา"], exp1: "เฉลยคือ ราคาสินค้าจะสูงขึ้น ค่ะ", exp2: "เพราะเมื่ออุปทาน (ปริมาณสินค้า) มีน้อยแต่อุปสงค์ (ความต้องการซื้อ) มีมาก ราคาสินค้าจะปรับตัวสูงขึ้นตามกลไกตลาด", exp3: "หลักการอุปสงค์-อุปทาน: อุปทานน้อย+อุปสงค์มาก → ราคาสูงขึ้น, อุปทานมาก+อุปสงค์น้อย → ราคาลดลง" },
-      { q: "ศาสนาใดเป็นศาสนาที่ประชากรไทยส่วนใหญ่นับถือ?", a: "พระพุทธศาสนา", c: ["พระพุทธศาสนา", "ศาสนาอิสลาม", "ศาสนาคริสต์", "ศาสนาฮินดู"], exp1: "เฉลยคือ พระพุทธศาสนา ค่ะ", exp2: "เพราะประชากรไทยส่วนใหญ่นับถือพระพุทธศาสนานิกายเถรวาทมาอย่างยาวนาน", exp3: "หลักการศาสนาและวัฒนธรรม: ไทยมีเสรีภาพในการนับถือศาสนา แต่ประชากรส่วนใหญ่นับถือพระพุทธศาสนา" },
-      { q: "วันที่ 5 ธันวาคมของทุกปีเป็นวันสำคัญใด?", a: "วันพ่อแห่งชาติ", c: ["วันพ่อแห่งชาติ", "วันแม่แห่งชาติ", "วันเด็กแห่งชาติ", "วันครูแห่งชาติ"], exp1: "เฉลยคือ วันพ่อแห่งชาติ ค่ะ", exp2: "เพราะวันที่ 5 ธันวาคม เป็นวันคล้ายวันพระบรมราชสมภพของพระบาทสมเด็จพระบรมชนกาธิเบศร มหาภูมิพลอดุลยเดชมหาราช และกำหนดให้เป็นวันพ่อแห่งชาติ", exp3: "หลักการวันสำคัญของไทย: วันแม่แห่งชาติคือ 12 สิงหาคม ส่วนวันพ่อแห่งชาติคือ 5 ธันวาคม" },
-      { q: "หน่วยการปกครองส่วนท้องถิ่นขนาดเล็กที่สุดในชนบทของไทยคือข้อใด?", a: "องค์การบริหารส่วนตำบล (อบต.)", c: ["องค์การบริหารส่วนตำบล (อบต.)", "องค์การบริหารส่วนจังหวัด (อบจ.)", "เทศบาลนคร", "กรุงเทพมหานคร"], exp1: "เฉลยคือ องค์การบริหารส่วนตำบล (อบต.) ค่ะ", exp2: "เพราะ อบต. เป็นหน่วยการปกครองท้องถิ่นระดับตำบลซึ่งเป็นหน่วยที่เล็กที่สุดในพื้นที่ชนบท", exp3: "หลักการปกครองท้องถิ่นไทย: อบต. (ตำบล) เทศบาล (เมือง/นคร) อบจ. (จังหวัด) กรุงเทพฯและพัทยา (รูปแบบพิเศษ)" },
-      { q: "ทวีปที่ประเทศไทยตั้งอยู่คือทวีปใด?", a: "ทวีปเอเชีย", c: ["ทวีปเอเชีย", "ทวีปยุโรป", "ทวีปแอฟริกา", "ทวีปออสเตรเลีย"], exp1: "เฉลยคือ ทวีปเอเชีย ค่ะ", exp2: "เพราะประเทศไทยตั้งอยู่ในภูมิภาคเอเชียตะวันออกเฉียงใต้ ซึ่งเป็นส่วนหนึ่งของทวีปเอเชีย", exp3: "หลักการภูมิศาสตร์: ไทยอยู่ในภูมิภาคเอเชียตะวันออกเฉียงใต้ (South East Asia) ของทวีปเอเชีย" },
-      { q: "สิทธิและเสรีภาพขั้นพื้นฐานของประชาชนไทยถูกกำหนดไว้ในกฎหมายใด?", a: "รัฐธรรมนูญ", c: ["รัฐธรรมนูญ", "ประมวลกฎหมายอาญา", "ประมวลกฎหมายแพ่ง", "พระราชกำหนด"], exp1: "เฉลยคือ รัฐธรรมนูญ ค่ะ", exp2: "เพราะรัฐธรรมนูญเป็นกฎหมายสูงสุดที่รับรองสิทธิและเสรีภาพขั้นพื้นฐานของประชาชนไทยไว้อย่างชัดเจน", exp3: "หลักการสิทธิพลเมือง: รัฐธรรมนูญคุ้มครองสิทธิ เสรีภาพ และหน้าที่ของประชาชนไทยทุกคน" }
-    ];
-
-    const SUBJECTS = {
-      math: { title: "คณิตศาสตร์", icon: "🔢", color: "#6366f1", questions: null, isGenerated: true, count: 10 },
-      english: { title: "ภาษาอังกฤษ", icon: "🌍", color: "#0284c7", questions: englishBank, isGenerated: false, count: 10 },
-      thai: { title: "ภาษาไทย", icon: "📜", color: "#d97706", questions: thaiBank, isGenerated: false, count: 10 },
-      science: { title: "วิทยาศาสตร์", icon: "🔬", color: "#059669", questions: scienceBank, isGenerated: false, count: 10 },
-      social: { title: "สังคมศึกษา", icon: "🌏", color: "#dc2626", questions: socialBank, isGenerated: false, count: 10 }
-    };
-
-    const avatars = ["🦊", "🐼", "🦉", "🐯", "🐨", "🎓", "🐺", "🐹"];
-
-    function navigateBack() {
+    function goBack() {
       window.speechSynthesis.cancel();
-      window.location.href = "index.html";
+      const setScreen = document.getElementById('set-select-screen');
+      const subScreen = document.getElementById('subject-screen');
+      const playScreen = document.getElementById('play-screen');
+      const sumScreen = document.getElementById('summary-screen');
+      
+      if (subScreen.style.display === 'block') {
+        showSetScreen();
+      } else if (setScreen.style.display === 'block') {
+        window.location.href = "index.html";
+      } else if (playScreen.style.display === 'flex') {
+        if (confirm("ต้องการออกจากการทำแบบฝึกหัดกลางคันใช่ไหมคะ? คะแนนรอบนี้จะยังไม่ถูกบันทึกนะ")) {
+          showSubjectScreen();
+        }
+      } else if (sumScreen.style.display === 'flex') {
+        showSubjectScreen();
+      } else {
+        window.location.href = "index.html";
+      }
     }
+
     function toggleSound() {
       soundEnabled = !soundEnabled;
       document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
     }
+    
     function toggleSpeech() {
       speechEnabled = !speechEnabled;
       document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    function loadProgress() {
+      const stored = localStorage.getItem('exam_entrance_scores');
+      if (stored) {
+        scores = JSON.parse(stored);
+      } else {
+        scores = {};
+      }
+      calculateTotalScore();
+    }
+
+    function calculateTotalScore() {
+      totalScore = Object.values(scores).reduce((sum, val) => sum + val, 0) * 100;
     }
 
     function registerAndStart() {
@@ -400,30 +357,85 @@
       const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
       playerTitle = titleRadio ? titleRadio.value : "king";
       synth.init();
+      
+      loadProgress();
+      
       const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(`ยินดีต้อนรับ ${roleTh} ${playerName} เข้าสู่ห้องติวเข้มสอบเข้า ม.1 ค่ะ`);
         utterance.lang = 'th-TH';
         window.speechSynthesis.speak(utterance);
       }
-      totalScore = 0;
+      
       document.getElementById('register-screen').style.display = 'none';
+      showSetScreen();
+    }
+
+    function showSetScreen() {
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('subject-screen').style.display = 'none';
+      document.getElementById('set-select-screen').style.display = 'block';
+      
+      const grid = document.getElementById('set-buttons-grid');
+      grid.innerHTML = '';
+      
+      for (let i = 1; i <= 10; i++) {
+        const completedCount = Object.keys(SUBJECTS).filter(sub => scores[`set${i}_${sub}`] !== undefined).length;
+        const totalSetScore = Object.keys(SUBJECTS).reduce((sum, sub) => sum + (scores[`set${i}_${sub}`] || 0) * 100, 0);
+        
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.style.borderColor = completedCount === 5 ? '#10b981' : 'var(--color-light)';
+        
+        let statusText = `ผ่านแล้ว ${completedCount}/5 วิชา`;
+        let badge = completedCount === 5 ? '👑 สำเร็จ!' : '✏️ ลุยเลย';
+        
+        card.innerHTML = `
+          <div class="icon" style="font-size: 2rem;">ชุดที่ ${i}</div>
+          <h4 style="font-size: 1rem; color: var(--color-dark); margin: 6px 0;">${SET_NAMES[i]}</h4>
+          <p style="font-size: 0.85rem; font-weight: bold; color: ${completedCount === 5 ? '#10b981' : 'var(--color-medium)'};">${statusText} ${badge}</p>
+          <span style="font-size: 0.75rem; color: #64748b;">คะแนนรวม: ${totalSetScore}</span>
+        `;
+        card.addEventListener('click', () => selectSet(i));
+        grid.appendChild(card);
+      }
+    }
+
+    function selectSet(setNum) {
+      currentSet = setNum;
       showSubjectScreen();
     }
 
     function showSubjectScreen() {
       document.getElementById('play-screen').style.display = 'none';
       document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('set-select-screen').style.display = 'none';
       document.getElementById('subject-screen').style.display = 'block';
-      document.getElementById('subject-total-score').innerText = totalScore;
+      
+      document.getElementById('subject-greeting').innerText = `แบบฝึกชุดที่ ${currentSet}: ${SET_NAMES[currentSet]}`;
+      
+      const setTotalScore = Object.keys(SUBJECTS).reduce((sum, sub) => sum + (scores[`set${currentSet}_${sub}`] || 0) * 100, 0);
+      document.getElementById('subject-total-score').innerText = setTotalScore;
+      
       const grid = document.getElementById('subject-grid');
       grid.innerHTML = '';
+      
       Object.keys(SUBJECTS).forEach(key => {
         const s = SUBJECTS[key];
+        const prevScore = scores[`set${currentSet}_${key}`];
+        
         const card = document.createElement('div');
         card.className = 'subject-card';
-        card.style.borderColor = s.color + '55';
-        card.innerHTML = `<div class="icon">${s.icon}</div><h4 style="color:${s.color}">${s.title}</h4><p>${s.count} ข้อ</p>`;
+        card.style.borderColor = prevScore !== undefined ? '#10b981' : s.color + '55';
+        
+        let scoreText = prevScore !== undefined ? `ผ่านแล้ว (${prevScore}/20 ข้อ)` : `ยังไม่ได้ติว (20 ข้อ)`;
+        
+        card.innerHTML = `
+          <div class="icon">${s.icon}</div>
+          <h4 style="color:${s.color}">${s.title}</h4>
+          <p style="font-size: 0.85rem; color: ${prevScore !== undefined ? '#10b981' : '#64748b'}; font-weight: bold;">${scoreText}</p>
+        `;
         card.addEventListener('click', () => startSubjectQuiz(key));
         grid.appendChild(card);
       });
@@ -437,18 +449,20 @@
     function startSubjectQuiz(key) {
       currentSubjectKey = key;
       const s = SUBJECTS[key];
-      if (s.isGenerated) {
-        questions = [];
-        const gens = shuffle([...mathGens]);
-        for (let i = 0; i < s.count; i++) { questions.push(gens[i % gens.length]()); }
+      
+      if (window.getExamQuestions) {
+        questions = window.getExamQuestions(currentSet, key);
       } else {
-        questions = shuffle([...s.questions]).slice(0, s.count);
+        alert("ไม่พบข้อมูลข้อสอบ กรุณาติดต่อคุณครูค่ะ");
+        return;
       }
+      
       currentIdx = 0;
       answersCorrectCount = 0;
+      
       document.getElementById('subject-screen').style.display = 'none';
       document.getElementById('play-screen').style.display = 'flex';
-      document.getElementById('hud-subject').innerText = s.title;
+      document.getElementById('hud-subject').innerText = `${s.title} (ชุดที่ ${currentSet})`;
       loadQuestion();
     }
 
@@ -456,6 +470,7 @@
       if (currentIdx >= questions.length) { finishSubject(); return; }
       document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
       document.getElementById('hud-score').innerText = totalScore;
+      
       const q = questions[currentIdx];
       document.getElementById('question-sentence').innerText = q.q;
       document.getElementById('question-avatar').innerText = avatars[Math.floor(Math.random() * avatars.length)];
@@ -544,23 +559,38 @@
     function finishSubject() {
       window.speechSynthesis.cancel();
       synth.playFanfare();
+      
+      const key = `set${currentSet}_${currentSubjectKey}`;
+      const prevScore = scores[key] || 0;
+      if (answersCorrectCount > prevScore) {
+        scores[key] = answersCorrectCount;
+        localStorage.setItem('exam_entrance_scores', JSON.stringify(scores));
+      }
+      
+      calculateTotalScore();
       saveLeaderboardData();
+      
       document.getElementById('play-screen').style.display = 'none';
       document.getElementById('summary-screen').style.display = 'flex';
+      
       const s = SUBJECTS[currentSubjectKey];
-      document.getElementById('summary-subject-text').innerText = `คุณผ่านวิชา${s.title}แล้ว!`;
+      document.getElementById('summary-subject-text').innerText = `คุณทำแบบฝึกหัดวิชา${s.title} (ชุดที่ ${currentSet}) สำเร็จแล้ว!`;
+      
       const starsDisplay = document.getElementById('stars-display');
       let starStr = "";
-      if (answersCorrectCount >= 9) starStr = "⭐⭐⭐";
-      else if (answersCorrectCount >= 6) starStr = "⭐⭐";
-      else starStr = "⭐";
+      if (answersCorrectCount >= 18) starStr = "⭐⭐⭐";
+      else if (answersCorrectCount >= 12) starStr = "⭐⭐";
+      else if (answersCorrectCount >= 8) starStr = "⭐";
+      else starStr = "พยายามใหม่อีกครั้งนะ ✌️";
       starsDisplay.innerText = starStr;
+      
       const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
       document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
-      document.getElementById('cert-desc-text').innerText = `ได้ก้าวผ่านการติวเข้มวิชา${s.title} เตรียมสอบเข้า ม.1`;
-      document.getElementById('cert-score-desc').innerText = `ตอบถูก ${answersCorrectCount}/${questions.length} ข้อ (คะแนนรวมสะสม: ${totalScore} คะแนน)`;
+      document.getElementById('cert-desc-text').innerText = `ได้ก้าวผ่านการติวเข้มวิชา${s.title} ชุดที่ ${currentSet}`;
+      document.getElementById('cert-score-desc').innerText = `ตอบถูก ${answersCorrectCount}/${questions.length} ข้อ (คะแนนชุดนี้: ${answersCorrectCount * 100} คะแนน)`;
+      
       if (speechEnabled) {
-        const utterance = new SpeechSynthesisUtterance(`เก่งมากๆ เลยค่ะ! ${titleTh} ${playerName} ผ่านวิชา${s.title} ด้วยคะแนนรวมสะสม ${totalScore} คะแนนค่ะ`);
+        const utterance = new SpeechSynthesisUtterance(`เก่งมากๆ เลยค่ะ! ${titleTh} ${playerName} ผ่านวิชา${s.title} ชุดที่ ${currentSet} ด้วยคะแนนสะสมชุดนี้ ${answersCorrectCount * 100} คะแนนค่ะ`);
         utterance.lang = 'th-TH';
         window.speechSynthesis.speak(utterance);
       }

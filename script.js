@@ -1226,6 +1226,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const subtractionBtn = document.getElementById('btn-select-subtraction');
+  if (subtractionBtn) {
+    subtractionBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปช่วยเจ้าลิงเก็บกล้วยและฝึกลบเลขกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'subtraction.html';
+      }, 1000);
+    });
+  }
+
+  const timeBtn = document.getElementById('btn-select-time');
+  if (timeBtn) {
+    timeBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปฝึกอ่านเวลาที่หอนาฬิกาแสนสนุกกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'time.html';
+      }, 1000);
+    });
+  }
+
+  const measurementBtn = document.getElementById('btn-select-measurement');
+  if (measurementBtn) {
+    measurementBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปช่วยเจ้าช้างขายของในตลาดชั่งตวงกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'measurement.html';
+      }, 1000);
+    });
+  }
+
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

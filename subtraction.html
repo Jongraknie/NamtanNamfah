@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สวนกล้วยลบเลข | สำหรับ น้ำฟ้า 💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --banana: #ffd93d;
+    --banana-dark: #f0b90b;
+    --leaf: #6bcf7f;
+    --leaf-dark: #3fa85a;
+    --monkey: #a0522d;
+    --sky: #eaf7ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Prompt', 'Itim', sans-serif;
+    background: linear-gradient(180deg, #fff9e0 0%, #eafff0 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: #3a2e1e;
+  }
+  .screen { display: none; width: 100%; max-width: 700px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  .card {
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 10px 30px rgba(160, 82, 45, 0.15);
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+  }
+  h1 { font-size: 1.8rem; color: var(--monkey); margin-bottom: 6px; }
+  h2 { font-size: 1.4rem; color: var(--leaf-dark); }
+  .subtitle { color: #7a6a52; margin-bottom: 20px; }
+
+  input.reg-input {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    border: 2px solid var(--banana-dark);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+  }
+  input.reg-input:focus { border-color: var(--leaf-dark); }
+
+  .btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--leaf) 0%, var(--leaf-dark) 100%);
+    box-shadow: 0 6px 16px rgba(63, 168, 90, 0.35);
+    transition: transform 0.15s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-yellow {
+    background: linear-gradient(135deg, var(--banana) 0%, var(--banana-dark) 100%);
+    color: #5c4300;
+    box-shadow: 0 6px 16px rgba(240, 185, 11, 0.35);
+  }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  /* HUD */
+  .hud {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-radius: 20px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(160,82,45,0.1);
+  }
+  .hud-title { font-weight: 700; color: var(--monkey); }
+  .hud-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    background: var(--sky);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  .progress-bar {
+    width: 100%;
+    max-width: 700px;
+    height: 14px;
+    background: #f1e8c8;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--banana) 0%, var(--leaf) 100%);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* Question scene */
+  .scene {
+    width: 100%;
+    max-width: 700px;
+    background: #fffef6;
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(160,82,45,0.12);
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .monkey-char { font-size: 4rem; margin-bottom: 8px; animation: sway 2.5s ease-in-out infinite; }
+  @keyframes sway { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+
+  .banana-row { display: flex; justify-content: center; gap: 6px; margin: 10px 0 18px 0; flex-wrap: wrap; }
+  .banana-row span { font-size: 1.6rem; }
+
+  .question-bubble {
+    background: var(--sky);
+    border-radius: 20px;
+    padding: 18px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .btn-voice {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .choices-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .choice-btn {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 18px;
+    border: 2.5px solid var(--banana-dark);
+    background: #fffdf3;
+    color: var(--monkey);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .choice-btn:hover:not(:disabled) {
+    background: var(--banana);
+    transform: translateY(-2px);
+  }
+  .choice-btn.correct { background: var(--leaf); border-color: var(--leaf-dark); color: #fff; }
+  .choice-btn.wrong { background: #ff7675; border-color: #d63031; color: #fff; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Explanation overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 16px;
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal .result-icon { font-size: 3rem; margin-bottom: 8px; }
+  .exp-step { text-align: left; margin-bottom: 14px; background: #fdf9ee; border-radius: 14px; padding: 12px 16px; }
+  .exp-step-title { display: block; font-weight: 700; color: var(--monkey); margin-bottom: 4px; font-size: 0.9rem; }
+
+  /* Summary */
+  .stars { font-size: 2.4rem; margin: 14px 0; }
+  .cert-box {
+    border: 8px double var(--banana-dark);
+    border-radius: 20px;
+    padding: 24px;
+    margin: 20px 0;
+    background: #fffdf6;
+  }
+  .cert-name { font-size: 1.6rem; font-weight: 700; color: var(--leaf-dark); border: none; border-bottom: 2px solid var(--banana-dark); text-align: center; background: transparent; width: 80%; font-family: 'Prompt'; padding: 4px; }
+
+  .leaderboard { text-align: left; margin-top: 14px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Registration Screen -->
+  <div id="screen-register" class="screen active">
+    <div class="card">
+      <div style="font-size:3.5rem;">🐵🍌</div>
+      <h1>สวนกล้วยลบเลข</h1>
+      <p class="subtitle">ฝึกลบเลขไม่เกิน 1,000 ช่วยเจ้าลิงเก็บกล้วยกันเถอะ!</p>
+      <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ">
+      <br>
+      <button class="btn btn-yellow" id="btn-start">เริ่มเก็บกล้วยกัน 🍌</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="screen-game" class="screen">
+    <div class="hud">
+      <span class="hud-title">🐵 สวนกล้วยลบเลข</span>
+      <div class="hud-right">
+        <span id="hud-score">คะแนน: 0</span>
+        <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+    <div class="scene">
+      <div class="monkey-char">🐵</div>
+      <div class="banana-row" id="banana-row"></div>
+      <div class="question-bubble">
+        <button class="btn-voice" id="btn-speak">🔊</button>
+        <span id="question-text">กำลังโหลดโจทย์...</span>
+      </div>
+      <div class="choices-grid" id="choices-grid"></div>
+    </div>
+  </div>
+
+  <!-- Explanation Overlay -->
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <h2 id="result-title">เก่งมาก!</h2>
+      <div class="exp-step">
+        <span class="exp-step-title">1. เฉลยคำตอบที่ถูกต้อง</span>
+        <div id="exp-answer">-</div>
+      </div>
+      <div class="exp-step">
+        <span class="exp-step-title">2. วิธีคิด</span>
+        <div id="exp-method">-</div>
+      </div>
+      <div class="exp-step">
+        <span class="exp-step-title">3. หลักการสำคัญ</span>
+        <div id="exp-principle">-</div>
+      </div>
+      <button class="btn" id="btn-next">ข้อถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- Summary Screen -->
+  <div id="screen-summary" class="screen">
+    <div class="card" id="print-area">
+      <div style="font-size:3rem;">🏆🐵</div>
+      <h1>เก็บกล้วยสำเร็จแล้ว!</h1>
+      <div class="stars" id="stars-display">⭐⭐⭐</div>
+      <p>คะแนนรวม: <span id="summary-score">0</span> คะแนน (ตอบถูก <span id="summary-correct">0</span>/<span id="summary-total">10</span> ข้อ)</p>
+
+      <div class="cert-box">
+        <h2 style="color:var(--monkey);">ใบประกาศเกียรติคุณ</h2>
+        <p style="margin:6px 0;">มอบให้เพื่อแสดงว่า</p>
+        <input type="text" id="cert-name" class="cert-name" readonly value="นักเรียนคนเก่ง">
+        <p style="margin-top:10px;">ได้ผ่านภารกิจฝึกลบเลขในสวนกล้วยสำเร็จแล้ว 🍌</p>
+        <p style="margin-top:6px;">วันที่: <span id="cert-date">-</span></p>
+      </div>
+
+      <div class="leaderboard">
+        <h2 style="color:var(--monkey); font-size:1.1rem;">🏅 5 อันดับคะแนนสูงสุด</h2>
+        <div id="leaderboard-list"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center;">
+      <button class="btn btn-yellow" id="btn-print">🖨️ พิมพ์ใบประกาศ</button>
+      <button class="btn" id="btn-again">🔄 เล่นอีกครั้ง</button>
+      <button class="btn" id="btn-home" style="background:linear-gradient(135deg,#74b9ff,#0984e3);">🏡 กลับหน้าหลัก</button>
+    </div>
+  </div>
+
+<script>
+  const LEADERBOARD_KEY = 'subtraction_leaderboard';
+  const TOTAL_QUESTIONS = 10;
+
+  let playerName = '';
+  let soundOn = true;
+  let score = 0;
+  let correctCount = 0;
+  let currentIndex = 0;
+  let questions = [];
+  let currentQuestion = null;
+
+  // --- Sound synth ---
+  const synth = {
+    ctx: null,
+    init() {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    },
+    tone(freq, dur, type = 'sine') {
+      if (!soundOn || !this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + dur);
+    },
+    correct() { this.tone(523.25, 0.15); setTimeout(() => this.tone(783.99, 0.2), 100); },
+    wrong() { this.tone(150, 0.3, 'sawtooth'); },
+    victory() { [392, 523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.4), i * 120)); }
+  };
+
+  function speakText(text) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'th-TH';
+    u.rate = 0.92;
+    u.pitch = 1.1;
+    window.speechSynthesis.speak(u);
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function generateChoices(answer, min, max) {
+    const set = new Set([answer]);
+    while (set.size < 4) {
+      const offset = Math.floor(Math.random() * 20) - 10;
+      const d = answer + offset;
+      if (d !== answer && d >= min && d <= max && offset !== 0) set.add(d);
+    }
+    return Array.from(set).sort(() => 0.5 - Math.random());
+  }
+
+  function generateSubtractionQuestions(count) {
+    const list = [];
+    for (let i = 0; i < count; i++) {
+      let minuend, subtrahend;
+      const mode = i % 3;
+
+      if (mode === 0) {
+        // No borrowing, 2-digit
+        const u2 = Math.floor(Math.random() * 9);
+        const u1 = u2 + Math.floor(Math.random() * (9 - u2)) + 0;
+        const t2 = Math.floor(Math.random() * 8) + 1;
+        const t1 = t2 + Math.floor(Math.random() * (9 - t2));
+        minuend = t1 * 10 + u1;
+        subtrahend = t2 * 10 + u2;
+      } else if (mode === 1) {
+        // With borrowing, 2-3 digit
+        minuend = Math.floor(Math.random() * 400) + 100;
+        subtrahend = Math.floor(Math.random() * (minuend - 10)) + 10;
+      } else {
+        // 3-digit up to 1000
+        minuend = Math.floor(Math.random() * 500) + 400;
+        subtrahend = Math.floor(Math.random() * 300) + 50;
+        if (subtrahend > minuend) [minuend, subtrahend] = [subtrahend, minuend];
+      }
+
+      const answer = minuend - subtrahend;
+      const choices = generateChoices(answer, 0, 1000);
+
+      const u1 = minuend % 10, u2sub = subtrahend % 10;
+      const t1 = Math.floor((minuend % 100) / 10), t2sub = Math.floor((subtrahend % 100) / 10);
+      const borrowed = u1 < u2sub;
+
+      let method = `ตั้งลบตามหลักจากขวาไปซ้าย: หลักหน่วย ${u1} - ${u2sub}`;
+      if (borrowed) {
+        method += ` (ไม่พอลบ ต้องยืม 1 จากหลักสิบมาเป็น ${u1 + 10}) จะได้ ${u1 + 10} - ${u2sub} = ${u1 + 10 - u2sub} แล้วหลักสิบที่ยืมไปจะลดลง 1 ก่อนนำไปลบต่อ`;
+      } else {
+        method += ` = ${u1 - u2sub}`;
+      }
+      method += ` จากนั้นลบหลักสิบและหลักร้อยตามลำดับ จะได้คำตอบ ${answer}`;
+
+      const questionText = `${minuend} - ${subtrahend} = ?`;
+      const speakPrompt = `${minuend} ลบ ${subtrahend} เท่ากับเท่าไร`;
+
+      const principle = borrowed
+        ? 'เมื่อเลขหลักหน่วย (หรือหลักใดๆ) ของตัวตั้งน้อยกว่าตัวลบ ต้องยืม 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนลบเสมอค่ะ'
+        : 'เมื่อเลขแต่ละหลักของตัวตั้งมากกว่าหรือเท่ากับตัวลบ สามารถลบตรงๆ ทีละหลักจากขวาไปซ้ายได้เลยค่ะ';
+
+      list.push({ questionText, speakPrompt, answer, choices, method, principle, minuend, subtrahend });
+    }
+    return list;
+  }
+
+  function updateHUD() {
+    document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
+    const pct = (currentIndex / TOTAL_QUESTIONS) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+  }
+
+  function renderBananas(n) {
+    const row = document.getElementById('banana-row');
+    row.innerHTML = '';
+    const count = Math.min(n, 10);
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement('span');
+      span.innerText = '🍌';
+      row.appendChild(span);
+    }
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= TOTAL_QUESTIONS) {
+      endGame();
+      return;
+    }
+    currentQuestion = questions[currentIndex];
+    updateHUD();
+    renderBananas(TOTAL_QUESTIONS - currentIndex);
+
+    document.getElementById('question-text').innerText = currentQuestion.questionText;
+
+    const grid = document.getElementById('choices-grid');
+    grid.innerHTML = '';
+    currentQuestion.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.addEventListener('click', () => handleAnswer(choice, btn));
+      grid.appendChild(btn);
+    });
+
+    setTimeout(() => speakText(currentQuestion.speakPrompt), 400);
+  }
+
+  function handleAnswer(selected, btnEl) {
+    const grid = document.getElementById('choices-grid');
+    const buttons = grid.querySelectorAll('.choice-btn');
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (Number(b.innerText) === currentQuestion.answer) b.classList.add('correct');
+    });
+
+    const isCorrect = selected === currentQuestion.answer;
+    if (isCorrect) {
+      score += 10;
+      correctCount++;
+      synth.correct();
+    } else {
+      synth.wrong();
+      btnEl.classList.add('wrong');
+    }
+
+    setTimeout(() => showExplanation(isCorrect), 900);
+  }
+
+  function showExplanation(isCorrect) {
+    document.getElementById('result-icon').innerText = isCorrect ? '🎉' : '💡';
+    document.getElementById('result-title').innerText = isCorrect ? 'เก่งมากค่ะ ตอบถูกต้อง!' : 'ไม่เป็นไรนะคะ มาดูวิธีคิดกัน';
+    document.getElementById('exp-answer').innerText = `${currentQuestion.minuend} - ${currentQuestion.subtrahend} = ${currentQuestion.answer}`;
+    document.getElementById('exp-method').innerText = currentQuestion.method;
+    document.getElementById('exp-principle').innerText = currentQuestion.principle;
+
+    speakText((isCorrect ? 'ถูกต้องค่ะ! ' : 'มาดูวิธีคิดกันค่ะ ') + currentQuestion.method);
+
+    document.getElementById('explanation-overlay').classList.add('active');
+  }
+
+  function endGame() {
+    synth.victory();
+    document.getElementById('summary-score').innerText = score;
+    document.getElementById('summary-correct').innerText = correctCount;
+    document.getElementById('summary-total').innerText = TOTAL_QUESTIONS;
+    document.getElementById('cert-name').value = playerName || 'นักเรียนคนเก่ง';
+
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+
+    const today = new Date();
+    document.getElementById('cert-date').innerText = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    saveLeaderboard();
+    renderLeaderboard();
+
+    setTimeout(() => {
+      speakText(`เก่งมากค่ะ ${playerName}! ทำภารกิจสวนกล้วยลบเลขสำเร็จแล้ว ได้คะแนน ${score} คะแนน`);
+    }, 300);
+
+    showScreen('screen-summary');
+  }
+
+  function saveLeaderboard() {
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    list.push({ name: playerName || 'นักเรียนคนเก่ง', score, date: new Date().toLocaleDateString('th-TH') });
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+  }
+
+  function renderLeaderboard() {
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    const el = document.getElementById('leaderboard-list');
+    el.innerHTML = '';
+    if (list.length === 0) {
+      el.innerHTML = '<div class="lb-row">ยังไม่มีข้อมูลค่ะ</div>';
+      return;
+    }
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `<span>${idx + 1}. ${entry.name}</span><span>${entry.score} คะแนน</span>`;
+      el.appendChild(row);
+    });
+  }
+
+  function startGame() {
+    playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+    score = 0;
+    correctCount = 0;
+    currentIndex = 0;
+    questions = generateSubtractionQuestions(TOTAL_QUESTIONS);
+    showScreen('screen-game');
+    loadQuestion();
+  }
+
+  // --- Event bindings ---
+  document.getElementById('btn-start').addEventListener('click', () => {
+    synth.init();
+    startGame();
+  });
+
+  document.getElementById('btn-speak').addEventListener('click', () => {
+    if (currentQuestion) speakText(currentQuestion.speakPrompt);
+  });
+
+  document.getElementById('btn-toggle-sound').addEventListener('click', (e) => {
+    soundOn = !soundOn;
+    e.target.innerText = soundOn ? '🔊' : '🔇';
+  });
+
+  document.getElementById('btn-next').addEventListener('click', () => {
+    document.getElementById('explanation-overlay').classList.remove('active');
+    window.speechSynthesis.cancel();
+    currentIndex++;
+    loadQuestion();
+  });
+
+  document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+  document.getElementById('btn-again').addEventListener('click', () => {
+    showScreen('screen-register');
+  });
+
+  document.getElementById('btn-home').addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>

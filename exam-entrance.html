@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แบบฝึกสอบเข้า ม.1 | สำหรับ น้ำตาล 🦊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-dark: #4c1d95;
+      --color-medium: #7c3aed;
+      --color-light: #c4b5fd;
+      --color-bg: #f5f3ff;
+      --color-accent-orange: #f59e0b;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--color-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+    }
+    .app-header {
+      width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px;
+      backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(76, 29, 149, 0.08); border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.25rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container { width: 100%; max-width: 700px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(76, 29, 149, 0.06); border-bottom: 4px solid var(--color-light); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(76, 29, 149, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .sentence-display { font-size: 1.3rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.15rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 16px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(76, 29, 149, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(76, 29, 149, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.15rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4); }
+    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(76, 29, 149, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
+    .cert-title { font-size: 1.4rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.15rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
+    .register-title-group { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; font-size: 0.95rem; }
+    .register-label { cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    .subject-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%; margin-top: 10px;
+    }
+    .subject-card {
+      background: white; border-radius: 20px; padding: 20px 15px; text-align: center; cursor: pointer;
+      border: 3px solid #e2e8f0; box-shadow: 0 4px 15px rgba(76, 29, 149, 0.06); transition: all 0.25s;
+    }
+    .subject-card:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(76, 29, 149, 0.1); }
+    .subject-card .icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .subject-card h4 { font-size: 1.1rem; color: var(--color-dark); margin-bottom: 4px; }
+    .subject-card p { font-size: 0.8rem; color: #64748b; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.05rem; }
+      .choice-btn { font-size: 0.95rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🎓</span>
+      <h2>แบบฝึกสอบเข้า ม.1</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <!-- Registration Screen -->
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🎓</div>
+      <h3 style="font-size: 1.5rem; color: var(--color-dark); margin-bottom: 10px;">ลงทะเบียนติวเข้ม ม.1</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.9rem;">กรอกชื่อเพื่อบันทึกสถิติคะแนนและชิงแชมป์พระราชา/ราชินีติวเข้มค่ะ!</p>
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อคนเก่งตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      <div class="register-title-group">
+        <label class="register-label"><input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--color-medium); scale: 1.2;"><span>👑 พระราชา (King)</span></label>
+        <label class="register-label"><input type="radio" name="reg-player-title" value="queen" style="accent-color: var(--color-accent-pink); scale: 1.2;"><span>👑 ราชินี (Queen)</span></label>
+      </div>
+      <button class="btn-action" onclick="registerAndStart()">เข้าสู่ห้องติว 🚀</button>
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 คะแนนรวมสูงสุดประจำห้องติว</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <!-- Subject Select Screen -->
+    <div id="subject-screen" style="display: none;">
+      <div class="question-card" style="padding: 30px 25px;">
+        <div class="avatar-area" style="font-size: 2.5rem; margin-bottom: 5px;">📚</div>
+        <h3 style="font-size: 1.3rem; color: var(--color-dark); margin-bottom: 5px;" id="subject-greeting">เลือกวิชาที่จะติวกันเลยค่ะ!</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 10px;">คะแนนสะสมรวมตอนนี้: <strong id="subject-total-score">0</strong> คะแนน</p>
+        <div class="subject-grid" id="subject-grid"></div>
+      </div>
+    </div>
+
+    <!-- Active Quiz Screen -->
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">วิชา</span><span id="hud-subject" class="hud-value" style="font-size: 1rem;">-</span></div>
+        <div class="hud-card"><span class="hud-label">ข้อที่</span><span id="hud-progress" class="hud-value">1/10</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนรวม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+      <div class="question-card">
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🎓</div>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <!-- Explanation Overlay -->
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        <div class="explanation-box">
+          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">3. หลักการสำคัญ:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <!-- Summary Screen (per-subject) -->
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">👑🎓</div>
+      <h2 style="font-size: 1.7rem; color: var(--color-dark);">เยี่ยมมากค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 10px;" id="summary-subject-text">คุณผ่านวิชานี้แล้ว</p>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศเกียรติคุณคนเก่ง</div>
+        <div class="cert-subtitle">เกียรติบัตรติวเข้มสอบเข้า ม.1</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำตาล">
+        <p class="cert-desc" id="cert-desc-text">ได้ก้าวผ่านการติวเข้มเตรียมสอบเข้า ม.1</p>
+        <p class="cert-score" id="cert-score-desc">คะแนนรวมสะสม 0 คะแนน</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="backToSubjects()">📚 ทำวิชาอื่นต่อ</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let playerTitle = "king";
+    let totalScore = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+    let questions = [];
+    let currentSubjectKey = "";
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      },
+      playFanfare() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+          gain.gain.setValueAtTime(0.1, now + idx * 0.1);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.1 + 0.3);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.1); osc.stop(now + idx * 0.1 + 0.3);
+        });
+      }
+    };
+
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+    // ---------- MATH generators (ม.1 entrance level) ----------
+    function genGCD() {
+      const g = randInt(2, 8);
+      const a = g * randInt(2, 6);
+      const b = g * randInt(2, 6);
+      const realGcd = gcd(a, b);
+      const choices = new Set([`${realGcd}`]);
+      while (choices.size < 4) { const d = realGcd + randInt(-4, 4); if (d > 0 && d !== realGcd) choices.add(`${d}`); }
+      return { q: `ห.ร.ม. ของ ${a} และ ${b} เท่ากับเท่าใด?`, a: `${realGcd}`, c: shuffle(Array.from(choices)),
+        exp1: `เฉลยคือ ${realGcd} ค่ะ`, exp2: `เพราะตัวประกอบร่วมที่มากที่สุดของ ${a} และ ${b} คือ ${realGcd}`, exp3: `หลักการ ห.ร.ม.: หาตัวประกอบร่วมที่มากที่สุดของสองจำนวน โดยแยกตัวประกอบเฉพาะแล้วเลือกตัวร่วมที่มีเลขชี้กำลังต่ำสุด` };
+    }
+    function genLCM() {
+      const a = [4,6,8][randInt(0,2)];
+      const b = [3,5,9,12][randInt(0,3)];
+      let lcm = a; while (lcm % b !== 0) lcm += a;
+      const choices = new Set([`${lcm}`]);
+      while (choices.size < 4) { const d = lcm + randInt(-1,2) * a; if (d > 0 && d !== lcm) choices.add(`${d}`); }
+      return { q: `ค.ร.น. ของ ${a} และ ${b} เท่ากับเท่าใด?`, a: `${lcm}`, c: shuffle(Array.from(choices)),
+        exp1: `เฉลยคือ ${lcm} ค่ะ`, exp2: `เพราะ ${lcm} เป็นจำนวนที่น้อยที่สุดที่หารด้วย ${a} และ ${b} ลงตัวทั้งคู่`, exp3: `หลักการ ค.ร.น.: หาตัวคูณร่วมที่น้อยที่สุดของสองจำนวน ซึ่งต้องหารด้วยทั้งสองจำนวนลงตัว` };
+    }
+    function genIntegerOps() {
+      const a = randInt(-20, 20);
+      const b = randInt(-20, 20);
+      const isAdd = Math.random() > 0.5;
+      const answer = isAdd ? a + b : a - b;
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) { const d = answer + randInt(-6,6); if (d !== answer) choices.add(`${d}`); }
+      return { q: `(${a}) ${isAdd ? '+' : '-'} (${b}) มีค่าเท่ากับเท่าใด?`, a: `${answer}`, c: shuffle(Array.from(choices)),
+        exp1: `เฉลยคือ ${answer} ค่ะ`, exp2: `เพราะการ${isAdd ? 'บวก' : 'ลบ'}จำนวนเต็มบวกลบ ให้พิจารณาเครื่องหมายอย่างระมัดระวัง (${a} ${isAdd ? '+' : '-'} ${b} = ${answer})`, exp3: `หลักการจำนวนเต็ม: จำนวนบวกและลบเมื่อบวกกัน ให้นำค่าสัมบูรณ์มาลบกันแล้วใช้เครื่องหมายของจำนวนที่มีค่าสัมบูรณ์มากกว่า` };
+    }
+    function genSimpleEquation() {
+      const x = randInt(2, 15);
+      const b = randInt(1, 10);
+      const sum = x + b;
+      const choices = new Set([`${x}`]);
+      while (choices.size < 4) { const d = x + randInt(-4,4); if (d > 0 && d !== x) choices.add(`${d}`); }
+      return { q: `ถ้า x + ${b} = ${sum} แล้ว x มีค่าเท่ากับเท่าใด?`, a: `${x}`, c: shuffle(Array.from(choices)),
+        exp1: `เฉลยคือ x = ${x} ค่ะ`, exp2: `เพราะย้ายข้าง ${b} ไปลบทั้งสองข้างของสมการ จะได้ x = ${sum} - ${b} = ${x}`, exp3: `หลักการสมการ: การหาค่าตัวแปร ให้ย้ายข้างตัวเลขไปคนละฝั่งของเครื่องหมายเท่ากับ โดยเปลี่ยนเครื่องหมายเป็นตรงข้าม` };
+    }
+    function genPercentEntrance() {
+      const base = [40, 60, 80, 120, 150, 200, 300, 500][randInt(0,7)];
+      const pct = [10, 20, 25, 50, 75][randInt(0,4)];
+      const answer = base * pct / 100;
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) { const d = answer + randInt(-15,15); if (d > 0 && d !== answer) choices.add(`${d}`); }
+      return { q: `${pct}% ของ ${base} เท่ากับเท่าใด?`, a: `${answer}`, c: shuffle(Array.from(choices)),
+        exp1: `เฉลยคือ ${answer} ค่ะ`, exp2: `เพราะนำ ${base} คูณ ${pct} แล้วหารด้วย 100 (${base} x ${pct} ÷ 100 = ${answer})`, exp3: `หลักการร้อยละ: การหาร้อยละของจำนวนใด ให้คูณด้วยร้อยละแล้วหารด้วย 100 เสมอ` };
+    }
+    const mathGens = [genGCD, genLCM, genIntegerOps, genSimpleEquation, genPercentEntrance];
+
+    // ---------- Static question banks ----------
+    const englishBank = [
+      { q: "My father _________ to work by car every day.", a: "goes", c: ["goes", "go", "going", "went"], exp1: "เฉลยคือ goes ค่ะ", exp2: "เพราะประธานเอกพจน์บุรุษที่สาม (My father) ในประโยค Present Simple ต้องเติม s/es ที่กริยา", exp3: "หลักการ Present Simple: he/she/it + verb-s/es" },
+      { q: "They _________ in Bangkok for ten years.", a: "have lived", c: ["have lived", "lived", "live", "living"], exp1: "เฉลยคือ have lived ค่ะ", exp2: "เพราะมี 'for ten years' บอกระยะเวลาที่ต่อเนื่องมาถึงปัจจุบัน จึงใช้ Present Perfect (have/has + V3)", exp3: "หลักการ Present Perfect: ใช้กับเหตุการณ์ที่เริ่มในอดีตและต่อเนื่องถึงปัจจุบัน สังเกตคำว่า for, since" },
+      { q: "If it rains tomorrow, we _________ at home.", a: "will stay", c: ["will stay", "stay", "stayed", "staying"], exp1: "เฉลยคือ will stay ค่ะ", exp2: "เพราะเป็นประโยคเงื่อนไขชนิดที่ 1 (First Conditional) if + present simple, will + verb1", exp3: "หลักการ First Conditional: If + Present Simple, ... will + V1 ใช้พูดถึงเหตุการณ์ในอนาคตที่มีความเป็นไปได้จริง" },
+      { q: "The book _________ by millions of readers around the world.", a: "is read", c: ["is read", "reads", "read", "reading"], exp1: "เฉลยคือ is read ค่ะ", exp2: "เพราะประธาน (the book) เป็นผู้ถูกกระทำ ไม่ใช่ผู้กระทำเอง จึงต้องใช้ Passive Voice (is/am/are + V3)", exp3: "หลักการ Passive Voice: ใช้เมื่อประธานเป็นผู้ถูกกระทำ โครงสร้างคือ be + V3" },
+      { q: "This is the book _________ I told you about.", a: "that", c: ["that", "who", "whose", "whom"], exp1: "เฉลยคือ that ค่ะ", exp2: "เพราะ 'the book' เป็นสิ่งของ คำสรรพนามเชื่อมประโยค (Relative Pronoun) ที่ใช้กับสิ่งของคือ that หรือ which", exp3: "หลักการ Relative Pronouns: who/whom ใช้กับคน, that/which ใช้กับสิ่งของ, whose ใช้แสดงความเป็นเจ้าของ" },
+      { q: "She is the smartest student _________ the class.", a: "in", c: ["in", "on", "at", "of"], exp1: "เฉลยคือ in ค่ะ", exp2: "เพราะเมื่อเปรียบเทียบขั้นสูงสุด (Superlative) กับกลุ่มคนหรือสถานที่ ให้ใช้ in นำหน้ากลุ่ม/สถานที่", exp3: "หลักการ Superlative + Preposition: ใช้ in กับสถานที่/กลุ่ม เช่น in the class, in the world" },
+      { q: "I wish I _________ taller.", a: "were", c: ["were", "am", "was", "be"], exp1: "เฉลยคือ were ค่ะ", exp2: "เพราะประโยค I wish แสดงความปรารถนาที่ตรงข้ามกับความจริงในปัจจุบัน (Subjunctive) ต้องใช้ were กับทุกประธาน", exp3: "หลักการ I wish + Past Simple: แสดงสิ่งที่ตรงข้ามกับความจริงปัจจุบัน ใช้ were แทน was เสมอในรูปทางการ" },
+      { q: "Neither Tom _________ his brother likes vegetables.", a: "nor", c: ["nor", "or", "and", "but"], exp1: "เฉลยคือ nor ค่ะ", exp2: "เพราะ neither ต้องจับคู่กับ nor เสมอในโครงสร้าง neither...nor... (ทั้งสองอย่างไม่จริง)", exp3: "หลักการ Correlative Conjunctions: neither...nor..., either...or..., not only...but also..." },
+      { q: "By the time we arrived, the movie _________.", a: "had started", c: ["had started", "started", "starts", "has started"], exp1: "เฉลยคือ had started ค่ะ", exp2: "เพราะเหตุการณ์หนังเริ่มฉายเกิดขึ้นก่อนเหตุการณ์ที่เรามาถึง (สองเหตุการณ์ในอดีต) จึงใช้ Past Perfect (had + V3) กับเหตุการณ์ที่เกิดก่อน", exp3: "หลักการ Past Perfect: ใช้กับเหตุการณ์ที่เกิดขึ้นก่อนอีกเหตุการณ์หนึ่งในอดีต" },
+      { q: "The teacher asked us _________ our homework on time.", a: "to submit", c: ["to submit", "submit", "submitting", "submitted"], exp1: "เฉลยคือ to submit ค่ะ", exp2: "เพราะ ask someone + to + verb1 เป็นโครงสร้างที่ใช้บอกให้ใครทำสิ่งใด", exp3: "หลักการ Verb + Object + to-infinitive: เช่น ask/tell/want someone to do something" }
+    ];
+
+    const thaiBank = [
+      { q: "คำว่า 'จรลี' มีความหมายตรงกับข้อใด?", a: "เดิน", c: ["เดิน", "นอน", "กิน", "พูด"], exp1: "เฉลยคือ เดิน ค่ะ", exp2: "เพราะ 'จรลี' เป็นคำไทยเก่าแปลว่า เดิน หรือ ดำเนินไป มักพบในวรรณคดี", exp3: "หลักการ: คำศัพท์เก่าหรือคำที่ใช้ในวรรณคดีมักมีความหมายเทียบเคียงกับคำสามัญ ต้องท่องจำคำสำคัญไว้" },
+      { q: "ประโยค 'แม้ฝนจะตก แต่เขาก็ยังไปโรงเรียน' เป็นประโยคชนิดใด?", a: "ประโยคความรวม", c: ["ประโยคความรวม", "ประโยคความเดียว", "ประโยคความซ้อน", "ประโยคคำถาม"], exp1: "เฉลยคือ ประโยคความรวม ค่ะ", exp2: "เพราะมีประโยคความเดียวสองประโยคมาเชื่อมกันด้วยคำเชื่อม 'แม้...แต่' ซึ่งแสดงความขัดแย้ง", exp3: "หลักการ: ประโยคความรวมเกิดจากประโยคความเดียวตั้งแต่สองประโยคเชื่อมกันด้วยคำสันธาน เช่น และ, แต่, หรือ, แม้...แต่" },
+      { q: "คำว่า 'มโนราห์' เป็นคำที่มาจากภาษาใด?", a: "บาลี-สันสกฤต", c: ["บาลี-สันสกฤต", "เขมร", "จีน", "อังกฤษ"], exp1: "เฉลยคือ บาลี-สันสกฤต ค่ะ", exp2: "เพราะ 'มโนราห์' มาจากคำสันสกฤตเกี่ยวกับชื่อการแสดงพื้นบ้าน มีรากศัพท์จากภาษาบาลี-สันสกฤต", exp3: "หลักการ: คำไทยจำนวนมากยืมมาจากภาษาบาลี-สันสกฤต สังเกตจากตัวสะกดที่ซับซ้อนและมีตัวการันต์" },
+      { q: "คำราชาศัพท์ 'ทรงม้า' หมายถึงข้อใด?", a: "ขี่ม้า", c: ["ขี่ม้า", "เลี้ยงม้า", "ซื้อม้า", "วาดรูปม้า"], exp1: "เฉลยคือ ขี่ม้า ค่ะ", exp2: "เพราะคำว่า 'ทรง' นำหน้ากริยาสามัญเพื่อทำให้เป็นคำราชาศัพท์ 'ทรงม้า' จึงหมายถึงการขี่ม้าของพระมหากษัตริย์", exp3: "หลักการ: คำว่า 'ทรง' ใช้นำหน้าคำกริยาสามัญเพื่อยกระดับเป็นคำราชาศัพท์ เช่น ทรงดนตรี ทรงกีฬา" },
+      { q: "คำว่า 'ปทุมมา' และ 'ประทุมมา' ต่างกันอย่างไร?", a: "คำเดียวกัน สะกดต่างกันแต่ความหมายเหมือนกัน", c: ["คำเดียวกัน สะกดต่างกันแต่ความหมายเหมือนกัน", "ความหมายตรงข้ามกันโดยสิ้นเชิง", "เป็นคำพ้องเสียงคนละความหมาย", "เป็นคำภาษาต่างประเทศคนละคำ"], exp1: "เฉลยคือ คำเดียวกัน สะกดต่างกันแต่ความหมายเหมือนกัน ค่ะ", exp2: "เพราะทั้งสองคำหมายถึงดอกบัวเช่นเดียวกัน เป็นคำที่มีการสะกดแตกต่างกันได้ตามธรรมเนียมการเขียน", exp3: "หลักการ: บางคำในภาษาไทยมีวิธีสะกดได้มากกว่าหนึ่งแบบ แต่ความหมายเดียวกัน ต้องสังเกตจากพจนานุกรม" },
+      { q: "สำนวน 'ขี่ช้างจับตั๊กแตน' หมายถึงอะไร?", a: "ลงทุนมากแต่ได้ผลตอบแทนน้อย", c: ["ลงทุนมากแต่ได้ผลตอบแทนน้อย", "ทำงานร่วมกันเป็นทีมใหญ่", "มีความกล้าหาญอย่างยิ่ง", "เดินทางไปที่ไกลๆ"], exp1: "เฉลยคือ ลงทุนมากแต่ได้ผลตอบแทนน้อย ค่ะ", exp2: "เพราะสำนวนนี้เปรียบการทำสิ่งเล็กน้อยด้วยการลงทุนหรือเตรียมการที่ใหญ่โตเกินความจำเป็น ไม่คุ้มค่ากับผลที่ได้", exp3: "หลักการ: สำนวนไทยมักเปรียบเทียบพฤติกรรมกับภาพเหตุการณ์ที่เกินจริง เพื่อสื่อคติสอนใจ" },
+      { q: "คำว่า 'โจทย์' และ 'โจษ' เป็นคำประเภทใด?", a: "คำพ้องเสียง", c: ["คำพ้องเสียง", "คำพ้องรูป", "คำไวพจน์", "คำสมาส"], exp1: "เฉลยคือ คำพ้องเสียง ค่ะ", exp2: "เพราะออกเสียงคล้ายกัน (โจด) แต่เขียนต่างกันและมีความหมายต่างกัน (โจทย์ = ปัญหาที่ต้องแก้, โจษ = พูดกันทั่วไป)", exp3: "หลักการ: คำพ้องเสียงต้องแยกแยะด้วยการสะกดและความหมายที่ถูกต้องตามบริบท" },
+      { q: "ข้อใดคือคำสมาส?", a: "รัฐบาล", c: ["รัฐบาล", "ลูกน้ำ", "ตู้เย็น", "ไก่ย่าง"], exp1: "เฉลยคือ รัฐบาล ค่ะ", exp2: "เพราะ 'รัฐบาล' เกิดจากคำบาลี-สันสกฤตสองคำมาสมาสกัน (รัฐ + บาล) โดยไม่มีการเปลี่ยนเสียงหรือรูปคำ", exp3: "หลักการคำสมาส: เกิดจากคำบาลี-สันสกฤตตั้งแต่สองคำรวมกันเป็นคำใหม่ อ่านออกเสียงต่อเนื่องกัน" },
+      { q: "ประโยค 'ฉันชอบหนังสือที่พ่อซื้อให้' มีส่วนขยายใด?", a: "ที่พ่อซื้อให้ (ขยายหนังสือ)", c: ["ที่พ่อซื้อให้ (ขยายหนังสือ)", "ฉัน (ขยายชอบ)", "หนังสือ (ขยายฉัน)", "ชอบ (ขยายพ่อ)"], exp1: "เฉลยคือ ที่พ่อซื้อให้ (ขยายหนังสือ) ค่ะ", exp2: "เพราะประโยคย่อย 'ที่พ่อซื้อให้' ทำหน้าที่ขยายคำนาม 'หนังสือ' ให้ชัดเจนขึ้นว่าเป็นหนังสือเล่มใด", exp3: "หลักการประโยคความซ้อน: ประโยคย่อยที่ขึ้นต้นด้วย 'ที่ ซึ่ง อัน' ทำหน้าที่ขยายคำนามในประโยคหลัก" },
+      { q: "คำว่า 'ทิวา' และ 'รัตติ' มีความหมายตรงกันข้ามกันอย่างไร?", a: "ทิวา=กลางวัน, รัตติ=กลางคืน", c: ["ทิวา=กลางวัน, รัตติ=กลางคืน", "ทิวา=ฤดูร้อน, รัตติ=ฤดูหนาว", "ทิวา=ท้องฟ้า, รัตติ=พื้นดิน", "ทิวา=ภูเขา, รัตติ=ทะเล"], exp1: "เฉลยคือ ทิวา=กลางวัน, รัตติ=กลางคืน ค่ะ", exp2: "เพราะทั้งสองคำเป็นคำไทยเก่าที่มักพบในวรรณคดี ทิวา แปลว่า กลางวัน ส่วนรัตติ แปลว่า กลางคืน", exp3: "หลักการ: คำศัพท์วรรณคดีมักมาเป็นคู่ความหมายตรงข้าม ต้องท่องจำคู่คำให้แม่นยำ" }
+    ];
+
+    const scienceBank = [
+      { q: "สถานะของสสารที่มีรูปร่างและปริมาตรคงที่คือข้อใด?", a: "ของแข็ง", c: ["ของแข็ง", "ของเหลว", "แก๊ส", "พลาสมา"], exp1: "เฉลยคือ ของแข็ง ค่ะ", exp2: "เพราะของแข็งมีอนุภาคเรียงชิดกันแน่น จึงคงรูปร่างและปริมาตรไม่เปลี่ยนแปลงตามภาชนะ", exp3: "หลักการสถานะของสสาร: ของแข็งรูปร่าง/ปริมาตรคงที่, ของเหลวปริมาตรคงที่แต่รูปร่างเปลี่ยนตามภาชนะ, แก๊สทั้งรูปร่างและปริมาตรเปลี่ยนแปลงได้" },
+      { q: "อวัยวะใดทำหน้าที่สูบฉีดเลือดไปเลี้ยงร่างกาย?", a: "หัวใจ", c: ["หัวใจ", "ปอด", "ตับ", "ไต"], exp1: "เฉลยคือ หัวใจ ค่ะ", exp2: "เพราะหัวใจทำหน้าที่สูบฉีดเลือดไปเลี้ยงส่วนต่างๆ ของร่างกายผ่านหลอดเลือด", exp3: "หลักการระบบหมุนเวียนเลือด: หัวใจ (สูบฉีดเลือด) ปอด (แลกเปลี่ยนแก๊ส) ตับ (กรองสารพิษ) ไต (กรองของเสีย)" },
+      { q: "พืชสร้างอาหารเองได้โดยกระบวนการใด?", a: "การสังเคราะห์ด้วยแสง", c: ["การสังเคราะห์ด้วยแสง", "การหายใจ", "การคายน้ำ", "การดูดซึม"], exp1: "เฉลยคือ การสังเคราะห์ด้วยแสง ค่ะ", exp2: "เพราะพืชใช้แสงแดด น้ำ และแก๊สคาร์บอนไดออกไซด์ ผ่านกระบวนการสังเคราะห์ด้วยแสงเพื่อสร้างอาหารและปล่อยแก๊สออกซิเจน", exp3: "หลักการการสังเคราะห์ด้วยแสง: แสงแดด + น้ำ + คาร์บอนไดออกไซด์ → น้ำตาลกลูโคส + ออกซิเจน (เกิดที่คลอโรฟิลล์ในใบพืช)" },
+      { q: "แรงที่ทำให้วัตถุตกลงสู่พื้นโลกคือแรงใด?", a: "แรงโน้มถ่วง", c: ["แรงโน้มถ่วง", "แรงแม่เหล็ก", "แรงเสียดทาน", "แรงไฟฟ้า"], exp1: "เฉลยคือ แรงโน้มถ่วง ค่ะ", exp2: "เพราะโลกมีแรงดึงดูดวัตถุทุกชิ้นเข้าหาศูนย์กลางของโลก เรียกว่าแรงโน้มถ่วง", exp3: "หลักการแรงโน้มถ่วง: เป็นแรงดึงดูดระหว่างมวลของวัตถุกับโลก ทำให้วัตถุตกลงสู่พื้นเสมอ" },
+      { q: "ในห่วงโซ่อาหาร สิ่งมีชีวิตที่สร้างอาหารเองได้เรียกว่าอะไร?", a: "ผู้ผลิต", c: ["ผู้ผลิต", "ผู้บริโภค", "ผู้ย่อยสลาย", "ผู้ล่า"], exp1: "เฉลยคือ ผู้ผลิต ค่ะ", exp2: "เพราะพืชสามารถสร้างอาหารเองได้ด้วยการสังเคราะห์ด้วยแสง จึงเป็นผู้ผลิตในห่วงโซ่อาหาร", exp3: "หลักการห่วงโซ่อาหาร: ผู้ผลิต (พืช) → ผู้บริโภค (สัตว์กินพืช/สัตว์กินเนื้อ) → ผู้ย่อยสลาย (แบคทีเรีย เชื้อรา)" },
+      { q: "ดาวเคราะห์ดวงใดอยู่ใกล้ดวงอาทิตย์มากที่สุด?", a: "ดาวพุธ", c: ["ดาวพุธ", "ดาวศุกร์", "โลก", "ดาวอังคาร"], exp1: "เฉลยคือ ดาวพุธ ค่ะ", exp2: "เพราะดาวพุธเป็นดาวเคราะห์ที่โคจรอยู่ใกล้ดวงอาทิตย์ที่สุดในระบบสุริยะ", exp3: "หลักการระบบสุริยะ: ลำดับดาวเคราะห์จากใกล้ถึงไกลดวงอาทิตย์ คือ พุธ ศุกร์ โลก อังคาร พฤหัสบดี เสาร์ ยูเรนัส เนปจูน" },
+      { q: "วงจรไฟฟ้าแบบใดที่หากหลอดไฟดวงหนึ่งขาด หลอดอื่นจะยังคงติดอยู่?", a: "วงจรขนาน", c: ["วงจรขนาน", "วงจรอนุกรม", "วงจรผสม", "วงจรปิด"], exp1: "เฉลยคือ วงจรขนาน ค่ะ", exp2: "เพราะวงจรขนานแยกเส้นทางกระแสไฟฟ้าออกจากกัน หากหลอดหนึ่งขาด กระแสไฟยังไหลผ่านเส้นทางอื่นได้", exp3: "หลักการวงจรไฟฟ้า: วงจรอนุกรม หากอุปกรณ์หนึ่งขาดวงจรจะไม่ครบ ส่วนวงจรขนานแต่ละเส้นทางแยกอิสระจากกัน" },
+      { q: "การแยกสารโดยใช้ความแตกต่างของขนาดอนุภาคผ่านวัสดุที่มีรูพรุนเรียกว่าอะไร?", a: "การกรอง", c: ["การกรอง", "การกลั่น", "การระเหย", "การตกตะกอน"], exp1: "เฉลยคือ การกรอง ค่ะ", exp2: "เพราะการกรองใช้แยกของแข็งที่มีขนาดใหญ่กว่ารูพรุนของกระดาษกรองออกจากของเหลว", exp3: "หลักการแยกสาร: การกรอง (แยกของแข็งจากของเหลวโดยขนาดอนุภาค), การกลั่น (แยกโดยจุดเดือด), การระเหย (แยกตัวทำละลายออกจากสารละลาย)" },
+      { q: "อวัยวะใดทำหน้าที่แลกเปลี่ยนแก๊สในระบบหายใจ?", a: "ปอด", c: ["ปอด", "หัวใจ", "กระเพาะอาหาร", "ตับ"], exp1: "เฉลยคือ ปอด ค่ะ", exp2: "เพราะปอดทำหน้าที่แลกเปลี่ยนแก๊สออกซิเจนกับแก๊สคาร์บอนไดออกไซด์ระหว่างอากาศกับเลือด", exp3: "หลักการระบบหายใจ: อากาศเข้าสู่จมูก หลอดลม ไปยังปอด ซึ่งเป็นที่แลกเปลี่ยนแก๊สกับเส้นเลือดฝอย" },
+      { q: "น้ำเปลี่ยนสถานะจากของเหลวเป็นแก๊สเรียกว่ากระบวนการใด?", a: "การระเหย", c: ["การระเหย", "การควบแน่น", "การหลอมเหลว", "การแข็งตัว"], exp1: "เฉลยคือ การระเหย ค่ะ", exp2: "เพราะเมื่อน้ำได้รับความร้อนเพียงพอ อนุภาคของน้ำจะเคลื่อนที่เร็วขึ้นจนหลุดออกจากผิวน้ำกลายเป็นไอน้ำ (แก๊ส)", exp3: "หลักการเปลี่ยนสถานะ: การระเหย (ของเหลว→แก๊ส), การควบแน่น (แก๊ส→ของเหลว), การหลอมเหลว (ของแข็ง→ของเหลว), การแข็งตัว (ของเหลว→ของแข็ง)" }
+    ];
+
+    const socialBank = [
+      { q: "แม่น้ำสายใดยาวที่สุดในประเทศไทย?", a: "แม่น้ำโขง", c: ["แม่น้ำโขง", "แม่น้ำเจ้าพระยา", "แม่น้ำปิง", "แม่น้ำมูล"], exp1: "เฉลยคือ แม่น้ำโขง ค่ะ", exp2: "เพราะแม่น้ำโขงไหลผ่านและเป็นพรมแดนของไทยเป็นระยะทางยาวที่สุดเมื่อเทียบกับแม่น้ำสายอื่นในประเทศ", exp3: "หลักการภูมิศาสตร์ไทย: แม่น้ำสำคัญของไทย ได้แก่ เจ้าพระยา โขง ปิง วัง ยม น่าน มูล และชี" },
+      { q: "ประเทศไทยแบ่งเขตการปกครองส่วนภูมิภาคออกเป็นกี่ภาค?", a: "6 ภาค", c: ["6 ภาค", "4 ภาค", "5 ภาค", "8 ภาค"], exp1: "เฉลยคือ 6 ภาค ค่ะ", exp2: "เพราะประเทศไทยแบ่งตามภูมิศาสตร์เป็น 6 ภาค ได้แก่ เหนือ กลาง ตะวันออกเฉียงเหนือ ตะวันออก ตะวันตก และใต้", exp3: "หลักการภูมิศาสตร์ไทย: 6 ภาคหลักของไทย คือ ภาคเหนือ ภาคกลาง ภาคตะวันออกเฉียงเหนือ ภาคตะวันออก ภาคตะวันตก ภาคใต้" },
+      { q: "อาณาจักรใดที่มีสุโขทัยเป็นราชธานีแห่งแรกของไทย?", a: "อาณาจักรสุโขทัย", c: ["อาณาจักรสุโขทัย", "อาณาจักรอยุธยา", "อาณาจักรธนบุรี", "อาณาจักรรัตนโกสินทร์"], exp1: "เฉลยคือ อาณาจักรสุโขทัย ค่ะ", exp2: "เพราะอาณาจักรสุโขทัยถือเป็นราชธานีแห่งแรกของชนชาติไทยตามประวัติศาสตร์ที่เรียนกันทั่วไป", exp3: "หลักการประวัติศาสตร์ไทย: ลำดับอาณาจักร คือ สุโขทัย → อยุธยา → ธนบุรี → รัตนโกสินทร์" },
+      { q: "กฎหมายสูงสุดในการปกครองประเทศไทยคือข้อใด?", a: "รัฐธรรมนูญ", c: ["รัฐธรรมนูญ", "พระราชบัญญัติ", "พระราชกฤษฎีกา", "กฎกระทรวง"], exp1: "เฉลยคือ รัฐธรรมนูญ ค่ะ", exp2: "เพราะรัฐธรรมนูญเป็นกฎหมายสูงสุดที่กำหนดรูปแบบการปกครองและสิทธิเสรีภาพของประชาชน กฎหมายอื่นต้องไม่ขัดกับรัฐธรรมนูญ", exp3: "หลักการกฎหมายไทย: ลำดับศักดิ์กฎหมายจากสูงสุด คือ รัฐธรรมนูญ พระราชบัญญัติ พระราชกฤษฎีกา กฎกระทรวง" },
+      { q: "เมื่อสินค้ามีปริมาณน้อยแต่ความต้องการซื้อมาก จะส่งผลต่อราคาสินค้าอย่างไร?", a: "ราคาสินค้าจะสูงขึ้น", c: ["ราคาสินค้าจะสูงขึ้น", "ราคาสินค้าจะลดลง", "ราคาสินค้าจะคงที่", "ไม่มีผลต่อราคา"], exp1: "เฉลยคือ ราคาสินค้าจะสูงขึ้น ค่ะ", exp2: "เพราะเมื่ออุปทาน (ปริมาณสินค้า) มีน้อยแต่อุปสงค์ (ความต้องการซื้อ) มีมาก ราคาสินค้าจะปรับตัวสูงขึ้นตามกลไกตลาด", exp3: "หลักการอุปสงค์-อุปทาน: อุปทานน้อย+อุปสงค์มาก → ราคาสูงขึ้น, อุปทานมาก+อุปสงค์น้อย → ราคาลดลง" },
+      { q: "ศาสนาใดเป็นศาสนาที่ประชากรไทยส่วนใหญ่นับถือ?", a: "พระพุทธศาสนา", c: ["พระพุทธศาสนา", "ศาสนาอิสลาม", "ศาสนาคริสต์", "ศาสนาฮินดู"], exp1: "เฉลยคือ พระพุทธศาสนา ค่ะ", exp2: "เพราะประชากรไทยส่วนใหญ่นับถือพระพุทธศาสนานิกายเถรวาทมาอย่างยาวนาน", exp3: "หลักการศาสนาและวัฒนธรรม: ไทยมีเสรีภาพในการนับถือศาสนา แต่ประชากรส่วนใหญ่นับถือพระพุทธศาสนา" },
+      { q: "วันที่ 5 ธันวาคมของทุกปีเป็นวันสำคัญใด?", a: "วันพ่อแห่งชาติ", c: ["วันพ่อแห่งชาติ", "วันแม่แห่งชาติ", "วันเด็กแห่งชาติ", "วันครูแห่งชาติ"], exp1: "เฉลยคือ วันพ่อแห่งชาติ ค่ะ", exp2: "เพราะวันที่ 5 ธันวาคม เป็นวันคล้ายวันพระบรมราชสมภพของพระบาทสมเด็จพระบรมชนกาธิเบศร มหาภูมิพลอดุลยเดชมหาราช และกำหนดให้เป็นวันพ่อแห่งชาติ", exp3: "หลักการวันสำคัญของไทย: วันแม่แห่งชาติคือ 12 สิงหาคม ส่วนวันพ่อแห่งชาติคือ 5 ธันวาคม" },
+      { q: "หน่วยการปกครองส่วนท้องถิ่นขนาดเล็กที่สุดในชนบทของไทยคือข้อใด?", a: "องค์การบริหารส่วนตำบล (อบต.)", c: ["องค์การบริหารส่วนตำบล (อบต.)", "องค์การบริหารส่วนจังหวัด (อบจ.)", "เทศบาลนคร", "กรุงเทพมหานคร"], exp1: "เฉลยคือ องค์การบริหารส่วนตำบล (อบต.) ค่ะ", exp2: "เพราะ อบต. เป็นหน่วยการปกครองท้องถิ่นระดับตำบลซึ่งเป็นหน่วยที่เล็กที่สุดในพื้นที่ชนบท", exp3: "หลักการปกครองท้องถิ่นไทย: อบต. (ตำบล) เทศบาล (เมือง/นคร) อบจ. (จังหวัด) กรุงเทพฯและพัทยา (รูปแบบพิเศษ)" },
+      { q: "ทวีปที่ประเทศไทยตั้งอยู่คือทวีปใด?", a: "ทวีปเอเชีย", c: ["ทวีปเอเชีย", "ทวีปยุโรป", "ทวีปแอฟริกา", "ทวีปออสเตรเลีย"], exp1: "เฉลยคือ ทวีปเอเชีย ค่ะ", exp2: "เพราะประเทศไทยตั้งอยู่ในภูมิภาคเอเชียตะวันออกเฉียงใต้ ซึ่งเป็นส่วนหนึ่งของทวีปเอเชีย", exp3: "หลักการภูมิศาสตร์: ไทยอยู่ในภูมิภาคเอเชียตะวันออกเฉียงใต้ (South East Asia) ของทวีปเอเชีย" },
+      { q: "สิทธิและเสรีภาพขั้นพื้นฐานของประชาชนไทยถูกกำหนดไว้ในกฎหมายใด?", a: "รัฐธรรมนูญ", c: ["รัฐธรรมนูญ", "ประมวลกฎหมายอาญา", "ประมวลกฎหมายแพ่ง", "พระราชกำหนด"], exp1: "เฉลยคือ รัฐธรรมนูญ ค่ะ", exp2: "เพราะรัฐธรรมนูญเป็นกฎหมายสูงสุดที่รับรองสิทธิและเสรีภาพขั้นพื้นฐานของประชาชนไทยไว้อย่างชัดเจน", exp3: "หลักการสิทธิพลเมือง: รัฐธรรมนูญคุ้มครองสิทธิ เสรีภาพ และหน้าที่ของประชาชนไทยทุกคน" }
+    ];
+
+    const SUBJECTS = {
+      math: { title: "คณิตศาสตร์", icon: "🔢", color: "#6366f1", questions: null, isGenerated: true, count: 10 },
+      english: { title: "ภาษาอังกฤษ", icon: "🌍", color: "#0284c7", questions: englishBank, isGenerated: false, count: 10 },
+      thai: { title: "ภาษาไทย", icon: "📜", color: "#d97706", questions: thaiBank, isGenerated: false, count: 10 },
+      science: { title: "วิทยาศาสตร์", icon: "🔬", color: "#059669", questions: scienceBank, isGenerated: false, count: 10 },
+      social: { title: "สังคมศึกษา", icon: "🌏", color: "#dc2626", questions: socialBank, isGenerated: false, count: 10 }
+    };
+
+    const avatars = ["🦊", "🐼", "🦉", "🐯", "🐨", "🎓", "🐺", "🐹"];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
+      playerTitle = titleRadio ? titleRadio.value : "king";
+      synth.init();
+      const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(`ยินดีต้อนรับ ${roleTh} ${playerName} เข้าสู่ห้องติวเข้มสอบเข้า ม.1 ค่ะ`);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      totalScore = 0;
+      document.getElementById('register-screen').style.display = 'none';
+      showSubjectScreen();
+    }
+
+    function showSubjectScreen() {
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('subject-screen').style.display = 'block';
+      document.getElementById('subject-total-score').innerText = totalScore;
+      const grid = document.getElementById('subject-grid');
+      grid.innerHTML = '';
+      Object.keys(SUBJECTS).forEach(key => {
+        const s = SUBJECTS[key];
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.style.borderColor = s.color + '55';
+        card.innerHTML = `<div class="icon">${s.icon}</div><h4 style="color:${s.color}">${s.title}</h4><p>${s.count} ข้อ</p>`;
+        card.addEventListener('click', () => startSubjectQuiz(key));
+        grid.appendChild(card);
+      });
+    }
+
+    function backToSubjects() {
+      window.speechSynthesis.cancel();
+      showSubjectScreen();
+    }
+
+    function startSubjectQuiz(key) {
+      currentSubjectKey = key;
+      const s = SUBJECTS[key];
+      if (s.isGenerated) {
+        questions = [];
+        const gens = shuffle([...mathGens]);
+        for (let i = 0; i < s.count; i++) { questions.push(gens[i % gens.length]()); }
+      } else {
+        questions = shuffle([...s.questions]).slice(0, s.count);
+      }
+      currentIdx = 0;
+      answersCorrectCount = 0;
+      document.getElementById('subject-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      document.getElementById('hud-subject').innerText = s.title;
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentIdx >= questions.length) { finishSubject(); return; }
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
+      document.getElementById('hud-score').innerText = totalScore;
+      const q = questions[currentIdx];
+      document.getElementById('question-sentence').innerText = q.q;
+      document.getElementById('question-avatar').innerText = avatars[Math.floor(Math.random() * avatars.length)];
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const choices = shuffle([...new Set(q.c)]);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) {
+        setTimeout(() => {
+          const isEng = currentSubjectKey === 'english';
+          speakCurrentQuestion(isEng ? 'en-US' : 'th-TH');
+        }, 500);
+      }
+    }
+
+    function speakCurrentQuestion(lang) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const useLang = lang || (currentSubjectKey === 'english' ? 'en-US' : 'th-TH');
+      const utterance = new SpeechSynthesisUtterance(q.q);
+      utterance.lang = useLang;
+      utterance.rate = useLang === 'en-US' ? 0.9 : 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const isCorrect = (value === q.a);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        totalScore += 100;
+        answersCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "😢";
+        document.getElementById('result-title').innerText = "พยายามใหม่นะคนเก่ง!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.exp1;
+      document.getElementById('exp-incorrect').innerText = q.exp2;
+      document.getElementById('exp-summary').innerText = q.exp3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const isEng = currentSubjectKey === 'english';
+          const text = isEng
+            ? `${isCorrect ? 'Correct!' : 'Incorrect.'} The answer is ${q.a}.`
+            : `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = isEng ? 'en-US' : 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishSubject() {
+      window.speechSynthesis.cancel();
+      synth.playFanfare();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      const s = SUBJECTS[currentSubjectKey];
+      document.getElementById('summary-subject-text').innerText = `คุณผ่านวิชา${s.title}แล้ว!`;
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 9) starStr = "⭐⭐⭐";
+      else if (answersCorrectCount >= 6) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
+      document.getElementById('cert-desc-text').innerText = `ได้ก้าวผ่านการติวเข้มวิชา${s.title} เตรียมสอบเข้า ม.1`;
+      document.getElementById('cert-score-desc').innerText = `ตอบถูก ${answersCorrectCount}/${questions.length} ข้อ (คะแนนรวมสะสม: ${totalScore} คะแนน)`;
+      if (speechEnabled) {
+        const utterance = new SpeechSynthesisUtterance(`เก่งมากๆ เลยค่ะ! ${titleTh} ${playerName} ผ่านวิชา${s.title} ด้วยคะแนนรวมสะสม ${totalScore} คะแนนค่ะ`);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('entrance6_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
+      if (idx !== -1) { if (totalScore > leaderboard[idx].score) leaderboard[idx].score = totalScore; }
+      else { leaderboard.push({ name: playerName, title: playerTitle, score: totalScore }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('entrance6_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('entrance6_leaderboard')) || [];
+      const box = document.getElementById('leaderboard-box');
+      if (leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีบัลลังก์เกียรติยศสูงสุดค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+        const crownColor = item.title === 'king' ? 'var(--color-medium)' : 'var(--color-accent-pink)';
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตะลุยโจทย์คณิตศาสตร์ ป.6 | สำหรับ น้ำตาล 🦊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-dark: #3730a3;
+      --color-medium: #6366f1;
+      --color-light: #a5b4fc;
+      --color-bg: #eef2ff;
+      --color-accent-orange: #f59e0b;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--color-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .app-header {
+      width: 100%; max-width: 800px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 12px 25px; border-radius: 25px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(55, 48, 163, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back {
+      font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px;
+      border: 2px solid #e2e8f0; border-radius: 20px; background: white;
+      color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.3rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon {
+      background: white; border: 2px solid #e2e8f0; border-radius: 50%;
+      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.2rem; transition: all 0.2s;
+    }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container {
+      width: 100%; max-width: 650px; flex-grow: 1;
+      display: flex; flex-direction: column; gap: 20px; justify-content: center;
+    }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card {
+      background: white; border-radius: 20px; padding: 10px 20px; flex: 1;
+      display: flex; flex-direction: column; align-items: center;
+      box-shadow: 0 4px 15px rgba(55, 48, 163, 0.06);
+      border-bottom: 4px solid var(--color-light);
+    }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .question-card {
+      background: white; border-radius: 30px; padding: 30px 25px;
+      box-shadow: 0 10px 30px rgba(55, 48, 163, 0.08);
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      position: relative; border: 3px solid rgba(255, 255, 255, 0.8);
+    }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .sentence-display { font-size: 1.4rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question {
+      background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%;
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s;
+    }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn {
+      font-family: var(--font-playful); font-size: 1.25rem; font-weight: bold; color: var(--color-text-dark);
+      background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px;
+      cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+    }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(55, 48, 163, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(55, 48, 163, 0.85); backdrop-filter: blur(6px); z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px;
+    }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center;
+      border: 4px solid var(--color-light); transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box {
+      text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px;
+      margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5;
+    }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action {
+      font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white;
+      background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px;
+      cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: all 0.2s;
+    }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); }
+    .summary-screen {
+      background: white; border-radius: 30px; padding: 40px 30px;
+      box-shadow: 0 10px 30px rgba(55, 48, 163, 0.08); text-align: center; display: none;
+      flex-direction: column; align-items: center; border: 4px solid var(--color-light);
+    }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .certificate-card {
+      border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px;
+      width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center;
+    }
+    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input {
+      font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium);
+      background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold;
+      width: 70%; margin-bottom: 10px; outline: none;
+    }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.2rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input {
+      font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px;
+      border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px;
+      text-align: center; margin-bottom: 15px; outline: none;
+    }
+    .register-title-group { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; font-size: 0.95rem; }
+    .register-label { cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.15rem; }
+      .choice-btn { font-size: 1.05rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">📐</span>
+      <h2>คณิตศาสตร์ ป.6</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <!-- Registration Screen -->
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🦊</div>
+      <h3 style="font-size: 1.6rem; color: var(--color-dark); margin-bottom: 10px;">ลงทะเบียนตะลุยโจทย์</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">กรอกชื่อเพื่อบันทึกสถิติคะแนนและชิงแชมป์พระราชา/ราชินีคณิตศาสตร์กันค่ะ!</p>
+
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อคนเก่งตรงนี้ค่ะ..." maxlength="12" class="register-input">
+
+      <div class="register-title-group">
+        <label class="register-label">
+          <input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--color-medium); scale: 1.2;">
+          <span>👑 พระราชา (King)</span>
+        </label>
+        <label class="register-label">
+          <input type="radio" name="reg-player-title" value="queen" style="accent-color: var(--color-accent-pink); scale: 1.2;">
+          <span>👑 ราชินี (Queen)</span>
+        </label>
+      </div>
+
+      <button class="btn-action" onclick="registerAndStart()">เริ่มตะลุยโจทย์ 🚀</button>
+
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 ทำคะแนนสูงสุดประจำห้อง</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <!-- Active Game Screen -->
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">ชื่อผู้เล่น</span><span id="hud-name" class="hud-value">-</span></div>
+        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/15</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+
+      <div class="question-card">
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🦊</div>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <!-- Results Explanation Overlay -->
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        <div class="explanation-box">
+          <div class="exp-step">
+            <span class="exp-step-title">1. เฉลยคำตอบ:</span>
+            <div id="exp-correct" style="color: #059669; font-weight: 600;">-</div>
+          </div>
+          <div class="exp-step">
+            <span class="exp-step-title">2. วิธีคิด:</span>
+            <div id="exp-incorrect" style="color: #4b5563;">-</div>
+          </div>
+          <div class="exp-step">
+            <span class="exp-step-title">3. หลักการสำคัญ:</span>
+            <div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div>
+          </div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <!-- Summary / Finished Screen -->
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">👑🎓</div>
+      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 10px;">คุณตะลุยโจทย์คณิตศาสตร์ ป.6 ครบถ้วนแล้ว</p>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศเกียรติคุณคนเก่ง</div>
+        <div class="cert-subtitle">เกียรติบัตรยอดนักคณิตศาสตร์ ป.6</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำตาล">
+        <p class="cert-desc">ได้ก้าวผ่านการผจญภัยโจทย์เศษส่วน ทศนิยม ร้อยละ พื้นที่ และปริมาตร</p>
+        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 1500 คะแนนเต็ม!</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 ท้าทายใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let playerTitle = "king";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+    let questions = [];
+    const TOTAL_QUESTIONS = 15;
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return;
+        this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return;
+        this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+    };
+
+    // ---- Helper ----
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+    function simplifyFraction(n, d) { const g = gcd(n, d); return [n / g, d / g]; }
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    // ---- Question Generators (ป.6 curriculum) ----
+    function genFractionAddSub() {
+      const isAdd = Math.random() > 0.5;
+      const den = [4, 6, 8, 10, 12][randInt(0, 4)];
+      let n1 = randInt(1, den - 2);
+      let n2 = randInt(1, den - n1 - 1 > 0 ? den - n1 - 1 : 1);
+      if (!isAdd && n2 > n1) { const t = n1; n1 = n2; n2 = t; }
+      const resultN = isAdd ? n1 + n2 : n1 - n2;
+      const [sn, sd] = simplifyFraction(resultN, den);
+      const answer = sd === 1 ? `${sn}` : `${sn}/${sd}`;
+      const qText = `${n1}/${den} ${isAdd ? '+' : '-'} ${n2}/${den} มีค่าเท่ากับเท่าใด? (ตอบเศษส่วนอย่างต่ำ)`;
+      const distractors = new Set([`${resultN}/${den}`, `${n1}/${den}`, `${n2}/${den}`]);
+      distractors.delete(answer);
+      const choices = shuffle([answer, ...Array.from(distractors)].slice(0, 4));
+      while (choices.length < 4) choices.push(`${randInt(1, den - 1)}/${den}`);
+      return {
+        questionText: qText,
+        answer,
+        choices: shuffle([...new Set(choices)]).slice(0, 4).includes(answer) ? shuffle([...new Set(choices)]).slice(0, 4) : shuffle([answer, ...choices]).slice(0, 4),
+        explanation1: `เฉลยคำตอบคือ ${answer} ค่ะ!`,
+        explanation2: `เพราะเศษส่วนที่มีตัวส่วนเท่ากันอยู่แล้ว ให้นำตัวเศษมา${isAdd ? 'บวก' : 'ลบ'}กันได้เลย (${n1} ${isAdd ? '+' : '-'} ${n2} = ${resultN}) แล้วจึงทำให้เป็นเศษส่วนอย่างต่ำ`,
+        explanation3: `หลักการสำคัญ: เศษส่วนที่ตัวส่วนเท่ากัน ให้บวกลบเฉพาะตัวเศษ ตัวส่วนคงเดิม แล้วจึงหารตัวเศษและตัวส่วนด้วย ห.ร.ม. เพื่อทำให้เป็นเศษส่วนอย่างต่ำเสมอค่ะ`
+      };
+    }
+
+    function genDecimalAddSub() {
+      const isAdd = Math.random() > 0.5;
+      const a = (randInt(10, 99) / 10);
+      const b = (randInt(10, 99) / 10);
+      let result = isAdd ? a + b : Math.max(a, b) - Math.min(a, b);
+      result = Math.round(result * 10) / 10;
+      const num1 = isAdd ? a : Math.max(a, b);
+      const num2 = isAdd ? b : Math.min(a, b);
+      const answer = result.toFixed(1);
+      const choices = new Set([answer]);
+      while (choices.size < 4) {
+        const off = (randInt(-15, 15) / 10);
+        const d = Math.round((result + off) * 10) / 10;
+        if (d.toFixed(1) !== answer && d > 0) choices.add(d.toFixed(1));
+      }
+      return {
+        questionText: `${num1.toFixed(1)} ${isAdd ? '+' : '-'} ${num2.toFixed(1)} มีค่าเท่ากับเท่าใด?`,
+        answer,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ค่ะ!`,
+        explanation2: `เพราะการ${isAdd ? 'บวก' : 'ลบ'}ทศนิยม ให้ตั้งจุดทศนิยมให้ตรงกันก่อน แล้วจึง${isAdd ? 'บวก' : 'ลบ'}เหมือนจำนวนเต็มปกติ (${num1.toFixed(1)} ${isAdd ? '+' : '-'} ${num2.toFixed(1)} = ${answer})`,
+        explanation3: `หลักการสำคัญ: การบวกลบทศนิยมต้องจัดตำแหน่งจุดทศนิยมให้ตรงกันเสมอ ก่อนนำมาบวกหรือลบตามหลักค่ะ`
+      };
+    }
+
+    function genPercentage() {
+      const base = [20, 40, 50, 80, 100, 200, 250, 400, 500][randInt(0, 8)];
+      const pct = [5, 10, 20, 25, 50, 75][randInt(0, 5)];
+      const answer = (base * pct / 100);
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const off = randInt(-20, 20);
+        const d = answer + off;
+        if (d !== answer && d > 0) choices.add(`${d}`);
+      }
+      return {
+        questionText: `${pct}% ของ ${base} มีค่าเท่ากับเท่าใด?`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ค่ะ!`,
+        explanation2: `เพราะ ${pct}% หมายถึง ${pct} ส่วนใน 100 ส่วน ดังนั้นนำ ${base} คูณด้วย ${pct} แล้วหารด้วย 100 (${base} x ${pct} ÷ 100 = ${answer})`,
+        explanation3: `หลักการสำคัญ: การหาร้อยละของจำนวนใดๆ ให้นำจำนวนนั้นคูณด้วยตัวร้อยละ แล้วหารผลลัพธ์ด้วย 100 เสมอค่ะ`
+      };
+    }
+
+    function genRatioSimplify() {
+      const g = randInt(2, 6);
+      const a = randInt(1, 6) * g;
+      const b = randInt(1, 6) * g;
+      const [sa, sb] = simplifyFraction(a, b);
+      const answer = `${sa} : ${sb}`;
+      const choices = new Set([answer]);
+      while (choices.size < 4) {
+        const da = sa + randInt(-2, 2);
+        const db = sb + randInt(-2, 2);
+        if (da > 0 && db > 0 && `${da} : ${db}` !== answer) choices.add(`${da} : ${db}`);
+      }
+      return {
+        questionText: `อัตราส่วน ${a} : ${b} เมื่อทำให้เป็นอัตราส่วนอย่างต่ำแล้ว ตรงกับข้อใด?`,
+        answer,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ค่ะ!`,
+        explanation2: `เพราะเรานำ ห.ร.ม. ของ ${a} และ ${b} ซึ่งคือ ${g} ไปหารทั้งสองจำนวน จะได้ ${a} ÷ ${g} = ${sa} และ ${b} ÷ ${g} = ${sb}`,
+        explanation3: `หลักการสำคัญ: การทำอัตราส่วนให้เป็นอย่างต่ำ ให้หาร ห.ร.ม. ของทั้งสองจำนวนแล้วนำไปหารทั้งคู่พร้อมกันเสมอค่ะ`
+      };
+    }
+
+    function genRectangleArea() {
+      const w = randInt(3, 20);
+      const l = randInt(3, 20);
+      const answer = w * l;
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const d = answer + randInt(-15, 15) * (randInt(1,2));
+        if (d > 0 && d !== answer) choices.add(`${d}`);
+      }
+      return {
+        questionText: `รูปสี่เหลี่ยมผืนผ้ากว้าง ${w} ซม. ยาว ${l} ซม. มีพื้นที่กี่ตารางเซนติเมตร?`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ตารางเซนติเมตร ค่ะ!`,
+        explanation2: `เพราะพื้นที่สี่เหลี่ยมผืนผ้า = กว้าง x ยาว = ${w} x ${l} = ${answer}`,
+        explanation3: `หลักการสำคัญ: สูตรพื้นที่สี่เหลี่ยมผืนผ้า คือ กว้าง คูณ ยาว จำไว้เสมอค่ะ`
+      };
+    }
+
+    function genTriangleArea() {
+      const b = randInt(4, 20) * 2;
+      const h = randInt(3, 20);
+      const answer = (b * h) / 2;
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const d = answer + randInt(-10, 10) * (randInt(1,2));
+        if (d > 0 && d !== answer) choices.add(`${d}`);
+      }
+      return {
+        questionText: `รูปสามเหลี่ยมฐานยาว ${b} ซม. สูง ${h} ซม. มีพื้นที่กี่ตารางเซนติเมตร?`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ตารางเซนติเมตร ค่ะ!`,
+        explanation2: `เพราะพื้นที่สามเหลี่ยม = (ฐาน x สูง) ÷ 2 = (${b} x ${h}) ÷ 2 = ${answer}`,
+        explanation3: `หลักการสำคัญ: สูตรพื้นที่สามเหลี่ยม คือ ฐานคูณสูงหารสอง เสมอค่ะ`
+      };
+    }
+
+    function genCircleArea() {
+      const r = [7, 14, 21][randInt(0, 2)];
+      const answer = Math.round((22/7) * r * r);
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const d = answer + randInt(-40, 40);
+        if (d > 0 && d !== answer) choices.add(`${d}`);
+      }
+      return {
+        questionText: `วงกลมรัศมี ${r} ซม. มีพื้นที่ประมาณกี่ตารางเซนติเมตร? (กำหนด π = 22/7)`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ตารางเซนติเมตร ค่ะ!`,
+        explanation2: `เพราะพื้นที่วงกลม = π x รัศมี x รัศมี = 22/7 x ${r} x ${r} = ${answer}`,
+        explanation3: `หลักการสำคัญ: สูตรพื้นที่วงกลม คือ π คูณรัศมียกกำลังสอง (π x r x r) ค่ะ`
+      };
+    }
+
+    function genVolumeCuboid() {
+      const w = randInt(2, 10);
+      const l = randInt(2, 10);
+      const h = randInt(2, 10);
+      const answer = w * l * h;
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const d = answer + randInt(-20, 20) * (randInt(1,2));
+        if (d > 0 && d !== answer) choices.add(`${d}`);
+      }
+      return {
+        questionText: `ทรงสี่เหลี่ยมมุมฉากกว้าง ${w} ซม. ยาว ${l} ซม. สูง ${h} ซม. มีปริมาตรกี่ลูกบาศก์เซนติเมตร?`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ลูกบาศก์เซนติเมตร ค่ะ!`,
+        explanation2: `เพราะปริมาตรทรงสี่เหลี่ยมมุมฉาก = กว้าง x ยาว x สูง = ${w} x ${l} x ${h} = ${answer}`,
+        explanation3: `หลักการสำคัญ: สูตรปริมาตรทรงสี่เหลี่ยมมุมฉาก คือ กว้าง คูณ ยาว คูณ สูง เสมอค่ะ`
+      };
+    }
+
+    function genAverage() {
+      const count = randInt(3, 4);
+      const nums = Array.from({length: count}, () => randInt(2, 20) * 5);
+      const sum = nums.reduce((a, b) => a + b, 0);
+      const answer = Math.round(sum / count);
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const d = answer + randInt(-8, 8);
+        if (d > 0 && d !== answer) choices.add(`${d}`);
+      }
+      return {
+        questionText: `คะแนนสอบ ${count} วิชาของน้ำตาลคือ ${nums.join(', ')} ค่าเฉลี่ยเลขคณิตเท่ากับเท่าใด (ปัดเศษเป็นจำนวนเต็ม)?`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ค่ะ!`,
+        explanation2: `เพราะค่าเฉลี่ยเลขคณิต = ผลรวมของข้อมูลทั้งหมด ÷ จำนวนข้อมูล = (${nums.join(' + ')}) ÷ ${count} = ${sum} ÷ ${count} ≈ ${answer}`,
+        explanation3: `หลักการสำคัญ: ค่าเฉลี่ยเลขคณิต หาได้จากการนำข้อมูลทุกตัวมาบวกกัน แล้วหารด้วยจำนวนข้อมูลทั้งหมดเสมอค่ะ`
+      };
+    }
+
+    function genUnitConversion() {
+      const types = [
+        { from: 'เมตร', to: 'เซนติเมตร', factor: 100 },
+        { from: 'กิโลกรัม', to: 'กรัม', factor: 1000 },
+        { from: 'กิโลเมตร', to: 'เมตร', factor: 1000 },
+        { from: 'ลิตร', to: 'มิลลิลิตร', factor: 1000 }
+      ];
+      const t = types[randInt(0, types.length - 1)];
+      const val = randInt(2, 15);
+      const answer = val * t.factor;
+      const choices = new Set([`${answer}`]);
+      while (choices.size < 4) {
+        const d = answer + randInt(-1, 1) * t.factor * randInt(1, 3) / 10;
+        const dInt = Math.round(d);
+        if (dInt > 0 && dInt !== answer) choices.add(`${dInt}`);
+      }
+      while (choices.size < 4) choices.add(`${answer + randInt(1,50)}`);
+      return {
+        questionText: `${val} ${t.from} มีค่าเท่ากับกี่${t.to}?`,
+        answer: `${answer}`,
+        choices: shuffle(Array.from(choices)),
+        explanation1: `เฉลยคำตอบคือ ${answer} ${t.to} ค่ะ!`,
+        explanation2: `เพราะ 1 ${t.from} = ${t.factor} ${t.to} ดังนั้น ${val} ${t.from} = ${val} x ${t.factor} = ${answer} ${t.to}`,
+        explanation3: `หลักการสำคัญ: การเปลี่ยนหน่วยจากหน่วยใหญ่ไปหน่วยเล็ก ให้นำตัวเลขคูณด้วยตัวแปลงหน่วยเสมอค่ะ`
+      };
+    }
+
+    const generators = [genFractionAddSub, genDecimalAddSub, genPercentage, genRatioSimplify, genRectangleArea, genTriangleArea, genCircleArea, genVolumeCuboid, genAverage, genUnitConversion];
+
+    function buildQuestions() {
+      const list = [];
+      const shuffledGens = shuffle([...generators]);
+      for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+        const gen = shuffledGens[i % shuffledGens.length];
+        list.push(gen());
+      }
+      return list;
+    }
+
+    const avatars = ["🦊", "🐼", "🦉", "🐯", "🐨", "🦁", "🐺", "🐹", "🐰", "🦄"];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
+      playerTitle = titleRadio ? titleRadio.value : "king";
+      document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      synth.init();
+      const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      const welcomeMsg = `ยินดีต้อนรับ ${roleTh} ${playerName} เข้าสู่การตะลุยโจทย์คณิตศาสตร์ ป.6 ค่ะ`;
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      score = 0; currentIdx = 0; answersCorrectCount = 0;
+      questions = buildQuestions();
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentIdx >= questions.length) { finishGame(); return; }
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
+      document.getElementById('hud-score').innerText = score;
+      const q = questions[currentIdx];
+      document.getElementById('question-sentence').innerText = q.questionText;
+      document.getElementById('question-avatar').innerText = avatars[randInt(0, avatars.length - 1)];
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const shuffledChoices = shuffle([...new Set(q.choices)]);
+      shuffledChoices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) {
+        setTimeout(() => { speakCurrentQuestion(); }, 500);
+      }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(`คำถามข้อที่ ${currentIdx + 1}. ${q.questionText}`);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const isCorrect = (value === q.answer);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.answer) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        answersCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "😢";
+        document.getElementById('result-title').innerText = "พยายามใหม่นะคนเก่ง!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.explanation1;
+      document.getElementById('exp-incorrect').innerText = q.explanation2;
+      document.getElementById('exp-summary').innerText = q.explanation3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.explanation1}. ${q.explanation2}. ${q.explanation3}`;
+          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
+          utterance.lang = 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 13) starStr = "⭐⭐⭐";
+      else if (answersCorrectCount >= 9) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
+      document.getElementById('cert-score-desc').innerText = `ตอบถูกต้องทั้งหมด ${answersCorrectCount} จาก ${questions.length} ข้อ (คะแนนสะสม: ${score} คะแนน)`;
+      if (speechEnabled) {
+        const speakFinish = `เก่งมากๆ เลยค่ะ! ${titleTh} ${playerName} ตะลุยโจทย์คณิตศาสตร์ ป.6 เสร็จสิ้นด้วยคะแนนสะสม ${score} คะแนนค่ะ`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('math6_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
+      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
+      else { leaderboard.push({ name: playerName, title: playerTitle, score: score }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('math6_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('math6_leaderboard')) || [];
+      const box = document.getElementById('leaderboard-box');
+      if (leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีบัลลังก์เกียรติยศสูงสุดค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+        const crownColor = item.title === 'king' ? 'var(--color-medium)' : 'var(--color-accent-pink)';
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

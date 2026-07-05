@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Grammar Quest ป.6 | สำหรับ น้ำตาล 🦊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-dark: #0c4a6e;
+      --color-medium: #0284c7;
+      --color-light: #7dd3fc;
+      --color-bg: #f0f9ff;
+      --color-accent-orange: #f59e0b;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--color-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(2, 132, 199, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+    }
+    .app-header {
+      width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px;
+      backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(12, 74, 110, 0.08); border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.3rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(12, 74, 110, 0.06); border-bottom: 4px solid var(--color-light); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(12, 74, 110, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .sentence-display { font-size: 1.35rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(12, 74, 110, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(12, 74, 110, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4); }
+    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(12, 74, 110, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
+    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.2rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
+    .register-title-group { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; font-size: 0.95rem; }
+    .register-label { cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.1rem; }
+      .choice-btn { font-size: 1rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🌍</span>
+      <h2>English Grammar Quest ป.6</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🦊</div>
+      <h3 style="font-size: 1.6rem; color: var(--color-dark); margin-bottom: 10px;">ลงทะเบียนท้าไวยากรณ์</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">กรอกชื่อเพื่อบันทึกสถิติคะแนนและชิงแชมป์พระราชา/ราชินีภาษาอังกฤษกันค่ะ!</p>
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อคนเก่งตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      <div class="register-title-group">
+        <label class="register-label"><input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--color-medium); scale: 1.2;"><span>👑 พระราชา (King)</span></label>
+        <label class="register-label"><input type="radio" name="reg-player-title" value="queen" style="accent-color: var(--color-accent-pink); scale: 1.2;"><span>👑 ราชินี (Queen)</span></label>
+      </div>
+      <button class="btn-action" onclick="registerAndStart()">เริ่ม Grammar Quest 🚀</button>
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 ทำคะแนนสูงสุดประจำห้อง</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">ชื่อผู้เล่น</span><span id="hud-name" class="hud-value">-</span></div>
+        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/18</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+      <div class="question-card">
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="Listen">🔊</button>
+        <div class="avatar-area" id="question-avatar">🦊</div>
+        <p class="sentence-display" id="question-sentence">Loading...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">Correct!</h3>
+        <div class="explanation-box">
+          <div class="exp-step"><span class="exp-step-title">1. Correct answer:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">2. Why:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">3. Key concept:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">Next ➡️</button>
+      </div>
+    </div>
+
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">👑🎓</div>
+      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 10px;">คุณผ่าน English Grammar Quest ป.6 ครบถ้วนแล้ว</p>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศเกียรติคุณคนเก่ง</div>
+        <div class="cert-subtitle">English Grammar Champion ป.6</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำตาล">
+        <p class="cert-desc">ได้ก้าวผ่านการผจญภัยไวยากรณ์และคำศัพท์ภาษาอังกฤษระดับ ป.6</p>
+        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 1800 คะแนนเต็ม!</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 ท้าทายใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let playerTitle = "king";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+    let questions = [];
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+    };
+
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+    // ป.6 Grammar Quest question bank: tenses, comparatives, prepositions, quantifiers, vocab
+    const questionBank = [
+      { q: "Yesterday, my family _________ to the beach.", a: "went", c: ["went", "go", "goes", "going"], exp1: "เฉลยคือ went ค่ะ", exp2: "เพราะประโยคมีคำว่า 'Yesterday' บอกเหตุการณ์ในอดีต ต้องใช้กริยาช่องที่ 2 (Past Simple) ของ go คือ went", exp3: "หลักการ Past Simple Tense: ใช้กับเหตุการณ์ที่เกิดขึ้นและจบลงแล้วในอดีต สังเกตคำบอกเวลา เช่น yesterday, last week, ago" },
+      { q: "She _________ her homework right now.", a: "is doing", c: ["is doing", "does", "did", "do"], exp1: "เฉลยคือ is doing ค่ะ", exp2: "เพราะมีคำว่า 'right now' บอกว่าเหตุการณ์กำลังเกิดขึ้น ณ ขณะพูด จึงต้องใช้ Present Continuous (is/am/are + Ving)", exp3: "หลักการ Present Continuous: ใช้กับเหตุการณ์ที่กำลังทำอยู่ในขณะนี้ สังเกตคำว่า now, right now, at the moment" },
+      { q: "We _________ to Chiang Mai next month.", a: "will travel", c: ["will travel", "traveled", "travels", "am travel"], exp1: "เฉลยคือ will travel ค่ะ", exp2: "เพราะ 'next month' บอกเหตุการณ์ในอนาคต จึงใช้ will + กริยาช่องที่ 1 (Future Simple)", exp3: "หลักการ Future Simple: ใช้ will + verb1 พูดถึงแผนหรือเหตุการณ์ในอนาคต สังเกตคำว่า tomorrow, next week/month/year" },
+      { q: "An elephant is _________ than a cat.", a: "bigger", c: ["bigger", "big", "biggest", "more big"], exp1: "เฉลยคือ bigger ค่ะ", exp2: "เพราะเป็นการเปรียบเทียบสองสิ่ง (ช้างกับแมว) ต้องใช้ Comparative form โดยเติม -er ท้ายคำคุณศัพท์พยางค์เดียว big กลายเป็น bigger", exp3: "หลักการ Comparative Adjective: คำคุณศัพท์สั้น (1 พยางค์) เติม -er เมื่อเปรียบเทียบสิ่งของ 2 สิ่ง ตามด้วย than" },
+      { q: "Mount Everest is the _________ mountain in the world.", a: "highest", c: ["highest", "higher", "high", "more high"], exp1: "เฉลยคือ highest ค่ะ", exp2: "เพราะเป็นการเปรียบเทียบขั้นสูงสุดในกลุ่ม (ทั้งโลก) ต้องใช้ Superlative form โดยเติม -est และมี the นำหน้าเสมอ", exp3: "หลักการ Superlative Adjective: ใช้เปรียบเทียบสิ่งหนึ่งกับสิ่งอื่นๆ ทั้งหมดในกลุ่ม โดยเติม -est และมี 'the' นำหน้าเสมอ" },
+      { q: "There isn't _________ milk in the fridge.", a: "any", c: ["any", "some", "many", "much"], exp1: "เฉลยคือ any ค่ะ", exp2: "เพราะประโยคเป็นประโยคปฏิเสธ (isn't) เมื่อใช้กับประโยคปฏิเสธหรือคำถาม ต้องใช้ any แทน some", exp3: "หลักการ Some/Any: ใช้ some ในประโยคบอกเล่า และใช้ any ในประโยคปฏิเสธหรือประโยคคำถาม" },
+      { q: "How _________ apples do you want?", a: "many", c: ["many", "much", "any", "some"], exp1: "เฉลยคือ many ค่ะ", exp2: "เพราะ apple เป็นคำนามนับได้ (Countable Noun) และเป็นรูปพหูพจน์ apples จึงใช้ how many", exp3: "หลักการ Countable/Uncountable Nouns: ใช้ how many กับคำนามนับได้ (apples, books) และใช้ how much กับคำนามนับไม่ได้ (water, rice)" },
+      { q: "How _________ water do you drink every day?", a: "much", c: ["much", "many", "any", "some"], exp1: "เฉลยคือ much ค่ะ", exp2: "เพราะ water เป็นคำนามนับไม่ได้ (Uncountable Noun) จึงต้องใช้ how much", exp3: "หลักการ Countable/Uncountable Nouns: คำนามนับไม่ได้ เช่น water, rice, sugar ใช้คู่กับ much เสมอ" },
+      { q: "My birthday is _________ July.", a: "in", c: ["in", "on", "at", "of"], exp1: "เฉลยคือ in ค่ะ", exp2: "เพราะ July เป็นชื่อเดือน คำบุพบทที่ใช้กับเดือนหรือปีคือ in", exp3: "หลักการ Prepositions of Time: ใช้ in กับเดือน ปี และฤดูกาล (in July, in 2024, in summer)" },
+      { q: "The meeting starts _________ 9 o'clock.", a: "at", c: ["at", "in", "on", "of"], exp1: "เฉลยคือ at ค่ะ", exp2: "เพราะ 9 o'clock เป็นเวลาที่ระบุชัดเจน คำบุพบทที่ใช้กับเวลาคือ at", exp3: "หลักการ Prepositions of Time: ใช้ at กับเวลาที่ระบุชัดเจน (at 9 o'clock, at noon, at night)" },
+      { q: "We don't have school _________ Sunday.", a: "on", c: ["on", "in", "at", "of"], exp1: "เฉลยคือ on ค่ะ", exp2: "เพราะ Sunday เป็นชื่อวัน คำบุพบทที่ใช้กับวันคือ on", exp3: "หลักการ Prepositions of Time: ใช้ on กับวันในสัปดาห์และวันที่ (on Sunday, on 5 July)" },
+      { q: "_________ do you go to school? - By bus.", a: "How", c: ["How", "What", "Where", "When"], exp1: "เฉลยคือ How ค่ะ", exp2: "เพราะคำตอบ 'By bus' บอกวิธีการเดินทาง คำถามที่ถามถึงวิธีการต้องใช้ How", exp3: "หลักการ Wh-Questions: How ใช้ถามวิธีการหรือลักษณะ (How do you...? = คุณทำอย่างไร)" },
+      { q: "_________ is your favorite subject? - Science.", a: "What", c: ["What", "Who", "How", "Why"], exp1: "เฉลยคือ What ค่ะ", exp2: "เพราะคำตอบ 'Science' เป็นชื่อสิ่งของ/วิชา คำถามที่ถามถึงสิ่งของต้องใช้ What", exp3: "หลักการ Wh-Questions: What ใช้ถามชื่อสิ่งของ วิชา หรือข้อมูลทั่วไป" },
+      { q: "A person who teaches students at school is called a _________.", a: "teacher", c: ["teacher", "farmer", "engineer", "dentist"], exp1: "เฉลยคือ teacher ค่ะ", exp2: "เพราะ teacher แปลว่าครู ผู้ที่มีหน้าที่สอนนักเรียนในโรงเรียน", exp3: "หลักการคำศัพท์อาชีพ (Occupations): teacher = ครู, farmer = ชาวนา, engineer = วิศวกร, dentist = ทันตแพทย์" },
+      { q: "A place where we borrow books to read is a _________.", a: "library", c: ["library", "hospital", "market", "airport"], exp1: "เฉลยคือ library ค่ะ", exp2: "เพราะ library แปลว่าห้องสมุด สถานที่สำหรับยืมและอ่านหนังสือ", exp3: "หลักการคำศัพท์สถานที่ (Places): library = ห้องสมุด, hospital = โรงพยาบาล, market = ตลาด, airport = สนามบิน" },
+      { q: "If you feel very happy, you can say you feel _________.", a: "excited", c: ["excited", "bored", "angry", "tired"], exp1: "เฉลยคือ excited ค่ะ", exp2: "เพราะ excited แปลว่าตื่นเต้นดีใจ ตรงกับความรู้สึกมีความสุขมาก", exp3: "หลักการคำศัพท์ความรู้สึก (Feelings): excited = ตื่นเต้น, bored = เบื่อ, angry = โกรธ, tired = เหนื่อย" },
+      { q: "He _________ football every weekend.", a: "plays", c: ["plays", "play", "playing", "played"], exp1: "เฉลยคือ plays ค่ะ", exp2: "เพราะประโยคเป็นความจริงที่ทำเป็นประจำ (every weekend) และประธานเป็นเอกพจน์ (He) จึงต้องเติม s ที่กริยา (Present Simple)", exp3: "หลักการ Present Simple: ใช้กับกิจวัตรหรือความจริงทั่วไป ประธานเอกพจน์ (he/she/it) กริยาต้องเติม s/es" },
+      { q: "Look! The children _________ in the pool now.", a: "are swimming", c: ["are swimming", "swim", "swims", "swam"], exp1: "เฉลยคือ are swimming ค่ะ", exp2: "เพราะมีคำว่า 'Look!' และ 'now' บอกว่าเหตุการณ์กำลังเกิดขึ้น และประธานเป็นพหูพจน์ (children) จึงใช้ are + Ving", exp3: "หลักการ Present Continuous: ใช้ am/is/are + Ving กับเหตุการณ์ที่กำลังเกิดขึ้นตอนนี้ ประธานพหูพจน์ใช้ are" }
+    ];
+
+    const avatars = ["🦊", "🐼", "🦉", "🐯", "🐨", "🐸", "🐺", "🐹", "🐰", "🐧"];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
+      playerTitle = titleRadio ? titleRadio.value : "king";
+      document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      synth.init();
+      const welcomeMsg = `Welcome ${playerName} to English Grammar Quest! Let's start!`;
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+      score = 0; currentIdx = 0; answersCorrectCount = 0;
+      questions = shuffle([...questionBank]);
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentIdx >= questions.length) { finishGame(); return; }
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
+      document.getElementById('hud-score').innerText = score;
+      const q = questions[currentIdx];
+      document.getElementById('question-sentence').innerText = q.q;
+      document.getElementById('question-avatar').innerText = avatars[Math.floor(Math.random() * avatars.length)];
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const choices = shuffle([...q.c]);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(q.q);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const isCorrect = (value === q.a);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        answersCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "Correct! Well done!";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "😢";
+        document.getElementById('result-title').innerText = "Oops! Let's review.";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.exp1;
+      document.getElementById('exp-incorrect').innerText = q.exp2;
+      document.getElementById('exp-summary').innerText = q.exp3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const utterance = new SpeechSynthesisUtterance(`${isCorrect ? 'Correct!' : 'Incorrect.'} The answer is ${q.a}.`);
+          utterance.lang = 'en-US';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 16) starStr = "⭐⭐⭐";
+      else if (answersCorrectCount >= 11) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
+      document.getElementById('cert-score-desc').innerText = `Correct answers: ${answersCorrectCount} out of ${questions.length} (Total score: ${score})`;
+      if (speechEnabled) {
+        const utterance = new SpeechSynthesisUtterance(`Congratulations ${playerName}! You completed the Grammar Quest with ${score} points!`);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('english6_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
+      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
+      else { leaderboard.push({ name: playerName, title: playerTitle, score: score }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('english6_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('english6_leaderboard')) || [];
+      const box = document.getElementById('leaderboard-box');
+      if (leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีบัลลังก์เกียรติยศสูงสุดค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+        const crownColor = item.title === 'king' ? 'var(--color-medium)' : 'var(--color-accent-pink)';
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

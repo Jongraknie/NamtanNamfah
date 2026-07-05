@@ -49,16 +49,16 @@
             <!-- Body -->
             <path d="M 30 85 C 30 70, 70 70, 70 85 Z" fill="#e67e22" stroke="#d35400" stroke-width="2" />
             <circle cx="50" cy="76" r="6" fill="#f1c40f" stroke="#f39c12" stroke-width="1" /> <!-- Bell -->
-            
+
             <!-- Head -->
             <circle cx="50" cy="50" r="34" fill="#ff9f43" stroke="#d35400" stroke-width="2" />
             <!-- Face Cream highlight -->
             <path d="M 25 55 C 25 72, 75 72, 75 55 C 75 42, 25 42, 25 55 Z" fill="#fffdfa" opacity="0.9" />
-            
+
             <!-- Cheeks -->
             <circle cx="28" cy="56" r="5" fill="#ff8080" opacity="0.5" />
             <circle cx="72" cy="56" r="5" fill="#ff8080" opacity="0.5" />
-            
+
             <!-- Eyes -->
             <g class="eyes-group">
               <ellipse cx="38" cy="46" rx="4" ry="4" fill="#2c3e50" class="cat-eye" />
@@ -66,13 +66,13 @@
               <ellipse cx="62" cy="46" rx="4" ry="4" fill="#2c3e50" class="cat-eye" />
               <circle cx="60" cy="44" r="1.2" fill="#fff" />
             </g>
-            
+
             <!-- Nose -->
             <polygon points="48,51 52,51 50,53" fill="#e74c3c" />
-            
+
             <!-- Mouth -->
             <path d="M 46 55 Q 50 58, 50 55 Q 50 58, 54 55" fill="transparent" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
-            
+
             <!-- Whiskers -->
             <line x1="20" y1="53" x2="8" y2="52" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
             <line x1="20" y1="58" x2="6" y2="59" stroke="#d35400" stroke-width="1.5" stroke-linecap="round" />
@@ -86,12 +86,33 @@
       <button id="btn-start-game" class="btn btn-primary btn-large">
         เข้าสู่ดินแดนแสนสนุก 🚀
       </button>
+      <button id="btn-view-stats" class="btn btn-secondary-icon" style="margin-top: 14px; font-size: 0.85rem; opacity: 0.75;" title="สถิติการเข้าใช้งาน">
+        📊 สถิติการเข้าใช้งาน
+      </button>
     </div>
   </div>
 
-  <!-- Subject Selection Screen -->
+  <!-- Child / Profile Selection Screen -->
+  <div id="profile-select" class="screen">
+    <div class="bubbles-bg-home"></div>
+    <div class="start-card">
+      <h2 style="margin-bottom: 10px; color: var(--color-forest-dark, #333);">วันนี้ใครจะมาเรียนคะ? 💖</h2>
+      <p class="subtitle" style="margin-bottom: 25px;">เลือกชื่อน้องเพื่อเข้าสู่ห้องเรียนที่ตรงกับชั้นเรียนนะคะ</p>
+      <div style="display:flex; flex-direction:column; gap:16px; align-items:center;">
+        <button id="btn-select-namfah" class="btn btn-primary btn-large" style="width:100%; max-width:320px;">
+          🐱 น้องน้ำฟ้า (ป.2)
+        </button>
+        <button id="btn-select-namtan" class="btn btn-secondary btn-large" style="width:100%; max-width:320px;">
+          🦊 น้องน้ำตาล (ป.6)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject Selection Screen (น้ำฟ้า ป.2) -->
   <div id="subject-menu" class="screen">
     <header class="app-header">
+      <button class="btn btn-back-profile" style="margin-right: 10px;">⬅️ เปลี่ยนน้อง</button>
       <div class="logo-header">
         <span class="logo-emoji-small">🏫</span>
         <h2>ห้องเรียนอนาคตใหม่</h2>
@@ -140,14 +161,61 @@
           <p>ฝึกสะกดคำพ้องเสียงและคำที่มักสะกดผิดแสนสนุก 20 ข้อ!</p>
           <button class="btn btn-thai" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปสะกดคำกัน 🚀</button>
         </div>
+      </div>
+    </main>
+  </div>
 
-        <!-- Months Dictation Card -->
-        <div class="game-card card-icecream" id="btn-select-months" style="cursor: pointer; min-height: 250px; padding: 20px;">
-          <div class="card-badge" style="background: var(--color-geometry);">ภาษาอังกฤษ ป.2</div>
-          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🚀📅</div>
-          <h4>สะกดคำบอกเดือน</h4>
-          <p>ฝึกเขียนสะกดชื่อเดือนทั้ง 12 เดือน ตามคำบอกภาษาอังกฤษแสนสนุก!</p>
-          <button class="btn btn-icecream" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปท้าทายกัน 🚀</button>
+  <!-- Subject Selection Screen (น้ำตาล ป.6) -->
+  <div id="subject-menu-6" class="screen">
+    <header class="app-header">
+      <button class="btn btn-back-profile" style="margin-right: 10px;">⬅️ เปลี่ยนน้อง</button>
+      <div class="logo-header">
+        <span class="logo-emoji-small">🦊</span>
+        <h2>ห้องเรียนน้องน้ำตาล ป.6</h2>
+      </div>
+    </header>
+
+    <main class="dashboard-content">
+      <section class="welcome-section">
+        <h3>สวัสดีค่ะ น้องน้ำตาล! 🌟</h3>
+        <p>วันนี้อยากทบทวนวิชาอะไรดีคะ? เลือกดินแดนผจญภัยระดับ ป.6 ได้เลยค่ะ!</p>
+      </section>
+
+      <div class="game-cards-container" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+        <!-- Math 6 Card -->
+        <div class="game-card card-carrot" id="btn-goto-math6" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">คณิตศาสตร์ ป.6</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">📐🦊</div>
+          <h4>ตะลุยโจทย์คณิตศาสตร์ ป.6</h4>
+          <p>เศษส่วน ทศนิยม ร้อยละ อัตราส่วน พื้นที่ และปริมาตร ครบทุกเรื่องสำคัญ!</p>
+          <button class="btn btn-carrot" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปเรียนเลขกัน 🚀</button>
+        </div>
+
+        <!-- English 6 Card -->
+        <div class="game-card card-geometry" id="btn-goto-english6" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">ภาษาอังกฤษ ป.6</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🌍📘</div>
+          <h4>English Grammar Quest</h4>
+          <p>Tenses การเปรียบเทียบ คำบุพบท และคำศัพท์ระดับ ป.6 แบบเข้มข้น!</p>
+          <button class="btn btn-geometry" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปเรียนอังกฤษกัน 🚀</button>
+        </div>
+
+        <!-- Thai 6 Card -->
+        <div class="game-card card-thai" id="btn-goto-thai6" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">ภาษาไทย ป.6</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">📜🖋️</div>
+          <h4>คลังภาษาไทย ป.6</h4>
+          <p>ชนิดของคำ คำราชาศัพท์ สำนวนไทย และคำพ้องเสียงพ้องรูประดับสูง!</p>
+          <button class="btn btn-thai" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปฝึกภาษาไทยกัน 🚀</button>
+        </div>
+
+        <!-- Entrance Exam Prep Card -->
+        <div class="game-card card-icecream" id="btn-goto-examentrance" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge" style="background: #7c3aed;">เตรียมสอบเข้า ม.1</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🎓📚</div>
+          <h4>แบบฝึกสอบเข้า ม.1</h4>
+          <p>ติวเข้มทุกวิชา คณิต อังกฤษ ไทย วิทย์ สังคม พร้อมเฉลยละเอียดทุกข้อ!</p>
+          <button class="btn btn-icecream" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปติวเข้มกัน 🚀</button>
         </div>
       </div>
     </main>
@@ -191,6 +259,15 @@
           <h4>เล่ม 2: The School Life</h4>
           <p>ทบทวนคำศัพท์สิ่งของในโรงเรียน สิ่งของในห้องเรียน และบทสนทนาที่ใช้ในโรงเรียน!</p>
           <button class="btn btn-carrot btn-play">Play Level 2 🏫</button>
+        </div>
+
+        <!-- Months Dictation Card -->
+        <div class="game-card card-icecream" id="btn-select-months" style="cursor: pointer;">
+          <div class="card-badge">Book 3: Months Spelling</div>
+          <div class="card-image-placeholder">🚀📅</div>
+          <h4>สะกดคำบอกเดือน</h4>
+          <p>ฝึกเขียนสะกดชื่อเดือนทั้ง 12 เดือนตามคำบอกภาษาอังกฤษ พร้อมรู้ความหมายของคำศัพท์!</p>
+          <button class="btn btn-icecream btn-play" style="pointer-events: none;">ไปท้าทายกัน 🚀</button>
         </div>
       </div>
     </main>
@@ -308,7 +385,7 @@
       <div class="icecream-scene-container">
         <!-- Magic Wizard standing -->
         <div class="wizard-char animate-float">🧙‍♂️</div>
-        
+
         <!-- Ice Cream Stand Area -->
         <div class="icecream-stand">
           <!-- The Cone where ice cream layers stack up -->
@@ -353,7 +430,7 @@
       <div class="ocean-container">
         <!-- Bubble particles -->
         <div class="bubbles-bg"></div>
-        
+
         <!-- 3D or 2D display viewport -->
         <div class="shape-display-viewport">
           <div id="geometry-shape-container" class="rotating-shape-wrapper">
@@ -402,7 +479,7 @@
       <div class="undersea-ocean">
         <!-- Sun Light Rays -->
         <div class="light-rays"></div>
-        
+
         <!-- Animated seaweed swaying -->
         <div class="seaweed-container">
           <div class="seaweed seaweed-1"></div>
@@ -410,10 +487,10 @@
           <div class="seaweed seaweed-3"></div>
           <div class="seaweed seaweed-4"></div>
         </div>
-        
+
         <!-- Rising bubbles -->
         <div class="bubbles-bg-english"></div>
-        
+
         <!-- Realistic swimming fish -->
         <div class="fish-tank">
           <!-- Clownfish (Nemo) -->
@@ -432,8 +509,8 @@
               <!-- Stripes -->
               <path d="M 36 17 C 41 24, 41 56, 36 63 L 42 61 C 47 48, 47 32, 42 19 Z" fill="#ffffff" />
               <path d="M 36 17 C 41 24, 41 56, 36 63" stroke="#2c3e50" stroke-width="1.5" fill="none" />
-              <path d="M 42 19 C 47 32, 47 48, 42 61" stroke="#2c3e50" stroke-width="1.5" fill="none" />
-              
+              <path d="M 42 19 C 47 32, 47 48, 42 19" stroke="#2c3e50" stroke-width="1.5" fill="none" />
+
               <path d="M 64 17 C 69 24, 69 56, 64 63 L 70 61 C 75 48, 75 32, 70 19 Z" fill="#ffffff" />
               <path d="M 64 17 C 69 24, 69 56, 64 63" stroke="#2c3e50" stroke-width="1.5" fill="none" />
               <path d="M 70 19 C 75 32, 75 48, 70 61" stroke="#2c3e50" stroke-width="1.5" fill="none" />
@@ -442,7 +519,7 @@
               <circle cx="24" cy="32" r="1.5" fill="#ffffff" />
             </svg>
           </div>
-          
+
           <!-- Blue Tang (Dory) -->
           <div class="swimming-fish blue-tang-swim">
             <svg class="blue-tang-svg" viewBox="0 0 120 80" width="100" height="70">
@@ -483,7 +560,7 @@
       <div class="sparkles-container">✨🎉✨</div>
       <h1 class="victory-title animate-pop">ยอดเยี่ยมที่สุด! 🎉</h1>
       <p class="victory-subtitle">คุณทำกิจกรรมสำเร็จลุล่วงแล้ว</p>
-      
+
       <!-- Stars rating system -->
       <div class="stars-display" id="victory-stars">
         <span class="star-rating">⭐</span>
@@ -527,19 +604,19 @@
     <div class="modal-content">
       <span class="modal-close" id="btn-close-settings">&times;</span>
       <h3>⚙️ ตั้งค่าความยากสำหรับคุณครู</h3>
-      
+
       <div class="settings-group">
         <h4>1. ตั้งค่าเลขบวก (ป่าแครอท)</h4>
         <label>
-          <input type="radio" name="carrot-difficulty" value="easy" checked> 
+          <input type="radio" name="carrot-difficulty" value="easy" checked>
           ระดับง่าย (ผลบวกไม่เกิน 100, ไม่มีการทด)
         </label>
         <label>
-          <input type="radio" name="carrot-difficulty" value="medium"> 
+          <input type="radio" name="carrot-difficulty" value="medium">
           ระดับปานกลาง (ผลบวกไม่เกิน 500, มีการทด)
         </label>
         <label>
-          <input type="radio" name="carrot-difficulty" value="hard"> 
+          <input type="radio" name="carrot-difficulty" value="hard">
           ระดับท้าทาย (ผลบวกไม่เกิน 1000, มีการทด)
         </label>
       </div>

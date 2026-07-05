@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คลังภาษาไทย ป.6 | สำหรับ น้ำตาล 🦊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-dark: #78350f;
+      --color-medium: #d97706;
+      --color-light: #fcd34d;
+      --color-bg: #fffbeb;
+      --color-accent-orange: #ea580c;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--color-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(217, 119, 6, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+    }
+    .app-header {
+      width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px;
+      backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(120, 53, 15, 0.08); border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.3rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(120, 53, 15, 0.06); border-bottom: 4px solid var(--color-light); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(120, 53, 15, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .sentence-display { font-size: 1.35rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(120, 53, 15, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(120, 53, 15, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(217, 119, 6, 0.4); }
+    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(120, 53, 15, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
+    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.2rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
+    .register-title-group { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; font-size: 0.95rem; }
+    .register-label { cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.1rem; }
+      .choice-btn { font-size: 1rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">📜</span>
+      <h2>คลังภาษาไทย ป.6</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🦊</div>
+      <h3 style="font-size: 1.6rem; color: var(--color-dark); margin-bottom: 10px;">ลงทะเบียนท้าภาษาไทย</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">กรอกชื่อเพื่อบันทึกสถิติคะแนนและชิงแชมป์พระราชา/ราชินีภาษาไทยกันค่ะ!</p>
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อคนเก่งตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      <div class="register-title-group">
+        <label class="register-label"><input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--color-medium); scale: 1.2;"><span>👑 พระราชา (King)</span></label>
+        <label class="register-label"><input type="radio" name="reg-player-title" value="queen" style="accent-color: var(--color-accent-pink); scale: 1.2;"><span>👑 ราชินี (Queen)</span></label>
+      </div>
+      <button class="btn-action" onclick="registerAndStart()">เริ่มคลังภาษาไทย 🚀</button>
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 ทำคะแนนสูงสุดประจำห้อง</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">ชื่อผู้เล่น</span><span id="hud-name" class="hud-value">-</span></div>
+        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/18</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+      <div class="question-card">
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🦊</div>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        <div class="explanation-box">
+          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">3. หลักการสำคัญ:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">👑🎓</div>
+      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 10px;">คุณผ่านคลังภาษาไทย ป.6 ครบถ้วนแล้ว</p>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศเกียรติคุณคนเก่ง</div>
+        <div class="cert-subtitle">เกียรติบัตรยอดนักภาษาไทย ป.6</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำตาล">
+        <p class="cert-desc">ได้ก้าวผ่านการผจญภัยชนิดของคำ คำราชาศัพท์ สำนวนไทย และคำพ้องเสียงพ้องรูป</p>
+        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 1800 คะแนนเต็ม!</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 ท้าทายใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let playerTitle = "king";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+    let questions = [];
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+    };
+
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+    // ป.6 Thai question bank: ชนิดของคำ, คำราชาศัพท์, สำนวนไทย, คำพ้องเสียง/รูป, ประโยค
+    const questionBank = [
+      { q: "คำว่า 'สวยงาม' ในประโยค 'ดอกไม้สวยงามมาก' จัดเป็นคำชนิดใด?", a: "คำวิเศษณ์", c: ["คำวิเศษณ์", "คำนาม", "คำกริยา", "คำสรรพนาม"], exp1: "เฉลยคือ คำวิเศษณ์ ค่ะ", exp2: "เพราะ 'สวยงาม' ใช้ขยายคำนาม 'ดอกไม้' บอกลักษณะ จึงเป็นคำวิเศษณ์", exp3: "หลักการ: คำวิเศษณ์ทำหน้าที่ขยายคำนาม คำกริยา หรือคำวิเศษณ์ด้วยกันเอง เพื่อบอกลักษณะ ขนาด หรือปริมาณ" },
+      { q: "คำว่า 'วิ่ง' ในประโยค 'น้องวิ่งไปโรงเรียน' จัดเป็นคำชนิดใด?", a: "คำกริยา", c: ["คำกริยา", "คำนาม", "คำวิเศษณ์", "คำบุพบท"], exp1: "เฉลยคือ คำกริยา ค่ะ", exp2: "เพราะ 'วิ่ง' บอกอาการหรือการกระทำของประธาน จึงเป็นคำกริยา", exp3: "หลักการ: คำกริยาคือคำที่แสดงอาการ การกระทำ หรือสภาพของประธานในประโยค" },
+      { q: "คำว่า 'เขา' ในประโยค 'เขาไปโรงเรียนทุกวัน' จัดเป็นคำชนิดใด?", a: "คำสรรพนาม", c: ["คำสรรพนาม", "คำนาม", "คำกริยา", "คำวิเศษณ์"], exp1: "เฉลยคือ คำสรรพนาม ค่ะ", exp2: "เพราะ 'เขา' ใช้แทนชื่อบุคคลแทนการเอ่ยชื่อซ้ำ จึงเป็นคำสรรพนาม", exp3: "หลักการ: คำสรรพนามคือคำที่ใช้แทนคำนามเพื่อไม่ต้องเอ่ยชื่อซ้ำ เช่น เขา ฉัน คุณ พวกเรา" },
+      { q: "คำราชาศัพท์คำว่า 'เสวย' ใช้แทนคำสามัญคำใด?", a: "กิน", c: ["กิน", "นอน", "เดิน", "พูด"], exp1: "เฉลยคือ กิน ค่ะ", exp2: "เพราะ 'เสวย' เป็นคำราชาศัพท์ที่ใช้แทนคำว่า 'กิน' หรือ 'รับประทาน' สำหรับพระมหากษัตริย์และพระบรมวงศานุวงศ์", exp3: "หลักการ: คำราชาศัพท์เป็นคำสุภาพที่ใช้กับพระมหากษัตริย์ พระราชวงศ์ พระสงฆ์ และบุคคลชั้นสูง ต้องจำคู่ความหมายให้แม่นยำ" },
+      { q: "คำราชาศัพท์คำว่า 'บรรทม' ใช้แทนคำสามัญคำใด?", a: "นอน", c: ["นอน", "กิน", "เดิน", "ป่วย"], exp1: "เฉลยคือ นอน ค่ะ", exp2: "เพราะ 'บรรทม' เป็นคำราชาศัพท์ที่ใช้แทนคำว่า 'นอน' สำหรับพระมหากษัตริย์และพระบรมวงศานุวงศ์", exp3: "หลักการ: คำราชาศัพท์แต่ละคำมีความหมายเฉพาะ ต้องท่องจำคู่กับคำสามัญให้ถูกต้อง เช่น บรรทม = นอน, เสด็จ = ไป" },
+      { q: "คำราชาศัพท์คำว่า 'ประชวร' ใช้แทนคำสามัญคำใด?", a: "ป่วย", c: ["ป่วย", "โกรธ", "หิว", "ดีใจ"], exp1: "เฉลยคือ ป่วย ค่ะ", exp2: "เพราะ 'ประชวร' เป็นคำราชาศัพท์ที่ใช้แทนคำว่า 'ป่วย' หรือ 'เจ็บป่วย' สำหรับพระมหากษัตริย์และพระบรมวงศานุวงศ์", exp3: "หลักการ: คำราชาศัพท์เกี่ยวกับอาการ เช่น ประชวร (ป่วย) ต้องใช้ให้ถูกต้องตามระดับบุคคล" },
+      { q: "สำนวน 'น้ำท่วมทุ่ง ผักบุ้งโหรงเหรง' หมายถึงอะไร?", a: "พูดมากแต่ได้เนื้อหาสาระน้อย", c: ["พูดมากแต่ได้เนื้อหาสาระน้อย", "ทำงานหนักไม่ได้พัก", "ทำอะไรไม่คิดหน้าคิดหลัง", "ช่วยเหลือกันในยามยาก"], exp1: "เฉลยคือ พูดมากแต่ได้เนื้อหาสาระน้อย ค่ะ", exp2: "เพราะสำนวนนี้เปรียบเทียบคนที่พูดหรือเขียนยืดยาวมาก แต่มีเนื้อหาสาระที่เป็นประโยชน์เพียงเล็กน้อย", exp3: "หลักการ: สำนวนไทยมักใช้ภาพเปรียบเทียบจากธรรมชาติหรือชีวิตประจำวัน ต้องจำความหมายแฝงไว้ ไม่ใช่ความหมายตรงตัว" },
+      { q: "สำนวน 'ตำน้ำพริกละลายแม่น้ำ' หมายถึงอะไร?", a: "ทำอะไรที่สูญเปล่า ไม่คุ้มค่า", c: ["ทำอะไรที่สูญเปล่า ไม่คุ้มค่า", "ทำงานร่วมกันเป็นทีม", "พูดจาไพเราะ", "มีความขยันหมั่นเพียร"], exp1: "เฉลยคือ ทำอะไรที่สูญเปล่า ไม่คุ้มค่า ค่ะ", exp2: "เพราะสำนวนนี้เปรียบเทียบการลงทุนหรือลงแรงทำสิ่งที่มีค่าน้อย กับผลที่ได้รับที่ไม่คุ้มค่าเลย เหมือนตำน้ำพริกแล้วเทละลายไปกับแม่น้ำ", exp3: "หลักการ: สำนวนไทยแฝงคติสอนใจ ต้องอ่านและตีความจากบริบทของภาพเปรียบเทียบ" },
+      { q: "สำนวน 'ชักหน้าไม่ถึงหลัง' หมายถึงอะไร?", a: "มีรายได้ไม่พอกับรายจ่าย", c: ["มีรายได้ไม่พอกับรายจ่าย", "ทำงานเสร็จเร็วมาก", "เป็นคนตรงต่อเวลา", "มีเพื่อนฝูงมากมาย"], exp1: "เฉลยคือ มีรายได้ไม่พอกับรายจ่าย ค่ะ", exp2: "เพราะสำนวนนี้หมายถึงสถานะทางการเงินที่ฝืดเคือง มีเงินเข้ามาไม่พอกับที่ต้องจ่ายออกไป", exp3: "หลักการ: สำนวนเกี่ยวกับการเงินมักใช้ภาพพจน์เชิงเปรียบเทียบ ต้องฝึกจำความหมายที่แท้จริงไว้ให้แม่นยำ" },
+      { q: "คำว่า 'กาน' และ 'กาฬ' เป็นคำประเภทใด?", a: "คำพ้องเสียง", c: ["คำพ้องเสียง", "คำพ้องรูป", "คำไวพจน์", "คำสมาส"], exp1: "เฉลยคือ คำพ้องเสียง ค่ะ", exp2: "เพราะ 'กาน' และ 'กาฬ' ออกเสียงคล้ายกันแต่เขียนต่างกันและมีความหมายต่างกัน (กาน = ก้าน, กาฬ = สีดำ/อันตราย)", exp3: "หลักการ: คำพ้องเสียง คือคำที่ออกเสียงเหมือนหรือคล้ายกัน แต่เขียนต่างกันและมีความหมายต่างกัน เช่น การ-กาน, จันทร์-จัน" },
+      { q: "คำว่า 'เพลา' ที่แปลว่า 'เวลา' กับ 'เพลา' ที่แปลว่า 'แกนล้อรถ' เป็นคำประเภทใด?", a: "คำพ้องรูป", c: ["คำพ้องรูป", "คำพ้องเสียง", "คำไวพจน์", "คำซ้อน"], exp1: "เฉลยคือ คำพ้องรูป ค่ะ", exp2: "เพราะ 'เพลา' เขียนเหมือนกันทุกตัวอักษร แต่มีความหมายต่างกันตามบริบท (บางครั้งออกเสียงต่างกันด้วย)", exp3: "หลักการ: คำพ้องรูป คือคำที่เขียนเหมือนกัน แต่มีความหมายต่างกัน (และอาจออกเสียงต่างกันได้ด้วย) ต้องดูบริบทประกอบ" },
+      { q: "คำว่า 'สุนัข' กับ 'หมา' เป็นคำประเภทใด?", a: "คำไวพจน์", c: ["คำไวพจน์", "คำพ้องรูป", "คำพ้องเสียง", "คำสมาส"], exp1: "เฉลยคือ คำไวพจน์ ค่ะ", exp2: "เพราะ 'สุนัข' และ 'หมา' มีความหมายเหมือนกัน แต่เขียนและออกเสียงต่างกัน", exp3: "หลักการ: คำไวพจน์ คือคำที่มีความหมายเหมือนกันหรือใกล้เคียงกัน แต่สะกดต่างกัน เช่น สุนัข-หมา, บิดา-พ่อ" },
+      { q: "ประโยค 'น้องอ่านหนังสือ' ส่วนใดคือภาคแสดง?", a: "อ่านหนังสือ", c: ["อ่านหนังสือ", "น้อง", "หนังสือ", "น้องอ่าน"], exp1: "เฉลยคือ อ่านหนังสือ ค่ะ", exp2: "เพราะภาคแสดงคือส่วนที่บอกอาการหรือการกระทำของประธาน ในที่นี้คือ 'อ่านหนังสือ' ส่วน 'น้อง' คือภาคประธาน", exp3: "หลักการ: ประโยคแบ่งเป็น 2 ภาคหลัก คือ ภาคประธาน (ผู้กระทำ) และภาคแสดง (กริยา+กรรม หรือส่วนขยาย)" },
+      { q: "ข้อใดเป็นประโยคคำถาม?", a: "น้องไปโรงเรียนหรือยัง", c: ["น้องไปโรงเรียนหรือยัง", "น้องไปโรงเรียนแล้ว", "น้องกำลังไปโรงเรียน", "น้องไปโรงเรียนทุกวัน"], exp1: "เฉลยคือ น้องไปโรงเรียนหรือยัง ค่ะ", exp2: "เพราะประโยคนี้ลงท้ายด้วยคำว่า 'หรือยัง' ซึ่งเป็นเครื่องหมายของประโยคคำถาม", exp3: "หลักการ: ประโยคคำถามมักลงท้ายด้วยคำว่า ไหม, หรือไม่, หรือยัง, ใคร, อะไร, ที่ไหน เป็นต้น" },
+      { q: "คำว่า 'มด' ในประโยค 'มดกัดขาฉัน' และ 'มดเท้าให้เรียบร้อย' ต่างกันอย่างไร?", a: "ความหมายต่างกันตามบริบท (คำพ้องรูป)", c: ["ความหมายต่างกันตามบริบท (คำพ้องรูป)", "เป็นคำเดียวกันความหมายเดียวกัน", "เป็นคำไวพจน์", "เป็นคำสมาส"], exp1: "เฉลยคือ ความหมายต่างกันตามบริบท (คำพ้องรูป) ค่ะ", exp2: "เพราะ 'มด' คำแรกหมายถึงแมลงมด ส่วน 'มด' คำหลังเป็นคำกริยาแปลว่า 'ถูให้เรียบ' ทั้งสองเขียนเหมือนกันแต่ความหมายต่างกัน", exp3: "หลักการ: คำพ้องรูปต้องอาศัยบริบทของประโยคในการตีความหมายที่ถูกต้องเสมอ" },
+      { q: "คำว่า 'เสด็จ' ใช้แทนคำสามัญคำใด?", a: "ไป/มา", c: ["ไป/มา", "กิน", "นอน", "พูด"], exp1: "เฉลยคือ ไป/มา ค่ะ", exp2: "เพราะ 'เสด็จ' เป็นคำราชาศัพท์ที่ใช้แทนคำว่า 'ไป' หรือ 'มา' สำหรับพระมหากษัตริย์และพระบรมวงศานุวงศ์", exp3: "หลักการ: คำราชาศัพท์เกี่ยวกับการเคลื่อนไหว เช่น เสด็จ (ไป/มา) ต้องท่องจำให้แม่นยำเพื่อใช้ให้ถูกกาลเทศะ" },
+      { q: "สำนวน 'ไก่เห็นตีนงู งูเห็นนมไก่' หมายถึงอะไร?", a: "ต่างฝ่ายต่างรู้ความลับหรือจุดอ่อนของกันและกัน", c: ["ต่างฝ่ายต่างรู้ความลับหรือจุดอ่อนของกันและกัน", "ทำงานร่วมกันได้ดี", "รักกันเหมือนพี่น้อง", "ไม่ไว้วางใจกันเลย"], exp1: "เฉลยคือ ต่างฝ่ายต่างรู้ความลับหรือจุดอ่อนของกันและกัน ค่ะ", exp2: "เพราะสำนวนนี้หมายถึงคนสองฝ่ายที่รู้ความลับหรือข้อบกพร่องของกันและกันเป็นอย่างดี", exp3: "หลักการ: สำนวนไทยหลายบทใช้สัตว์เป็นตัวแทนเปรียบเทียบพฤติกรรมมนุษย์ ต้องจำความหมายแฝงให้แม่นยำ" }
+    ];
+
+    const avatars = ["🦊", "🐼", "🦉", "🐯", "🐨", "🐸", "🐺", "🐹", "🐰", "🦄"];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
+      playerTitle = titleRadio ? titleRadio.value : "king";
+      document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      synth.init();
+      const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      const welcomeMsg = `ยินดีต้อนรับ ${roleTh} ${playerName} เข้าสู่คลังภาษาไทย ป.6 ค่ะ`;
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      score = 0; currentIdx = 0; answersCorrectCount = 0;
+      questions = shuffle([...questionBank]);
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentIdx >= questions.length) { finishGame(); return; }
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
+      document.getElementById('hud-score').innerText = score;
+      const q = questions[currentIdx];
+      document.getElementById('question-sentence').innerText = q.q;
+      document.getElementById('question-avatar').innerText = avatars[Math.floor(Math.random() * avatars.length)];
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const choices = shuffle([...q.c]);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(`คำถามข้อที่ ${currentIdx + 1}. ${q.q}`);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const isCorrect = (value === q.a);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        answersCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "😢";
+        document.getElementById('result-title').innerText = "พยายามใหม่นะคนเก่ง!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.exp1;
+      document.getElementById('exp-incorrect').innerText = q.exp2;
+      document.getElementById('exp-summary').innerText = q.exp3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
+          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
+          utterance.lang = 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 16) starStr = "⭐⭐⭐";
+      else if (answersCorrectCount >= 11) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
+      document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
+      document.getElementById('cert-score-desc').innerText = `ตอบถูกต้องทั้งหมด ${answersCorrectCount} จาก ${questions.length} ข้อ (คะแนนสะสม: ${score} คะแนน)`;
+      if (speechEnabled) {
+        const speakFinish = `เก่งมากๆ เลยค่ะ! ${titleTh} ${playerName} ผ่านคลังภาษาไทย ป.6 เสร็จสิ้นด้วยคะแนนสะสม ${score} คะแนนค่ะ`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('thai6_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
+      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
+      else { leaderboard.push({ name: playerName, title: playerTitle, score: score }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('thai6_leaderboard', JSON.stringify(leaderboard));
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = JSON.parse(localStorage.getItem('thai6_leaderboard')) || [];
+      const box = document.getElementById('leaderboard-box');
+      if (leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีบัลลังก์เกียรติยศสูงสุดค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
+        const crownColor = item.title === 'king' ? 'var(--color-medium)' : 'var(--color-accent-pink)';
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

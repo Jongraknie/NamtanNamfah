@@ -28,7 +28,7 @@
 
     body {
       background-color: var(--bg-space);
-      background-image: 
+      background-image:
         radial-gradient(circle at 10% 20%, rgba(255, 0, 127, 0.12) 0%, transparent 45%),
         radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.12) 0%, transparent 45%);
       color: #ffffff;
@@ -687,9 +687,9 @@
       <div class="avatar-area">👩‍🚀</div>
       <h3 style="font-family: var(--font-space); font-size: 1.5rem; color: #ffffff; margin-bottom: 10px; text-shadow: 0 0 8px var(--neon-cyan);">เดือนดาราจักรสะกดคำ</h3>
       <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; font-size: 0.95rem;">กรอกชื่อเพื่อบันทึกคะแนนสูงสุดและชิงตำแหน่งพระราชา/ราชินีดวงดาวกันค่ะ!</p>
-      
+
       <input type="text" id="reg-player-name" placeholder="ใส่ชื่อนักบินอวกาศน้อย..." maxlength="12" class="register-input">
-      
+
       <div class="register-title-group">
         <label class="register-label">
           <input type="radio" name="reg-player-title" value="king" checked style="accent-color: var(--neon-cyan); scale: 1.2;">
@@ -745,9 +745,9 @@
           <button class="btn-speak-dictation" id="btn-speak" onclick="speakCurrentMonth()" title="ฟังเสียงอ่านเพื่อเขียนตามคำบอก">🔊</button>
           <span style="font-size: 0.85rem; color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan); text-transform: uppercase;">ฟังเสียงเดือน (Listen)</span>
         </div>
-        
+
         <p class="hint-text" id="question-hint">เดือนที่ 1 ของปี</p>
-        
+
         <div class="answer-input-container">
           <input type="text" id="spelling-input" class="spelling-input" placeholder="สะกดตรงนี้..." readonly>
           <button class="btn-clear" onclick="backspace()" title="ลบพยัญชนะท้ายสุด">⌫</button>
@@ -756,7 +756,7 @@
         <div class="letter-tiles-container" id="tiles-container">
           <!-- Filled by JS -->
         </div>
-        
+
         <button class="btn-submit" onclick="checkSpelling()">ตรวจคำตอบ (Check) 🎯</button>
       </div>
     </div>
@@ -766,7 +766,7 @@
       <div class="modal-card">
         <div id="result-icon" class="result-icon">🎉</div>
         <h3 id="result-title" class="result-title">Correct!</h3>
-        
+
         <div class="explanation-box">
           <div class="exp-step">
             <span class="exp-step-title">1. สะกดคำที่ถูกต้อง:</span>
@@ -781,7 +781,7 @@
             <div id="exp-summary" style="color: var(--neon-cyan); font-style: italic;">-</div>
           </div>
         </div>
-        
+
         <button class="btn-submit" onclick="nextQuestion()">ไปดาวดวงถัดไป ➡️</button>
       </div>
     </div>
@@ -791,7 +791,7 @@
       <div class="avatar-area" style="font-size: 4rem;">🏆🛸</div>
       <h2 style="font-family: var(--font-space); font-size: 1.8rem; color: #ffffff; text-shadow: 0 0 10px var(--neon-cyan); margin-bottom: 10px;">พิชิตระบบสุริยะสำเร็จ!</h2>
       <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">คุณได้เขียนสะกดเดือนภาษาอังกฤษครบทั้ง 12 เดือนแล้ว</p>
-      
+
       <div id="stars-display" class="stars-display">⭐⭐⭐</div>
 
       <!-- Certificate Frame -->
@@ -828,6 +828,22 @@
         if (!this.ctx) {
           this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         }
+      },
+      playMove() {
+        if (!soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(580, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
       },
       playCorrect() {
         if (!soundEnabled) return;
@@ -950,7 +966,6 @@
         word: "December",
         thai: "ธันวาคม",
         hint: "เดือนที่ 12 ของปี (ธันวาคม)",
-        hint: "เดือนที่ 12 ของปี (ธันวาคม)",
         mistake: "พบบ่อยว่าสะกดคำท้ายผิดเป็น Decamber (ใช้ a แทน e) ค่ะ",
         summary: "December มาจากรากศัพท์ละติน Decem แปลว่า สิบ (เช่นเดียวกับเลขฐานสิบในคำว่า Decimal) เป็นเดือนสุดท้ายของปีแสนอบอุ่น"
       }
@@ -980,25 +995,25 @@
         return;
       }
       playerName = name;
-      
+
       const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
       playerTitle = titleRadio ? titleRadio.value : "king";
-      
+
       document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;
-      
+
       document.getElementById('register-screen').style.display = 'none';
       document.getElementById('play-screen').style.display = 'flex';
-      
+
       synth.init();
       const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
       const welcomeMsg = `Welcome ${roleTh} ${playerName} to Space Months spelling game! Let's start!`;
-      
+
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(welcomeMsg);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);
       }
-      
+
       score = 0;
       currentIdx = 0;
       answersCorrectCount = 0;
@@ -1011,26 +1026,26 @@
         finishGame();
         return;
       }
-      
+
       // Update HUD
       document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${months.length}`;
       document.getElementById('hud-score').innerText = score;
-      
+
       // Update Rocket Progress
       const pct = (currentIdx / months.length) * 100;
       document.getElementById('rocket-progress').style.width = `${pct}%`;
       document.getElementById('rocket-icon').style.left = `${pct}%`;
-      
+
       const m = months[currentIdx];
       document.getElementById('question-hint').innerText = `เดือนที่ ${currentIdx + 1} ของปี: ${m.thai}`;
-      
+
       // Reset input spelling text
       currentSpellingText = "";
       document.getElementById('spelling-input').value = "";
-      
+
       // Generate scrambled letter tiles
       generateTiles(m.word);
-      
+
       // Auto-read month word
       if (speechEnabled) {
         setTimeout(() => {
@@ -1043,7 +1058,7 @@
     function speakCurrentMonth() {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
-      
+
       const m = months[currentIdx];
       const utterance = new SpeechSynthesisUtterance(m.word);
       utterance.lang = 'en-US';
@@ -1055,16 +1070,16 @@
     function generateTiles(word) {
       const container = document.getElementById('tiles-container');
       container.innerHTML = "";
-      
+
       // Split word to letters, shuffle them
       let letters = word.split('');
-      
+
       // Fisher-Yates shuffle
       for (let i = letters.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [letters[i], letters[j]] = [letters[j], letters[i]];
       }
-      
+
       // Draw tiles
       letters.forEach(char => {
         const tile = document.createElement('div');
@@ -1095,35 +1110,35 @@
       window.speechSynthesis.cancel();
       const m = months[currentIdx];
       const answer = currentSpellingText.trim();
-      
+
       // Case sensitive check: Months in English must start with Capital Letter!
-      const isCorrect = (answer === m.word); 
-      
+      const isCorrect = (answer === m.word);
+
       if (isCorrect) {
         synth.playCorrect();
         score += 100;
         answersCorrectCount++;
-        
+
         document.getElementById('result-icon').innerText = "🛸";
         document.getElementById('result-title').innerText = "Correct! 🌟";
         document.getElementById('result-title').className = "result-title correct";
       } else {
         synth.playIncorrect();
-        
+
         document.getElementById('result-icon').innerText = "💥";
         document.getElementById('result-title').innerText = "Oops! Incorrect";
         document.getElementById('result-title').className = "result-title incorrect";
       }
-      
+
       // Setup Explanation modal
       document.getElementById('exp-correct').innerText = m.word;
       document.getElementById('exp-incorrect').innerText = m.mistake;
       document.getElementById('exp-summary').innerText = m.summary;
-      
+
       // Open explanation overlay
       setTimeout(() => {
         document.getElementById('explanation-overlay').classList.add('active');
-        
+
         // Speak the month's spelling in English
         if (speechEnabled) {
           const speakText = `${isCorrect ? 'Correct!' : 'Incorrect!'} Spelling is ${m.word.split('').join(' ')}`;
@@ -1143,18 +1158,18 @@
 
     function finishGame() {
       window.speechSynthesis.cancel();
-      
+
       // Draw Rocket final destination
       document.getElementById('rocket-progress').style.width = `100%`;
       document.getElementById('rocket-icon').style.left = `100%`;
-      
+
       // Save stats to leaderboard
       saveLeaderboardData();
-      
+
       // Show summary screen
       document.getElementById('play-screen').style.display = 'none';
       document.getElementById('summary-screen').style.display = 'flex';
-      
+
       // Star rating
       const starsDisplay = document.getElementById('stars-display');
       let starStr = "";
@@ -1166,12 +1181,12 @@
         starStr = "⭐";
       }
       starsDisplay.innerText = starStr;
-      
+
       // Certificate text
       const titleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
       document.getElementById('cert-name').value = `${titleTh} ${playerName}`;
       document.getElementById('cert-score-desc').innerText = `สะกดคำศัพท์เดือนภาษาอังกฤษได้ถูกต้องทั้งหมด ${answersCorrectCount} จาก 12 เดือน (คะแนนสะสม: ${score} คะแนน)`;
-      
+
       if (speechEnabled) {
         const speakFinish = `Congratulations ${titleTh} ${playerName}! You have completed the spelling mission with ${score} points!`;
         const utterance = new SpeechSynthesisUtterance(speakFinish);
@@ -1195,7 +1210,7 @@
     function saveLeaderboardData() {
       let leaderboard = JSON.parse(localStorage.getItem('space_months_leaderboard')) || [];
       const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase() && item.title === playerTitle);
-      
+
       if (idx !== -1) {
         if (score > leaderboard[idx].score) {
           leaderboard[idx].score = score;
@@ -1207,7 +1222,7 @@
           score: score
         });
       }
-      
+
       leaderboard.sort((a, b) => b.score - a.score);
       leaderboard = leaderboard.slice(0, 5);
       localStorage.setItem('space_months_leaderboard', JSON.stringify(leaderboard));
@@ -1216,18 +1231,18 @@
     function renderLeaderboard() {
       const leaderboard = JSON.parse(localStorage.getItem('space_months_leaderboard')) || [];
       const box = document.getElementById('leaderboard-box');
-      
+
       if (leaderboard.length === 0) {
         box.innerHTML = `<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 4px;">ยังไม่มีผู้สร้างบันทึกสถิตินักบินอวกาศสูงสุดค่ะ</div>`;
         return;
       }
-      
+
       box.innerHTML = leaderboard.map((item, idx) => {
         const crown = item.title === 'king' ? '👑 พระราชา' : '👑 ราชินี';
         const crownColor = item.title === 'king' ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
         const rankColor = idx === 0 ? 'var(--neon-yellow)' : 'rgba(255,255,255,0.85)';
         const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-        
+
         return `
           <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}">
             <span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span>

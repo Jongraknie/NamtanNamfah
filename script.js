@@ -681,6 +681,7 @@ function startGame(gameName) {
 }
 
 function updateHUD() {
+  if (!state.activeGame) return;
   const isEng = state.activeGame.startsWith('eng-');
   const gameKey = isEng ? 'english' : state.activeGame;
   const scoreSpan = document.getElementById(`${gameKey}-score`);
@@ -694,6 +695,7 @@ function updateHUD() {
 }
 
 function loadQuestion() {
+  if (!state.activeGame) return;
   if (state.currentQuestionIndex >= state.totalQuestions) {
     endGame();
     return;
@@ -945,6 +947,7 @@ function setupGeometryOcean() {
 }
 
 function endGame() {
+  if (!state.activeGame) return;
   sounds.playVictory();
 
   const titleSpan = document.getElementById('summary-game-name');
@@ -1379,6 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('explanation-overlay').classList.remove('active');
       window.speechSynthesis.cancel();
 
+      if (!state.activeGame) return;
       state.currentQuestionIndex++;
       loadQuestion();
     });

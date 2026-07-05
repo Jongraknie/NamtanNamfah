@@ -403,7 +403,10 @@
       const kg = Math.floor(Math.random() * 9) + 1;
       const answer = kg * 10;
       const choices = new Set([answer]);
-      while (choices.size < 4) choices.add(answer + (Math.floor(Math.random() * 6) - 3) * 10 || answer + 10);
+      while (choices.size < 4) {
+        const d = answer + (Math.floor(Math.random() * 6) - 3) * 10;
+        if (d > 0) choices.add(d);
+      }
       return {
         questionText: `${kg} กิโลกรัม เท่ากับกี่ขีด?`,
         speakPrompt: `${kg} กิโลกรัม เท่ากับกี่ขีด`,

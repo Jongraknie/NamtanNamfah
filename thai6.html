@@ -271,6 +271,7 @@
       const name = nameInput.value.trim();
       if (!name) { alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊"); return; }
       playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'คลังภาษาไทย (ป.6)');
       const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
       playerTitle = titleRadio ? titleRadio.value : "king";
       document.getElementById('hud-name').innerText = (playerTitle === 'king' ? "ราชา " : "ราชินี ") + playerName;

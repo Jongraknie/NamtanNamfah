@@ -71,6 +71,10 @@
     .selected-teacher-strip .emoji { font-size: 1.6rem; }
     .selected-teacher-strip span { font-size: 0.9rem; color: #64748b; }
 
+    /* --- Name entry --- */
+    .name-card { background: white; border-radius: 30px; padding: 40px 28px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .name-card .big-emoji { font-size: 3.5rem; margin-bottom: 10px; }
+
     /* --- Lesson screen --- */
     .lesson-card { background: white; border-radius: 30px; padding: 30px 25px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
     .teacher-stage { width: 220px; height: 220px; margin-bottom: 6px; }
@@ -85,13 +89,21 @@
     .slide-progress { display: flex; gap: 6px; margin-bottom: 14px; }
     .slide-dot { width: 9px; height: 9px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s; }
     .slide-dot.active { background: var(--t-primary); width: 22px; border-radius: 6px; }
-    .slide-illustration { font-size: 2.6rem; margin-bottom: 10px; }
+    @keyframes slidePop { 0% { transform: scale(0.7) rotate(-6deg); opacity: 0; } 60% { transform: scale(1.1) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+    .slide-illustration { font-size: 2.6rem; margin-bottom: 10px; animation: slidePop 0.5s ease; }
     .slide-text { font-size: 1.25rem; line-height: 1.7; color: var(--color-text-dark); margin-bottom: 22px; min-height: 90px; display: flex; align-items: center; justify-content: center; }
+    .thinking-indicator { font-size: 1.1rem; color: var(--t-primary); font-weight: bold; margin-bottom: 16px; display: none; }
+    .thinking-indicator.active { display: block; }
+    .thinking-indicator .dots span { animation: dotPulse 1.2s infinite; opacity: 0.2; }
+    .thinking-indicator .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-indicator .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
     .lesson-controls { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
     .btn-action { font-family: var(--font-playful); font-size: 1.1rem; font-weight: bold; color: white; background: linear-gradient(135deg, var(--t-primary) 0%, #ff9a76 100%); border: none; border-radius: 50px; padding: 12px 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.2s; }
     .btn-action:hover { transform: translateY(-2px); }
     .btn-action.secondary { background: white; color: var(--t-primary); border: 2px solid var(--t-secondary); box-shadow: none; }
+    .btn-action:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
     /* --- Quiz screen --- */
     .hud-bar { display: flex; justify-content: space-between; gap: 15px; width: 100%; margin-bottom: 18px; }
@@ -138,8 +150,20 @@
     <button id="btn-toggle-sound" class="btn-icon" onclick="toggleSound()" title="เปิด/ปิดเสียง">🔊</button>
   </header>
 
+  <!-- Screen 0: Name entry -->
+  <div id="screen-name" class="screen active">
+    <div class="name-card">
+      <div class="big-emoji">🍎</div>
+      <h3 style="margin-bottom: 10px; font-size: 1.3rem;">สวัสดีค่ะ หนูชื่ออะไรคะ?</h3>
+      <p style="color: #64748b; margin-bottom: 18px; font-size: 0.9rem;">ครูจะได้เรียกชื่อหนูระหว่างสอนด้วยค่ะ</p>
+      <input type="text" id="student-name-input" class="register-input" placeholder="ใส่ชื่อหนูตรงนี้ค่ะ..." maxlength="12">
+      <br>
+      <button class="btn-action" onclick="submitStudentName()">เริ่มกันเลย 🚀</button>
+    </div>
+  </div>
+
   <!-- Screen 1: Choose Teacher -->
-  <div id="screen-teacher" class="screen active">
+  <div id="screen-teacher" class="screen">
     <h3 style="margin-bottom: 6px; font-size: 1.4rem;">เลือกครูที่จะมาสอนหนูวันนี้ค่ะ 💖</h3>
     <p style="color: #64748b; margin-bottom: 20px;">แตะที่ครูคนที่ชอบได้เลยค่ะ</p>
     <div class="teacher-grid" id="teacher-grid"></div>
@@ -162,9 +186,10 @@
       <div class="slide-progress" id="slide-progress"></div>
       <div class="slide-illustration" id="slide-illustration">📖</div>
       <div class="slide-text" id="slide-text">กำลังโหลดบทเรียน...</div>
+      <div class="thinking-indicator" id="thinking-indicator">🤔 คิดสักครู่นะคะ<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
       <div class="lesson-controls">
         <button class="btn-action secondary" onclick="repeatSlide()">🔊 ฟังอีกครั้ง</button>
-        <button class="btn-action" id="btn-slide-next" onclick="nextSlide()">ถัดไป ➡️</button>
+        <button class="btn-action" id="btn-slide-next" onclick="nextSlide()" disabled>ถัดไป ➡️</button>
       </div>
     </div>
   </div>
@@ -301,43 +326,83 @@
 
   // ---------- Lesson + Quiz content ----------
   const LESSONS = {
-    'math-regroup': {
-      subject: 'คณิตศาสตร์ ป.2', icon: '🧮', title: 'การบวกเลขสามหลักแบบมีตัวทด',
-      desc: 'เรียนรู้วิธีบวกเลขสามหลักเมื่อผลบวกเกิน 9 ต้องทดไปหลักถัดไป',
+    'math-examprep': {
+      subject: 'คณิตศาสตร์ ป.2', icon: '📝', title: 'เตรียมสอบคณิตศาสตร์ กลางภาค 1/2569',
+      desc: 'ตรงตามแนวข้อสอบกลางภาคเรียนที่ 1/2569 ครอบคลุมจำนวนนับ การบวก และการลบไม่เกิน 1,000',
       slides: [
-        { illustration: '🧮', text: 'วันนี้เราจะมาเรียนเรื่อง "การบวกเลขสามหลักแบบมีตัวทด" กันนะคะ ลองดูโจทย์นี้ค่ะ: 158 บวก 267 เท่ากับเท่าไร' },
-        { illustration: '1️⃣', text: 'ขั้นที่ 1: บวกหลักหน่วยก่อน 8 บวก 7 เท่ากับ 15 เขียนเลข 5 ไว้ที่หลักหน่วย แล้ว "ทด" เลข 1 ไปบวกที่หลักสิบค่ะ' },
-        { illustration: '2️⃣', text: 'ขั้นที่ 2: บวกหลักสิบ 5 บวก 6 บวกตัวทด 1 เท่ากับ 12 เขียนเลข 2 ไว้ที่หลักสิบ แล้วทดเลข 1 ไปหลักร้อยค่ะ' },
-        { illustration: '3️⃣', text: 'ขั้นที่ 3: บวกหลักร้อย 1 บวก 2 บวกตัวทด 1 เท่ากับ 4 เขียนเลข 4 ไว้ที่หลักร้อยค่ะ' },
-        { illustration: '✅', text: 'สรุปแล้ว 158 บวก 267 เท่ากับ 425 ค่ะ! หลักสำคัญคือ ถ้าผลบวกในหลักไหนเกิน 9 ให้เขียนหลักหน่วยไว้ แล้วทด 1 ไปบวกหลักถัดไปเสมอนะคะ' }
+        { type: 'teach', illustration: '📋', text: 'สวัสดีค่ะ {name}! วันนี้ครูมีข่าวดีมาบอกค่ะ เนื้อหาที่เราจะเรียนกันวันนี้ตรงกับแนวข้อสอบกลางภาคเรียนที่ 1 ปีการศึกษา 2569 วิชาคณิตศาสตร์ ชั้นประถมศึกษาปีที่ 2 เลยนะคะ ถ้าหนูตั้งใจเรียนเรื่องนี้ ไปสอบได้แน่นอนค่ะ!' },
+        { type: 'teach', illustration: '📚', text: 'วันนี้เราจะเรียนกัน 3 เรื่องใหญ่ๆ ค่ะ เรื่องแรกคือจำนวนนับไม่เกิน 1,000 เรื่องที่สองคือการบวกจำนวนไม่เกิน 1,000 และเรื่องที่สามคือการลบจำนวนไม่เกิน 1,000 ค่ะ' },
+        { type: 'teach', illustration: '💯', text: 'เรื่องแรกคือ จำนวนนับไม่เกิน 1,000 ค่ะ ตัวเลขสามหลักมีหลักหน่วย หลักสิบ และหลักร้อยนะคะ เช่นเลข 347 หลักร้อยคือ 3 หลักสิบคือ 4 หลักหน่วยคือ 7 ค่ะ' },
+        { type: 'teach', illustration: '📊', text: 'การเรียงลำดับจำนวนก็สำคัญค่ะ ถ้าจะเรียงจากน้อยไปมาก ให้ดูหลักร้อยก่อน ถ้าหลักร้อยเท่ากันค่อยดูหลักสิบ ถ้าหลักสิบเท่ากันอีกค่อยดูหลักหน่วยค่ะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองคิดดูสิคะ {name} ระหว่าง 452 กับ 425 ตัวไหนมีค่ามากกว่ากันคะ ลองคิดดูก่อนนะคะ', thinkSeconds: 5, reveal: '452 มากกว่าค่ะ เพราะหลักร้อยเท่ากันคือ 4 แต่หลักสิบของ 452 คือ 5 ซึ่งมากกว่า 2 ของ 425 ค่ะ เก่งมาก {name}!' },
+        { type: 'teach', illustration: '🔢', text: 'อีกเรื่องที่สำคัญคือการนับเพิ่มทีละ 1, 2, 5, 10 และ 100 ค่ะ เช่น นับเพิ่มทีละ 10 จาก 350 ก็จะเป็น 360, 370, 380 ไปเรื่อยๆ ค่ะ' },
+        { type: 'teach', illustration: '➕', text: 'ต่อไปเรื่องที่สอง การบวกจำนวนไม่เกิน 1,000 ค่ะ เรามาเริ่มจากการบวกแบบไม่มีตัวทดก่อนนะคะ เช่น 123 บวก 45 เท่ากับ 168 ค่ะ ง่ายมากเลยใช่ไหมคะ' },
+        { type: 'teach', illustration: '🎒', text: 'ทีนี้มาดูการบวกแบบมีตัวทดกันบ้างค่ะ เวลาบวกเลขในหลักเดียวกันแล้วผลบวกเกิน 9 เราต้องเขียนแค่หลักหน่วยไว้ แล้ว "ทด" ตัวเลขที่เหลือไปบวกกับหลักถัดไปค่ะ' },
+        { type: 'teach', illustration: '🧮', text: 'ลองดูโจทย์นี้กันค่ะ 158 บวก 267 ขั้นแรกบวกหลักหน่วยก่อน 8 บวก 7 เท่ากับ 15 เขียน 5 ไว้ แล้วทด 1 ไปหลักสิบค่ะ' },
+        { type: 'teach', illustration: '✅', text: 'ขั้นที่สอง บวกหลักสิบ 5 บวก 6 บวกตัวทด 1 เท่ากับ 12 เขียน 2 ทด 1 ขั้นที่สาม บวกหลักร้อย 1 บวก 2 บวกตัวทด 1 เท่ากับ 4 ดังนั้น 158 บวก 267 เท่ากับ 425 ค่ะ' },
+        { type: 'check', illustration: '💭', prompt: 'ลองคิดดูสิคะ {name} 234 บวก 189 หลักหน่วยคือ 4 บวก 9 เท่ากับเท่าไรคะ ลองคิดในใจดูก่อนนะคะ', thinkSeconds: 5, reveal: '4 บวก 9 เท่ากับ 13 ค่ะ เพราะเกิน 9 เราจึงเขียน 3 ไว้ แล้วทด 1 ไปหลักสิบค่ะ เก่งมาก {name}!' },
+        { type: 'teach', illustration: '➖', text: 'ต่อไปเรื่องที่สาม การลบจำนวนไม่เกิน 1,000 ค่ะ เรามาเริ่มจากการลบแบบไม่มีตัวยืมก่อนนะคะ เช่น 486 ลบ 253 เท่ากับ 233 ค่ะ ลบแต่ละหลักตรงๆ ได้เลย' },
+        { type: 'teach', illustration: '🎯', text: 'ทีนี้มาดูการลบแบบมีตัวยืมกันบ้างค่ะ ถ้าตัวตั้งในหลักไหนน้อยกว่าตัวลบ เราต้อง "ยืม" 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนค่ะ' },
+        { type: 'teach', illustration: '🐵', text: 'ลองดูโจทย์นี้กันค่ะ 342 ลบ 168 หลักหน่วย 2 ลบ 8 ลบไม่ได้เพราะ 2 น้อยกว่า 8 เราต้องยืม 1 จากหลักสิบมาเป็น 12 แล้ว 12 ลบ 8 เท่ากับ 4 ค่ะ' },
+        { type: 'teach', illustration: '🏁', text: 'หลักสิบที่ยืมไปแล้วเหลือ 3 ลบ 6 อีก ลบไม่ได้อีกเช่นกัน ต้องยืมจากหลักร้อยมาเป็น 13 ลบ 6 เท่ากับ 7 หลักร้อยเหลือ 2 ลบ 1 เท่ากับ 1 ดังนั้น 342 ลบ 168 เท่ากับ 174 ค่ะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองคิดดูสิคะ {name} 523 ลบ 267 หลักหน่วยคือ 3 ลบ 7 เราต้องทำยังไงคะ ลองคิดดูก่อนนะคะ', thinkSeconds: 6, reveal: 'เพราะ 3 น้อยกว่า 7 เราต้องยืม 1 จากหลักสิบมาเป็น 13 แล้ว 13 ลบ 7 เท่ากับ 6 ค่ะ เก่งมาก {name}!' },
+        { type: 'teach', illustration: '🏆', text: 'สรุปแล้ววันนี้เราเรียนครบทั้ง 3 เรื่องแล้วนะคะ {name} จำนวนนับไม่เกิน 1,000 การบวกไม่เกิน 1,000 และการลบไม่เกิน 1,000 ค่ะ เนื้อหาตรงตามแนวข้อสอบกลางภาคเรียนที่ 1/2569 เป๊ะเลยค่ะ ต่อไปเราจะไปลองทำข้อสอบ 10 ข้อกันนะคะ สู้ๆ ค่ะ!' }
       ],
       questions: [
-        { q: '158 + 267 = ?', a: 425, c: [425, 415, 325, 435] },
-        { q: '246 + 175 = ?', a: 421, c: [421, 411, 321, 431] },
-        { q: '384 + 219 = ?', a: 603, c: [603, 593, 503, 613] },
-        { q: '457 + 168 = ?', a: 625, c: [625, 615, 525, 635] },
-        { q: '129 + 296 = ?', a: 425, c: [425, 415, 325, 435] },
-        { q: '375 + 148 = ?', a: 523, c: [523, 513, 423, 533] },
-        { q: '266 + 159 = ?', a: 425, c: [425, 415, 325, 435] },
-        { q: '348 + 275 = ?', a: 623, c: [623, 613, 523, 633] },
-        { q: '197 + 236 = ?', a: 433, c: [433, 423, 333, 443] },
-        { q: '419 + 187 = ?', a: 606, c: [606, 596, 506, 616] }
+        { q: 'ตัวเลข 347 หลักสิบคือเลขอะไร?', a: 4, c: [4, 3, 7, 0],
+          exp2: 'เลข 347 แยกหลักได้เป็น หลักร้อย = 3, หลักสิบ = 4, หลักหน่วย = 7 ค่ะ',
+          exp3: 'หลักการ: ตัวเลขสามหลักอ่านจากซ้ายไปขวาคือ หลักร้อย หลักสิบ หลักหน่วย ตามลำดับค่ะ' },
+        { q: 'ข้อใดมีค่ามากที่สุด?', a: 452, c: [452, 425, 254, 245],
+          exp2: '452 มีหลักร้อยเป็น 4 เท่ากับ 425 แต่หลักสิบของ 452 คือ 5 มากกว่า 2 ของ 425 จึงมากที่สุดค่ะ',
+          exp3: 'หลักการ: เปรียบเทียบจำนวน ให้ดูหลักร้อยก่อน ถ้าเท่ากันค่อยดูหลักสิบ ถ้ายังเท่ากันอีกค่อยดูหลักหน่วยค่ะ' },
+        { q: 'นับเพิ่มทีละ 10 จาก 350 ตัวถัดไปคือเท่าไร?', a: 360, c: [360, 351, 450, 340],
+          exp2: 'การนับเพิ่มทีละ 10 คือการบวกเพิ่มครั้งละ 10 ดังนั้น 350 บวก 10 เท่ากับ 360 ค่ะ',
+          exp3: 'หลักการ: นับเพิ่มทีละ 10 หลักหน่วยจะไม่เปลี่ยน ส่วนหลักสิบจะเพิ่มขึ้นทีละ 1 ค่ะ' },
+        { q: '123 + 45 = ?', a: 168, c: [168, 178, 158, 167],
+          exp2: 'บวกหลักหน่วย 3 บวก 5 เท่ากับ 8, หลักสิบ 2 บวก 4 เท่ากับ 6, หลักร้อยคือ 1 ดังนั้นได้ 168 ค่ะ',
+          exp3: 'หลักการ: การบวกแบบไม่มีตัวทด บวกแต่ละหลักตรงๆ ได้เลยค่ะ' },
+        { q: '158 + 267 = ?', a: 425, c: [425, 415, 325, 435],
+          exp2: 'หลักหน่วย 8+7=15 เขียน 5 ทด 1, หลักสิบ 5+6+1=12 เขียน 2 ทด 1, หลักร้อย 1+2+1=4 ค่ะ',
+          exp3: 'หลักการ: บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักถัดไปเสมอค่ะ' },
+        { q: '246 + 175 = ?', a: 421, c: [421, 411, 321, 431],
+          exp2: 'หลักหน่วย 6+5=11 เขียน 1 ทด 1, หลักสิบ 4+7+1=12 เขียน 2 ทด 1, หลักร้อย 2+1+1=4 ค่ะ',
+          exp3: 'หลักการ: บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักถัดไปเสมอค่ะ' },
+        { q: '375 + 248 = ?', a: 623, c: [623, 613, 523, 633],
+          exp2: 'หลักหน่วย 5+8=13 เขียน 3 ทด 1, หลักสิบ 7+4+1=12 เขียน 2 ทด 1, หลักร้อย 3+2+1=6 ค่ะ',
+          exp3: 'หลักการ: บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักถัดไปเสมอค่ะ' },
+        { q: '486 - 253 = ?', a: 233, c: [233, 243, 223, 333],
+          exp2: 'ลบหลักหน่วย 6-3=3, หลักสิบ 8-5=3, หลักร้อย 4-2=2 ลบตรงๆ ได้เลยเพราะไม่ต้องยืมค่ะ',
+          exp3: 'หลักการ: การลบแบบไม่มีตัวยืม ลบแต่ละหลักตรงๆ ได้เลยเมื่อตัวตั้งมากกว่าหรือเท่ากับตัวลบทุกหลักค่ะ' },
+        { q: '342 - 168 = ?', a: 174, c: [174, 184, 274, 164],
+          exp2: '2-8 ลบไม่ได้ ต้องยืม 1 จากหลักสิบมาเป็น 12-8=4, หลักสิบเหลือ 3 ลบ 6 ยืมจากหลักร้อยมาเป็น 13-6=7, หลักร้อยเหลือ 2-1=1 ค่ะ',
+          exp3: 'หลักการ: ถ้าตัวตั้งในหลักใดน้อยกว่าตัวลบ ต้องยืม 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนลบเสมอค่ะ' },
+        { q: '523 - 267 = ?', a: 256, c: [256, 266, 246, 356],
+          exp2: '3-7 ลบไม่ได้ ยืมจากหลักสิบมาเป็น 13-7=6, หลักสิบเหลือ 1 ลบ 6 ยืมจากหลักร้อยมาเป็น 11-6=5, หลักร้อยเหลือ 4 ลบ 2=2 ค่ะ',
+          exp3: 'หลักการ: ถ้าตัวตั้งในหลักใดน้อยกว่าตัวลบ ต้องยืม 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนลบเสมอค่ะ' }
       ].map(item => ({
         questionText: item.q, answer: item.a, choices: item.c,
         exp1: `เฉลยคือ ${item.a} ค่ะ`,
-        exp2: `บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักสิบ แล้วบวกหลักสิบรวมตัวทด ถ้าเกิน 9 อีกก็ทดไปหลักร้อยต่อค่ะ`,
-        exp3: 'หลักการ: บวกจากขวาไปซ้ายทีละหลัก เมื่อผลบวกเกิน 9 ให้เขียนหลักหน่วยไว้แล้วทด 1 ไปบวกหลักถัดไปเสมอค่ะ'
+        exp2: item.exp2,
+        exp3: item.exp3
       }))
     },
     'thai-wordtypes': {
       subject: 'ภาษาไทย ป.2', icon: '📖', title: 'ชนิดของคำ: นาม กริยา วิเศษณ์',
       desc: 'เรียนรู้การจำแนกคำนาม คำกริยา และคำวิเศษณ์เบื้องต้น',
       slides: [
-        { illustration: '📚', text: 'วันนี้เราจะมาเรียนรู้ "ชนิดของคำ" 3 แบบกันนะคะ ได้แก่ คำนาม คำกริยา และคำวิเศษณ์ค่ะ' },
-        { illustration: '🐱', text: '"คำนาม" คือคำที่เป็นชื่อคน สัตว์ สิ่งของ หรือสถานที่ค่ะ เช่น แมว โต๊ะ โรงเรียน คุณครู' },
-        { illustration: '🏃', text: '"คำกริยา" คือคำที่บอกอาการหรือการกระทำค่ะ เช่น วิ่ง กิน นอน เล่น อ่าน' },
-        { illustration: '🌸', text: '"คำวิเศษณ์" คือคำที่ใช้ขยายบอกลักษณะของคำอื่นค่ะ เช่น สวย เร็ว ใหญ่ น่ารัก' },
-        { illustration: '✨', text: 'ลองดูประโยคนี้ค่ะ "น้องแมวตัวน่ารักวิ่งเร็วมาก" คำว่า แมว คือคำนาม, วิ่ง คือคำกริยา, น่ารักและเร็ว คือคำวิเศษณ์ค่ะ เก่งมากเลย!' }
+        { type: 'teach', illustration: '👋', text: 'สวัสดีค่ะ {name}! วันนี้ครูจะพาไปเรียนรู้เรื่อง "ชนิดของคำ" กันนะคะ มีทั้งหมด 3 ชนิดที่เราจะเรียนกันวันนี้ค่ะ' },
+        { type: 'teach', illustration: '🐱', text: 'ชนิดแรกคือ "คำนาม" ค่ะ คำนามคือคำที่เป็นชื่อคน สัตว์ สิ่งของ หรือสถานที่ต่างๆ ค่ะ' },
+        { type: 'teach', illustration: '🏫', text: 'ตัวอย่างคำนามเช่น แมว โต๊ะ โรงเรียน คุณครู หนังสือ ลองสังเกตดูนะคะ ทุกคำนี้เป็นชื่อเรียกสิ่งต่างๆ ทั้งนั้นเลยค่ะ' },
+        { type: 'teach', illustration: '🏃', text: 'ชนิดที่สองคือ "คำกริยา" ค่ะ คำกริยาคือคำที่บอกอาการหรือการกระทำของประธานในประโยคค่ะ' },
+        { type: 'teach', illustration: '🍚', text: 'ตัวอย่างคำกริยาเช่น วิ่ง กิน นอน เล่น อ่าน ลองสังเกตดูว่าทุกคำนี้บอกว่า "กำลังทำอะไร" ทั้งนั้นเลยค่ะ' },
+        { type: 'teach', illustration: '🌸', text: 'ชนิดที่สามคือ "คำวิเศษณ์" ค่ะ คำวิเศษณ์คือคำที่ใช้ขยายบอกลักษณะของคำนามหรือคำกริยาให้ชัดเจนขึ้นค่ะ' },
+        { type: 'teach', illustration: '💎', text: 'ตัวอย่างคำวิเศษณ์เช่น สวย เร็ว ใหญ่ น่ารัก คำเหล่านี้ช่วยบอกลักษณะให้เราเห็นภาพชัดขึ้นค่ะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองดูประโยคนี้นะคะ {name} "น้องแมวตัวน่ารักวิ่งเร็วมาก" ลองคิดดูสิคะ ว่าคำว่า "แมว" เป็นคำชนิดไหนคะ', thinkSeconds: 5, reveal: '"แมว" เป็นคำนามค่ะ เพราะเป็นชื่อเรียกสัตว์ เก่งมากค่ะที่ลองคิดดูนะคะ {name}!' },
+        { type: 'teach', illustration: '✨', text: 'ในประโยคเดียวกัน คำว่า "วิ่ง" เป็นคำกริยา เพราะบอกการกระทำ ส่วนคำว่า "น่ารัก" และ "เร็ว" เป็นคำวิเศษณ์ เพราะช่วยขยายบอกลักษณะค่ะ' },
+        { type: 'check', illustration: '💭', prompt: 'ลองอีกประโยคนะคะ {name} "ดอกไม้สีแดงสวยงามมาก" คำว่า "สวยงาม" เป็นคำชนิดไหนคะ ลองคิดดูก่อนนะคะ', thinkSeconds: 5, reveal: '"สวยงาม" เป็นคำวิเศษณ์ค่ะ เพราะขยายบอกลักษณะของดอกไม้ เก่งมากเลย {name}!' },
+        { type: 'teach', illustration: '💡', text: 'มีเคล็ดลับจำง่ายๆ ค่ะ ถ้าเป็นชื่อ คือคำนาม ถ้าบอกการกระทำ คือคำกริยา ถ้าบอกลักษณะ คือคำวิเศษณ์ค่ะ' },
+        { type: 'teach', illustration: '📖', text: 'ลองดูอีกประโยคนึงค่ะ "คุณครูใจดีสอนหนังสือเก่งมาก" คำว่า คุณครู และ หนังสือ เป็นคำนาม คำว่า สอน เป็นคำกริยา ส่วนคำว่า ใจดี และ เก่ง เป็นคำวิเศษณ์ค่ะ' },
+        { type: 'teach', illustration: '🏆', text: 'สรุปแล้ววันนี้เราได้เรียนรู้คำนาม คำกริยา และคำวิเศษณ์กันแล้วนะคะ {name} เก่งมากเลยค่ะ ต่อไปเราจะไปลองทำข้อสอบ 10 ข้อกันค่ะ สู้ๆ นะคะ!' }
       ],
       questions: [
         { word: 'แมว', sentence: '"แมว" ในประโยค "แมวกำลังนอนหลับ" เป็นคำชนิดใด?', a: 'คำนาม' },
@@ -363,11 +428,19 @@
       subject: 'ภาษาอังกฤษ ป.2', icon: '📅', title: 'Days of the Week & Months',
       desc: 'เรียนรู้ชื่อวันในสัปดาห์และเดือนทั้ง 12 เดือนเป็นภาษาอังกฤษ',
       slides: [
-        { illustration: '📅', text: 'Today we will learn the Days of the Week! วันนี้เราจะมาเรียนชื่อวันทั้ง 7 วันในสัปดาห์กันค่ะ' },
-        { illustration: '🗓️', text: 'Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday — นี่คือชื่อวันทั้ง 7 วันเรียงตามลำดับค่ะ' },
-        { illustration: '🌍', text: 'Now let\'s learn the Months! ต่อไปเรามาเรียนชื่อเดือนทั้ง 12 เดือนกันค่ะ' },
-        { illustration: '☀️', text: 'January, February, March, April, May, June, July, August, September, October, November, December — 12 เดือนในหนึ่งปีค่ะ' },
-        { illustration: '🎂', text: 'ลองพูดประโยคนี้ดูนะคะ "Today is Monday" แปลว่า วันนี้คือวันจันทร์ และ "My birthday is in June" แปลว่า วันเกิดของฉันอยู่ในเดือนมิถุนายนค่ะ' }
+        { type: 'teach', illustration: '👋', text: 'สวัสดีค่ะ {name}! วันนี้ครูจะพาไปเรียนรู้ชื่อวันในสัปดาห์และเดือนต่างๆ เป็นภาษาอังกฤษกันนะคะ' },
+        { type: 'teach', illustration: '📅', text: 'หนึ่งสัปดาห์มี 7 วันค่ะ เรามาเรียนชื่อวันทั้ง 7 กันเลยนะคะ' },
+        { type: 'teach', illustration: '🌞', text: 'วันอาทิตย์ภาษาอังกฤษคือ Sunday ค่ะ วันจันทร์คือ Monday ค่ะ' },
+        { type: 'teach', illustration: '🌤️', text: 'วันอังคารคือ Tuesday ค่ะ วันพุธคือ Wednesday ค่ะ' },
+        { type: 'teach', illustration: '🌥️', text: 'วันพฤหัสบดีคือ Thursday ค่ะ วันศุกร์คือ Friday ค่ะ และวันเสาร์คือ Saturday ค่ะ ครบ 7 วันแล้วนะคะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองคิดดูสิคะ {name} ถ้าวันนี้คือ Monday แล้ววันพรุ่งนี้ภาษาอังกฤษจะเรียกว่าอะไรคะ ลองคิดในใจดูก่อนนะคะ', thinkSeconds: 5, reveal: 'คำตอบคือ Tuesday ค่ะ เพราะวันหลังจาก Monday คือ Tuesday เก่งมากค่ะ {name}!' },
+        { type: 'teach', illustration: '🗓️', text: 'ทีนี้เรามาเรียนชื่อเดือนกันบ้างนะคะ หนึ่งปีมี 12 เดือนค่ะ' },
+        { type: 'teach', illustration: '❄️', text: 'เดือนมกราคมคือ January เดือนกุมภาพันธ์คือ February เดือนมีนาคมคือ March ค่ะ' },
+        { type: 'teach', illustration: '🌸', text: 'เดือนเมษายนคือ April เดือนพฤษภาคมคือ May เดือนมิถุนายนคือ June ค่ะ' },
+        { type: 'teach', illustration: '☀️', text: 'เดือนกรกฎาคมคือ July เดือนสิงหาคมคือ August เดือนกันยายนคือ September ค่ะ' },
+        { type: 'teach', illustration: '🍂', text: 'เดือนตุลาคมคือ October เดือนพฤศจิกายนคือ November และเดือนธันวาคมคือ December ค่ะ ครบ 12 เดือนแล้วนะคะ' },
+        { type: 'check', illustration: '💭', prompt: 'ลองคิดดูสิคะ {name} เดือนเกิดของหนูอยู่เดือนอะไรคะ ลองนึกถึงชื่อเดือนนั้นเป็นภาษาอังกฤษดูสิคะ', thinkSeconds: 6, reveal: 'เก่งมากค่ะ ไม่ว่าเดือนเกิดของหนูจะเป็นเดือนไหน ตอนนี้หนูรู้จักชื่อเดือนครบทั้ง 12 เดือนเป็นภาษาอังกฤษแล้วนะคะ {name}!' },
+        { type: 'teach', illustration: '🏆', text: 'สรุปแล้ววันนี้เราได้เรียนรู้ชื่อวันทั้ง 7 วัน และเดือนทั้ง 12 เดือนเป็นภาษาอังกฤษกันแล้วนะคะ {name} เก่งมากเลยค่ะ ต่อไปเราจะไปลองทำข้อสอบ 10 ข้อกันค่ะ สู้ๆ นะคะ!' }
       ],
       questions: [
         { q: 'What day comes after Monday?', a: 'Tuesday', c: ['Tuesday', 'Sunday', 'Friday', 'Wednesday'] },
@@ -392,15 +465,29 @@
   // ---------- State ----------
   let soundEnabled = true;
   let speechEnabled = true;
+  let studentName = '';
   let selectedTeacher = 'rabbit';
   let selectedTopicId = null;
   let slideIdx = 0;
+  let slideRevealed = false; // for 'check' slides: false = showing prompt, true = showing reveal
   let quizQuestions = [];
   let quizIdx = 0;
   let score = 0;
   let correctCount = 0;
   let playerName = '';
   let talkTimer = null;
+
+  function personalize(text) {
+    return String(text).split('{name}').join(studentName || 'หนู');
+  }
+  function submitStudentName() {
+    const input = document.getElementById('student-name-input');
+    const name = input.value.trim();
+    if (!name) { alert('บอกครูหน่อยนะคะ ว่าหนูชื่ออะไรคะ 😊'); return; }
+    studentName = name;
+    synth.init();
+    showScreen('screen-teacher');
+  }
 
   const synth = {
     ctx: null,
@@ -431,16 +518,19 @@
     document.getElementById('btn-toggle-sound').innerText = soundEnabled ? '🔊' : '🔇';
   }
 
-  function speakWithLipSync(text, stageSelector, lang) {
+  function speakWithLipSync(text, stageSelector, lang, onEnd) {
     window.speechSynthesis.cancel();
     stopTalking(stageSelector);
-    if (!speechEnabled || !('speechSynthesis' in window)) return;
+    if (!speechEnabled || !('speechSynthesis' in window)) {
+      if (onEnd) onEnd();
+      return;
+    }
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = lang || 'th-TH';
     utter.rate = 0.95;
     utter.onstart = () => startTalking(stageSelector);
-    utter.onend = () => stopTalking(stageSelector);
-    utter.onerror = () => stopTalking(stageSelector);
+    utter.onend = () => { stopTalking(stageSelector); if (onEnd) onEnd(); };
+    utter.onerror = () => { stopTalking(stageSelector); if (onEnd) onEnd(); };
     window.speechSynthesis.speak(utter);
   }
 
@@ -485,7 +575,7 @@
     document.getElementById('topic-teacher-name').innerText = TEACHERS[id].name;
     showScreen('screen-topic');
     renderTopicGrid();
-    speakWithLipSync(TEACHERS[id].greet, '#topic-teacher-emoji');
+    speakWithLipSync(personalize(`สวัสดีค่ะ {name}! ${TEACHERS[id].greet}`), '#topic-teacher-emoji');
   }
   document.getElementById('topic-teacher-change').addEventListener('click', () => showScreen('screen-teacher'));
 
@@ -507,6 +597,7 @@
   function startLesson(topicId) {
     selectedTopicId = topicId;
     slideIdx = 0;
+    if (typeof fbLogActivity === 'function') fbLogActivity(studentName, `ครูสอนพิเศษ: ${LESSONS[topicId].title}`);
     document.getElementById('teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
     renderSlideProgress();
     showScreen('screen-lesson');
@@ -522,21 +613,63 @@
       wrap.appendChild(dot);
     }
   }
+  function setNextEnabled(enabled) {
+    document.getElementById('btn-slide-next').disabled = !enabled;
+  }
   function loadSlide() {
     const lesson = LESSONS[selectedTopicId];
     const slide = lesson.slides[slideIdx];
-    document.getElementById('slide-illustration').innerText = slide.illustration;
-    document.getElementById('slide-text').innerText = slide.text;
+    slideRevealed = false;
     renderSlideProgress();
+    document.getElementById('thinking-indicator').classList.remove('active');
+    setNextEnabled(false);
     const nextBtn = document.getElementById('btn-slide-next');
     nextBtn.innerText = (slideIdx === lesson.slides.length - 1) ? 'เริ่มทำข้อสอบกันเลย! 🚀' : 'ถัดไป ➡️';
-    speakWithLipSync(slide.text, '#teacher-stage', /^[A-Za-z]/.test(slide.text) ? 'en-US' : 'th-TH');
+
+    if (slide.type === 'check') {
+      document.getElementById('slide-illustration').innerText = slide.illustration;
+      document.getElementById('slide-text').innerText = personalize(slide.prompt);
+      speakCurrentSlideText();
+    } else {
+      document.getElementById('slide-illustration').innerText = slide.illustration;
+      document.getElementById('slide-text').innerText = personalize(slide.text);
+      speakCurrentSlideText();
+    }
+  }
+  function speakCurrentSlideText() {
+    const slide = LESSONS[selectedTopicId].slides[slideIdx];
+    if (slide.type === 'check' && !slideRevealed) {
+      document.getElementById('thinking-indicator').classList.add('active');
+      let narrationDone = false, timeUp = false;
+      const tryReveal = () => { if (narrationDone && timeUp) revealCheckSlide(); };
+      speakWithLipSync(personalize(slide.prompt), '#teacher-stage', 'th-TH', () => { narrationDone = true; tryReveal(); });
+      setTimeout(() => { timeUp = true; tryReveal(); }, (slide.thinkSeconds || 4) * 1000);
+    } else if (slide.type === 'check' && slideRevealed) {
+      speakWithLipSync(personalize(slide.reveal), '#teacher-stage', 'th-TH', () => setNextEnabled(true));
+    } else {
+      speakWithLipSync(personalize(slide.text), '#teacher-stage', 'th-TH', () => setNextEnabled(true));
+    }
+  }
+  function revealCheckSlide() {
+    const slide = LESSONS[selectedTopicId].slides[slideIdx];
+    slideRevealed = true;
+    document.getElementById('thinking-indicator').classList.remove('active');
+    document.getElementById('slide-illustration').innerText = '🎉';
+    document.getElementById('slide-text').innerText = personalize(slide.reveal);
+    speakCurrentSlideText();
   }
   function repeatSlide() {
     const slide = LESSONS[selectedTopicId].slides[slideIdx];
-    speakWithLipSync(slide.text, '#teacher-stage', /^[A-Za-z]/.test(slide.text) ? 'en-US' : 'th-TH');
+    if (slide.type === 'check' && !slideRevealed) {
+      speakWithLipSync(personalize(slide.prompt), '#teacher-stage', 'th-TH');
+    } else if (slide.type === 'check' && slideRevealed) {
+      speakWithLipSync(personalize(slide.reveal), '#teacher-stage', 'th-TH');
+    } else {
+      speakWithLipSync(personalize(slide.text), '#teacher-stage', 'th-TH');
+    }
   }
   function nextSlide() {
+    if (document.getElementById('btn-slide-next').disabled) return;
     const lesson = LESSONS[selectedTopicId];
     if (slideIdx < lesson.slides.length - 1) {
       slideIdx++;
@@ -629,9 +762,11 @@
       });
     }
     const finishMsg = correctCount >= 9
-      ? `เก่งมากเลยค่ะ ${TEACHERS[selectedTeacher].name} ภูมิใจในตัวหนูมากค่ะ!`
-      : `ทำได้ดีมากค่ะ ลองทบทวนอีกนิดแล้วมาลองใหม่ได้นะคะ`;
-    speakWithLipSync(finishMsg, '#summary-teacher-stage');
+      ? personalize(`เก่งมากเลยค่ะ {name}! ${TEACHERS[selectedTeacher].name}ภูมิใจในตัวหนูมากค่ะ!`)
+      : personalize(`ทำได้ดีมากค่ะ {name} ลองทบทวนอีกนิดแล้วมาลองใหม่ได้นะคะ`);
+    speakWithLipSync(finishMsg, '#summary-teacher-stage', 'th-TH');
+    const nameInput = document.getElementById('reg-player-name');
+    if (nameInput && !nameInput.value) nameInput.value = studentName;
   }
   function leaderboardKey() { return `tutor_${selectedTopicId}_leaderboard`; }
   function saveScoreAndShow() {

@@ -273,6 +273,7 @@
       const name = nameInput.value.trim();
       if (!name) { alert("กรุณากรอกชื่อคนเก่งก่อนเริ่มเล่นนะคะ! 😊"); return; }
       playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ถ้ำมังกรมาตราตัวสะกด (ป.2)');
       document.getElementById('hud-name').innerText = playerName;
       document.getElementById('register-screen').style.display = 'none';
       document.getElementById('play-screen').style.display = 'flex';

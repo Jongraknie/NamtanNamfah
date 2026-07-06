@@ -203,6 +203,7 @@ const state = {
 
   // Current game states
   activeGame: null, // carrot, icecream, geometry
+  playerName: '',
   score: 0,
   currentQuestionIndex: 0,
   correctCount: 0,
@@ -970,6 +971,9 @@ function endGame() {
   if (correctSpan) correctSpan.innerText = state.correctCount;
   if (totalSpan) totalSpan.innerText = state.totalQuestions;
 
+  const certNameInput = document.getElementById('cert-child-name');
+  if (certNameInput && state.playerName) certNameInput.value = state.playerName;
+
   const stars = document.querySelectorAll('#victory-stars .star-rating');
   let numStars = 0;
   if (state.correctCount >= 9) numStars = 3;
@@ -1321,31 +1325,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const GAME_LABELS = {
+    carrot: 'ตะลุยป่าแครอท (บวกเลข ป.2)',
+    icecream: 'ร้านไอศกรีมพ่อมด (ค่าประจำหลัก ป.2)',
+    geometry: 'ล่าสมบัติใต้บาดาล (เปรียบเทียบจำนวน ป.2)',
+    'eng-book1': 'Coral Reef Adventure (English Book 1)',
+    'eng-book2': 'The School Life (English Book 2)'
+  };
+
   // 2. Math Dashboard level clicks
-  document.querySelectorAll('#main-menu .game-card').forEach(card => {
+  document.querySelectorAll('#main-menu .game-card[data-game]').forEach(card => {
     const playBtn = card.querySelector('.btn-play');
-    const playAction = () => {
-      sounds.init();
-      startGame(card.getAttribute('data-game'));
-    };
+    const gameKey = card.getAttribute('data-game');
+    const playAction = () => requestNameThenPlay(gameKey);
     card.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') playAction();
     });
-    playBtn.addEventListener('click', playAction);
+    if (playBtn) playBtn.addEventListener('click', playAction);
   });
 
   // 3. English Dashboard level clicks
-  document.querySelectorAll('#english-menu .game-card').forEach(card => {
+  document.querySelectorAll('#english-menu .game-card[data-game]').forEach(card => {
     const playBtn = card.querySelector('.btn-play');
-    const playAction = () => {
-      sounds.init();
-      startGame(card.getAttribute('data-game'));
-    };
+    const gameKey = card.getAttribute('data-game');
+    const playAction = () => requestNameThenPlay(gameKey);
     card.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') playAction();
     });
-    playBtn.addEventListener('click', playAction);
+    if (playBtn) playBtn.addEventListener('click', playAction);
   });
+
+  // Name-gate modal: shown before any embedded game starts
+  let pendingGameKey = null;
+  function requestNameThenPlay(gameKey) {
+    pendingGameKey = gameKey;
+    const modal = document.getElementById('name-gate-modal');
+    const input = document.getElementById('name-gate-input');
+    if (input) input.value = state.playerName || '';
+    if (modal) modal.classList.add('active');
+    setTimeout(() => { if (input) input.focus(); }, 100);
+  }
+  const nameGateStartBtn = document.getElementById('btn-name-gate-start');
+  if (nameGateStartBtn) {
+    nameGateStartBtn.addEventListener('click', () => {
+      const input = document.getElementById('name-gate-input');
+      const name = input ? input.value.trim() : '';
+      if (!name) { alert('บอกครูหน่อยนะคะ ว่าหนูชื่ออะไรคะ 😊'); return; }
+      state.playerName = name;
+      document.getElementById('name-gate-modal').classList.remove('active');
+      sounds.init();
+      if (typeof fbLogActivity === 'function') fbLogActivity(name, GAME_LABELS[pendingGameKey] || pendingGameKey);
+      startGame(pendingGameKey);
+    });
+  }
+  const nameGateInput = document.getElementById('name-gate-input');
+  if (nameGateInput) {
+    nameGateInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('btn-name-gate-start').click();
+    });
+  }
 
   // 4. Back to math dashboard buttons
   document.querySelectorAll('#game-carrot .btn-back, #game-icecream .btn-back, #game-geometry .btn-back').forEach(btn => {

@@ -581,7 +581,8 @@
         return;
       }
       currentPlayerName = name;
-      
+      if (typeof fbLogActivity === 'function') fbLogActivity(currentPlayerName, 'เขาวงกตปริศนา EF (ป.2)');
+
       const titleRadio = document.querySelector('input[name="player-title"]:checked');
       currentPlayerTitle = titleRadio ? titleRadio.value : "king";
       

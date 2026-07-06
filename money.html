@@ -634,6 +634,7 @@
 
   function startGame() {
     playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+    if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ร้านขายของเล่นหมีน้อย (การนับเงิน ป.2)');
     score = 0;
     correctCount = 0;
     currentIndex = 0;

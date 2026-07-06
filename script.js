@@ -187,6 +187,8 @@ function logVisit() {
   } catch (e) {
     console.warn('logVisit failed:', e);
   }
+  // Also log to the cloud (Firestore) so visits sync across devices; no-op if offline/unavailable.
+  if (typeof fbLogVisit === 'function') fbLogVisit();
 }
 
 
@@ -638,6 +640,7 @@ function setupEnglishBubbles() {
 // --- GAME LOGIC ---
 
 function startGame(gameName) {
+  if (!gameName) return;
   state.activeGame = gameName;
   state.score = 0;
   state.currentQuestionIndex = 0;
@@ -744,6 +747,7 @@ function loadQuestion() {
 }
 
 function handleAnswer(event, selectedValue) {
+  if (!state.activeGame) return;
   const isEng = state.activeGame.startsWith('eng-');
   const gameKey = isEng ? 'english' : state.activeGame;
   const choicesGrid = document.getElementById(`${gameKey}-choices`);
@@ -779,7 +783,7 @@ function handleAnswer(event, selectedValue) {
 }
 
 function showExplanation(isCorrect) {
-  const isEng = state.activeGame.startsWith('eng-');
+  const isEng = (state.activeGame || '').startsWith('eng-');
   const overlay = document.getElementById('explanation-overlay');
   const avatar = document.getElementById('explanation-avatar');
   const title = document.getElementById('explanation-title');
@@ -811,7 +815,7 @@ function getParticleEmojis() {
   if (state.activeGame === 'carrot') return ['🥕', '✨', '⭐', '🐰'];
   if (state.activeGame === 'icecream') return ['🍦', '✨', '⭐', '🍓', '🍋'];
   if (state.activeGame === 'geometry') return ['💎', '✨', '🪙', '👑', '🐙'];
-  if (state.activeGame.startsWith('eng-')) return ['🐟', '✨', '⭐', '🇬🇧', '🐚'];
+  if ((state.activeGame || '').startsWith('eng-')) return ['🐟', '✨', '⭐', '🇬🇧', '🐚'];
   return ['✨', '⭐', '🎉'];
 }
 
@@ -839,7 +843,7 @@ function triggerGameAnimations(isCorrect) {
         createParticleBurst(chestRect.left + chestRect.width / 2, chestRect.top + chestRect.height / 2, ['🪙', '✨', '💎', '👑']);
       }, 200);
     }
-  } else if (state.activeGame.startsWith('eng-')) {
+  } else if ((state.activeGame || '').startsWith('eng-')) {
     if (isCorrect) {
       const Nemo = document.querySelector('.clownfish-swim');
       const Dory = document.querySelector('.blue-tang-swim');
@@ -988,7 +992,7 @@ function endGame() {
   }
 
   setTimeout(() => {
-    if (state.activeGame.startsWith('eng-')) {
+    if ((state.activeGame || '').startsWith('eng-')) {
       speakText(`Congratulations Namfah! You passed ${gameTitle} with ${state.score} points! Well done!`, 'en-US');
     } else {
       speakText(`เก่งมากเลยค่ะ! เพื่อนๆ ผ่านด่าน ${gameTitle} แล้ว ได้คะแนน ${state.score} คะแนน รับรางวัลไปเลย!`);
@@ -1170,6 +1174,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const brain6Btn = document.getElementById('btn-goto-brain6');
+  if (brain6Btn) {
+    brain6Btn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปฝึกทักษะการคิดที่ห้องทดลองนักคิดกันเลยค่ะน้องน้ำตาล!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'brain6.html';
+      }, 1000);
+    });
+  }
+
   // Subject Menu clicks
   const mathBtn = document.getElementById('btn-select-math');
   if (mathBtn) {
@@ -1215,6 +1230,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const dragoncaveBtn = document.getElementById('btn-select-dragoncave');
+  if (dragoncaveBtn) {
+    dragoncaveBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปผจญภัยในถ้ำมังกรมาตราตัวสะกดกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'dragoncave.html';
+      }, 1000);
+    });
+  }
+
   const monthsBtn = document.getElementById('btn-select-months');
   if (monthsBtn) {
     monthsBtn.addEventListener('click', () => {
@@ -1255,6 +1281,17 @@ document.addEventListener('DOMContentLoaded', () => {
       speakText('ไปช่วยเจ้าช้างขายของในตลาดชั่งตวงกันเลยค่ะน้ำฟ้า!', 'th-TH');
       setTimeout(() => {
         window.location.href = 'measurement.html';
+      }, 1000);
+    });
+  }
+
+  const moneyBtn = document.getElementById('btn-select-money');
+  if (moneyBtn) {
+    moneyBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปช่วยเจ้าหมีขายของเล่นและฝึกนับเงินกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'money.html';
       }, 1000);
     });
   }
@@ -1309,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 5. Victory Screen buttons
   document.getElementById('btn-victory-home').addEventListener('click', () => {
-    if (state.activeGame.startsWith('eng-')) {
+    if ((state.activeGame || '').startsWith('eng-')) {
       showScreen('english-menu');
     } else {
       showScreen('main-menu');
@@ -1421,3 +1458,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    generateChoices,
+    generateCarrotQuestions,
+    generateIceCreamQuestions,
+    generateGeometryQuestions,
+    generateEnglishQuestions,
+    logVisit
+  };
+}

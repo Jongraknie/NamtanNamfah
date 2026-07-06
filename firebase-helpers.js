@@ -1,0 +1,60 @@
+// Shared cloud sync helpers (visit logging + cross-device leaderboards).
+// Requires firebase-app-compat.js, firebase-firestore-compat.js and firebase-config.js to be loaded first.
+// Every function fails silently (console.warn only) and never throws, so pages keep working offline
+// using their existing localStorage logic.
+
+function fbLogVisit() {
+  if (!db) return;
+  try {
+    const now = new Date();
+    db.collection('visits').add({
+      date: now.toISOString().slice(0, 10),
+      time: now.toISOString()
+    }).catch(e => console.warn('fbLogVisit failed:', e));
+  } catch (e) {
+    console.warn('fbLogVisit failed:', e);
+  }
+}
+
+function fbLoadAllVisits(callback) {
+  if (!db) { callback(null); return; }
+  db.collection('visits').get()
+    .then(snapshot => {
+      const list = [];
+      snapshot.forEach(doc => list.push(doc.data()));
+      callback(list);
+    })
+    .catch(e => { console.warn('fbLoadAllVisits failed:', e); callback(null); });
+}
+
+// entry: { name, score, title? }
+function fbSaveScore(collectionName, entry) {
+  if (!db) return;
+  try {
+    db.collection(collectionName).add({
+      name: String(entry.name || '').slice(0, 20),
+      score: Number(entry.score) || 0,
+      title: entry.title ? String(entry.title).slice(0, 20) : null,
+      date: new Date().toISOString()
+    }).catch(e => console.warn('fbSaveScore failed:', e));
+  } catch (e) {
+    console.warn('fbSaveScore failed:', e);
+  }
+}
+
+// Loads and returns the top 5 scores (best score per name+title), or null via callback on failure.
+function fbLoadTopScores(collectionName, callback) {
+  if (!db) { callback(null); return; }
+  db.collection(collectionName).orderBy('score', 'desc').limit(100).get()
+    .then(snapshot => {
+      const best = {};
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const key = (d.name || '').toLowerCase() + '|' + (d.title || '');
+        if (!best[key] || d.score > best[key].score) best[key] = d;
+      });
+      const top = Object.values(best).sort((a, b) => b.score - a.score).slice(0, 5);
+      callback(top);
+    })
+    .catch(e => { console.warn('fbLoadTopScores failed:', e); callback(null); });
+}

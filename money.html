@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>หอนาฬิกาแสนสนุก | สำหรับ น้ำฟ้า 💖</title>
+<title>ร้านขายของเล่นหมีน้อย | สำหรับ น้ำฟ้า 💖</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,22 +15,23 @@
 <script src="firebase-helpers.js"></script>
 <style>
   :root {
-    --indigo: #5b6bf5;
-    --indigo-dark: #3f4bc7;
-    --gold: #ffc93c;
-    --gold-dark: #f0a500;
-    --night: #2c2f6b;
+    --coin: #ffd93d;
+    --coin-dark: #f0b90b;
+    --ribbon: #ff8fa3;
+    --ribbon-dark: #e0607e;
+    --bear: #a0522d;
+    --sky: #fff0f5;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Prompt', 'Itim', sans-serif;
-    background: linear-gradient(180deg, #e8ecff 0%, #fff7de 100%);
+    background: linear-gradient(180deg, #fff9e0 0%, #ffe9f0 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 16px;
-    color: #2c2f6b;
+    color: #3a2e1e;
   }
   .screen { display: none; width: 100%; max-width: 700px; }
   .screen.active { display: flex; flex-direction: column; align-items: center; }
@@ -38,20 +39,20 @@
   .card {
     background: #fff;
     border-radius: 28px;
-    box-shadow: 0 10px 30px rgba(91,107,245,0.18);
+    box-shadow: 0 10px 30px rgba(160, 82, 45, 0.15);
     padding: 30px;
     width: 100%;
     text-align: center;
   }
-  h1 { font-size: 1.8rem; color: var(--indigo-dark); margin-bottom: 6px; }
-  h2 { font-size: 1.4rem; color: var(--night); }
-  .subtitle { color: #6a6f9a; margin-bottom: 20px; }
+  h1 { font-size: 1.8rem; color: var(--bear); margin-bottom: 6px; }
+  h2 { font-size: 1.4rem; color: var(--ribbon-dark); }
+  .subtitle { color: #7a6a52; margin-bottom: 20px; }
 
   input.reg-input {
     font-family: 'Prompt', sans-serif;
     font-size: 1.1rem;
     padding: 12px 18px;
-    border: 2px solid var(--indigo);
+    border: 2px solid var(--coin-dark);
     border-radius: 16px;
     width: 80%;
     max-width: 300px;
@@ -59,6 +60,7 @@
     margin-bottom: 20px;
     outline: none;
   }
+  input.reg-input:focus { border-color: var(--ribbon-dark); }
 
   .btn {
     font-family: 'Prompt', sans-serif;
@@ -69,17 +71,19 @@
     border-radius: 50px;
     cursor: pointer;
     color: #fff;
-    background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 100%);
-    box-shadow: 0 6px 16px rgba(91,107,245,0.35);
+    background: linear-gradient(135deg, var(--ribbon) 0%, var(--ribbon-dark) 100%);
+    box-shadow: 0 6px 16px rgba(224, 96, 126, 0.35);
     transition: transform 0.15s;
   }
   .btn:hover { transform: translateY(-2px); }
-  .btn-gold {
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-    color: #5c3d00;
-    box-shadow: 0 6px 16px rgba(240,165,0,0.35);
+  .btn-yellow {
+    background: linear-gradient(135deg, var(--coin) 0%, var(--coin-dark) 100%);
+    color: #5c4300;
+    box-shadow: 0 6px 16px rgba(240, 185, 11, 0.35);
   }
+  .btn:disabled { opacity: 0.5; cursor: default; }
 
+  /* HUD */
   .hud {
     width: 100%;
     max-width: 700px;
@@ -90,12 +94,12 @@
     border-radius: 20px;
     padding: 12px 20px;
     margin-bottom: 16px;
-    box-shadow: 0 4px 14px rgba(91,107,245,0.12);
+    box-shadow: 0 4px 14px rgba(160,82,45,0.1);
   }
-  .hud-title { font-weight: 700; color: var(--indigo-dark); }
+  .hud-title { font-weight: 700; color: var(--bear); }
   .hud-right { display: flex; align-items: center; gap: 10px; }
   .icon-btn {
-    background: #eef0ff;
+    background: var(--sky);
     border: none;
     border-radius: 50%;
     width: 38px;
@@ -107,46 +111,61 @@
     width: 100%;
     max-width: 700px;
     height: 14px;
-    background: #e6e6f7;
+    background: #f1e8c8;
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 20px;
   }
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--indigo) 0%, var(--gold) 100%);
+    background: linear-gradient(90deg, var(--coin) 0%, var(--ribbon) 100%);
     width: 0%;
     transition: width 0.4s ease;
   }
 
+  /* Question scene */
   .scene {
     width: 100%;
     max-width: 700px;
-    background: #fffef8;
+    background: #fffef6;
     border-radius: 28px;
     padding: 24px;
-    box-shadow: 0 10px 30px rgba(91,107,245,0.15);
+    box-shadow: 0 10px 30px rgba(160,82,45,0.12);
     text-align: center;
     margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bear-char { font-size: 4rem; margin-bottom: 8px; animation: sway 2.5s ease-in-out infinite; }
+  @keyframes sway { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+
+  .coin-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0 18px 0; flex-wrap: wrap; }
+  .coin-chip {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--coin) 0%, var(--coin-dark) 100%);
+    border: 2px solid #b8860b; color: #5c4300; font-weight: 700; font-size: 0.95rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+  .note-chip {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 68px; height: 42px; border-radius: 8px;
+    background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%);
+    border: 2px solid #059669; color: #064e3b; font-weight: 700; font-size: 0.95rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
   }
 
-  .owl-char { font-size: 3rem; margin-bottom: 4px; }
-
-  .clock-wrap { display: flex; justify-content: center; margin: 10px 0 20px 0; }
-  .clock-face-container { width: 220px; height: 220px; }
-
-  .hand {
-    stroke-linecap: round;
-    transform-origin: 100px 100px;
-  }
+  .toy-row { display: flex; justify-content: center; gap: 16px; margin: 10px 0 18px 0; flex-wrap: wrap; }
+  .toy-item { background: var(--sky); border-radius: 16px; padding: 10px 16px; font-weight: 700; color: var(--bear); }
+  .toy-item .toy-emoji { font-size: 2rem; display: block; }
 
   .question-bubble {
-    background: #eef0ff;
+    background: var(--sky);
     border-radius: 20px;
-    padding: 16px;
-    font-size: 1.25rem;
+    padding: 18px;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: var(--night);
+    color: #2c3e50;
     margin-bottom: 20px;
     position: relative;
   }
@@ -170,21 +189,25 @@
   }
   .choice-btn {
     font-family: 'Prompt', sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 700;
     padding: 16px;
     border-radius: 18px;
-    border: 2.5px solid var(--indigo);
-    background: #fbfbff;
-    color: var(--indigo-dark);
+    border: 2.5px solid var(--coin-dark);
+    background: #fffdf3;
+    color: var(--bear);
     cursor: pointer;
     transition: all 0.15s;
   }
-  .choice-btn:hover:not(:disabled) { background: #dfe3ff; transform: translateY(-2px); }
+  .choice-btn:hover:not(:disabled) {
+    background: var(--coin);
+    transform: translateY(-2px);
+  }
   .choice-btn.correct { background: #6bcf7f; border-color: #3fa85a; color: #fff; }
   .choice-btn.wrong { background: #ff7675; border-color: #d63031; color: #fff; }
   .choice-btn:disabled { cursor: default; }
 
+  /* Explanation overlay */
   .overlay {
     display: none;
     position: fixed;
@@ -205,18 +228,19 @@
     text-align: center;
   }
   .modal .result-icon { font-size: 3rem; margin-bottom: 8px; }
-  .exp-step { text-align: left; margin-bottom: 14px; background: #f5f6ff; border-radius: 14px; padding: 12px 16px; }
-  .exp-step-title { display: block; font-weight: 700; color: var(--indigo-dark); margin-bottom: 4px; font-size: 0.9rem; }
+  .exp-step { text-align: left; margin-bottom: 14px; background: #fdf9ee; border-radius: 14px; padding: 12px 16px; }
+  .exp-step-title { display: block; font-weight: 700; color: var(--bear); margin-bottom: 4px; font-size: 0.9rem; }
 
+  /* Summary */
   .stars { font-size: 2.4rem; margin: 14px 0; }
   .cert-box {
-    border: 8px double var(--gold-dark);
+    border: 8px double var(--coin-dark);
     border-radius: 20px;
     padding: 24px;
     margin: 20px 0;
-    background: #fffdf3;
+    background: #fffdf6;
   }
-  .cert-name { font-size: 1.6rem; font-weight: 700; color: var(--indigo-dark); border: none; border-bottom: 2px solid var(--gold-dark); text-align: center; background: transparent; width: 80%; font-family: 'Prompt'; padding: 4px; }
+  .cert-name { font-size: 1.6rem; font-weight: 700; color: var(--ribbon-dark); border: none; border-bottom: 2px solid var(--coin-dark); text-align: center; background: transparent; width: 80%; font-family: 'Prompt'; padding: 4px; }
 
   .leaderboard { text-align: left; margin-top: 14px; }
   .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
@@ -226,6 +250,10 @@
     #print-area, #print-area * { visibility: visible; }
     #print-area { position: absolute; left: 0; top: 0; width: 100%; }
   }
+  @media (max-width: 500px) {
+    .choices-grid { grid-template-columns: 1fr; }
+    .question-bubble { font-size: 1.15rem; }
+  }
 </style>
 </head>
 <body>
@@ -233,19 +261,19 @@
   <!-- Registration Screen -->
   <div id="screen-register" class="screen active">
     <div class="card">
-      <div style="font-size:3.5rem;">🦉🕐</div>
-      <h1>หอนาฬิกาแสนสนุก</h1>
-      <p class="subtitle">ฝึกอ่านเวลาจากหน้าปัดนาฬิกา ช่วยเจ้าฮูกน้อยไขปริศนาเวลากันเถอะ!</p>
+      <div style="font-size:3.5rem;">🐻🧸</div>
+      <h1>ร้านขายของเล่นหมีน้อย</h1>
+      <p class="subtitle">ฝึกนับเงินและทอนเงินไม่เกิน 1,000 บาท ช่วยเจ้าหมีน้อยขายของเล่นกันเถอะ!</p>
       <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ">
       <br>
-      <button class="btn btn-gold" id="btn-start">เริ่มไขปริศนาเวลา 🕐</button>
+      <button class="btn btn-yellow" id="btn-start">เริ่มขายของเล่นกัน 🧸</button>
     </div>
   </div>
 
   <!-- Game Screen -->
   <div id="screen-game" class="screen">
     <div class="hud">
-      <span class="hud-title">🦉 หอนาฬิกาแสนสนุก</span>
+      <span class="hud-title">🐻 ร้านขายของเล่นหมีน้อย</span>
       <div class="hud-right">
         <span id="hud-score">คะแนน: 0</span>
         <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
@@ -254,20 +282,12 @@
     <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
 
     <div class="scene">
-      <div class="owl-char">🦉</div>
-      <div class="clock-wrap">
-        <svg class="clock-face-container" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="94" fill="#fffdf6" stroke="#5b6bf5" stroke-width="6" />
-          <g id="tick-marks"></g>
-          <g id="hour-numbers" font-family="Prompt, sans-serif" font-size="16" font-weight="700" fill="#2c2f6b" text-anchor="middle"></g>
-          <line id="hour-hand" class="hand" x1="100" y1="100" x2="100" y2="60" stroke="#2c2f6b" stroke-width="7" />
-          <line id="minute-hand" class="hand" x1="100" y1="100" x2="100" y2="35" stroke="#5b6bf5" stroke-width="5" />
-          <circle cx="100" cy="100" r="6" fill="#f0a500" />
-        </svg>
-      </div>
+      <div class="bear-char">🐻</div>
+      <div class="coin-row" id="coin-row"></div>
+      <div class="toy-row" id="toy-row"></div>
       <div class="question-bubble">
         <button class="btn-voice" id="btn-speak">🔊</button>
-        <span id="question-text">นาฬิกาเรือนนี้บอกเวลาอะไรเอ่ย?</span>
+        <span id="question-text">กำลังโหลดโจทย์...</span>
       </div>
       <div class="choices-grid" id="choices-grid"></div>
     </div>
@@ -279,11 +299,11 @@
       <div class="result-icon" id="result-icon">🎉</div>
       <h2 id="result-title">เก่งมาก!</h2>
       <div class="exp-step">
-        <span class="exp-step-title">1. เฉลยเวลาที่ถูกต้อง</span>
+        <span class="exp-step-title">1. เฉลยคำตอบที่ถูกต้อง</span>
         <div id="exp-answer">-</div>
       </div>
       <div class="exp-step">
-        <span class="exp-step-title">2. วิธีอ่าน</span>
+        <span class="exp-step-title">2. วิธีคิด</span>
         <div id="exp-method">-</div>
       </div>
       <div class="exp-step">
@@ -297,35 +317,42 @@
   <!-- Summary Screen -->
   <div id="screen-summary" class="screen">
     <div class="card" id="print-area">
-      <div style="font-size:3rem;">🏆🦉</div>
-      <h1>ไขปริศนาเวลาสำเร็จแล้ว!</h1>
+      <div style="font-size:3rem;">🏆🧸</div>
+      <h1>ขายของเล่นสำเร็จแล้ว!</h1>
       <div class="stars" id="stars-display">⭐⭐⭐</div>
       <p>คะแนนรวม: <span id="summary-score">0</span> คะแนน (ตอบถูก <span id="summary-correct">0</span>/<span id="summary-total">10</span> ข้อ)</p>
 
       <div class="cert-box">
-        <h2 style="color:var(--indigo-dark);">ใบประกาศเกียรติคุณ</h2>
+        <h2 style="color:var(--bear);">ใบประกาศเกียรติคุณ</h2>
         <p style="margin:6px 0;">มอบให้เพื่อแสดงว่า</p>
         <input type="text" id="cert-name" class="cert-name" readonly value="นักเรียนคนเก่ง">
-        <p style="margin-top:10px;">ได้ผ่านภารกิจอ่านเวลาจากหอนาฬิกาสำเร็จแล้ว 🕐</p>
+        <p style="margin-top:10px;">ได้ผ่านภารกิจฝึกนับเงินที่ร้านขายของเล่นหมีน้อยสำเร็จแล้ว 🧸</p>
         <p style="margin-top:6px;">วันที่: <span id="cert-date">-</span></p>
       </div>
 
       <div class="leaderboard">
-        <h2 style="color:var(--indigo-dark); font-size:1.1rem;">🏅 5 อันดับคะแนนสูงสุด</h2>
+        <h2 style="color:var(--bear); font-size:1.1rem;">🏅 5 อันดับคะแนนสูงสุด</h2>
         <div id="leaderboard-list"></div>
       </div>
     </div>
 
     <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center;">
-      <button class="btn btn-gold" id="btn-print">🖨️ พิมพ์ใบประกาศ</button>
+      <button class="btn btn-yellow" id="btn-print">🖨️ พิมพ์ใบประกาศ</button>
       <button class="btn" id="btn-again">🔄 เล่นอีกครั้ง</button>
       <button class="btn" id="btn-home" style="background:linear-gradient(135deg,#74b9ff,#0984e3);">🏡 กลับหน้าหลัก</button>
     </div>
   </div>
 
 <script>
-  const LEADERBOARD_KEY = 'time_leaderboard';
+  const LEADERBOARD_KEY = 'money_leaderboard';
   const TOTAL_QUESTIONS = 10;
+  const TOYS = [
+    { name: 'ตุ๊กตาหมี', emoji: '🧸' }, { name: 'รถของเล่น', emoji: '🚗' },
+    { name: 'ลูกบอล', emoji: '⚽' }, { name: 'หุ่นยนต์', emoji: '🤖' },
+    { name: 'ว่าว', emoji: '🪁' }, { name: 'บล็อกไม้', emoji: '🧩' }
+  ];
+  const COIN_VALUES = [1, 2, 5, 10];
+  const NOTE_VALUES = [20, 50, 100];
 
   let playerName = '';
   let soundOn = true;
@@ -335,6 +362,7 @@
   let questions = [];
   let currentQuestion = null;
 
+  // --- Sound synth ---
   const synth = {
     ctx: null,
     init() {
@@ -373,118 +401,90 @@
     document.getElementById(id).classList.add('active');
   }
 
-  // --- Draw static clock decorations (ticks + numbers) once ---
-  function drawClockFace() {
-    const ticksGroup = document.getElementById('tick-marks');
-    const numsGroup = document.getElementById('hour-numbers');
-    for (let i = 0; i < 60; i++) {
-      const angle = (i * 6) * (Math.PI / 180);
-      const isHour = i % 5 === 0;
-      const outerR = 94, innerR = isHour ? 82 : 88;
-      const x1 = 100 + outerR * Math.sin(angle);
-      const y1 = 100 - outerR * Math.cos(angle);
-      const x2 = 100 + innerR * Math.sin(angle);
-      const y2 = 100 - innerR * Math.cos(angle);
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-      line.setAttribute('stroke', '#2c2f6b');
-      line.setAttribute('stroke-width', isHour ? 3 : 1.2);
-      ticksGroup.appendChild(line);
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function generateChoices(answer, min, max) {
+    const set = new Set([answer]);
+    while (set.size < 4) {
+      const offset = Math.floor(Math.random() * 20) - 10;
+      const d = answer + offset;
+      if (d !== answer && d >= min && d <= max && offset !== 0) set.add(d);
     }
-    for (let h = 1; h <= 12; h++) {
-      const angle = (h * 30) * (Math.PI / 180);
-      const r = 70;
-      const x = 100 + r * Math.sin(angle);
-      const y = 100 - r * Math.cos(angle) + 6;
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', x);
-      text.setAttribute('y', y);
-      text.textContent = h;
-      numsGroup.appendChild(text);
+    return Array.from(set).sort(() => 0.5 - Math.random());
+  }
+
+  // Builds a random coin/note combo whose total equals targetTotal (best-effort, greedy + random split)
+  function makeCoinSet(targetTotal) {
+    let remaining = targetTotal;
+    const denoms = [...NOTE_VALUES, ...COIN_VALUES].sort((a, b) => b - a);
+    const coins = [];
+    for (const d of denoms) {
+      while (remaining >= d && coins.length < 9 && Math.random() < 0.75) {
+        coins.push(d);
+        remaining -= d;
+      }
     }
+    while (remaining > 0) {
+      const smallest = COIN_VALUES[0];
+      coins.push(smallest);
+      remaining -= smallest;
+    }
+    return coins.sort((a, b) => b - a);
   }
 
-  function setClockHands(hour, minute) {
-    const hourAngle = ((hour % 12) + minute / 60) * 30;
-    const minuteAngle = minute * 6;
-    document.getElementById('hour-hand').style.transform = `rotate(${hourAngle}deg)`;
-    document.getElementById('minute-hand').style.transform = `rotate(${minuteAngle}deg)`;
-  }
-
-  function fmtTime(hour, minute) {
-    const h = hour === 0 ? 12 : hour;
-    const m = minute.toString().padStart(2, '0');
-    return `${h}:${m} น.`;
-  }
-
-  function fmtSpoken(hour, minute) {
-    const h = hour === 0 ? 12 : hour;
-    if (minute === 0) return `${h} นาฬิกาตรง`;
-    return `${h} นาฬิกา ${minute} นาที`;
-  }
-
-  function generateTimeQuestions(count) {
+  function generateMoneyQuestions(count) {
     const list = [];
-    const usedTimes = new Set();
-    const minuteSteps = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-
     for (let i = 0; i < count; i++) {
-      let hour, minute, key;
-      do {
-        hour = Math.floor(Math.random() * 12) + 1;
-        minute = minuteSteps[Math.floor(Math.random() * minuteSteps.length)];
-        key = `${hour}:${minute}`;
-      } while (usedTimes.has(key));
-      usedTimes.add(key);
+      const mode = i % 3;
 
-      const answer = fmtTime(hour, minute);
-      const choicesSet = new Set([answer]);
-
-      // Distractor 1: swap hour +/-1
-      let dHour = hour + (Math.random() > 0.5 ? 1 : -1);
-      if (dHour < 1) dHour = 12; if (dHour > 12) dHour = 1;
-      choicesSet.add(fmtTime(dHour, minute));
-
-      // Distractor 2: different minute, same hour
-      let dMin = minuteSteps[(minuteSteps.indexOf(minute) + 3) % minuteSteps.length];
-      choicesSet.add(fmtTime(hour, dMin));
-
-      // Distractor 3: hour and minute both off
-      let d3Hour = hour + (Math.random() > 0.5 ? 2 : -2);
-      if (d3Hour < 1) d3Hour += 12; if (d3Hour > 12) d3Hour -= 12;
-      let d3Min = minuteSteps[(minuteSteps.indexOf(minute) + 6) % minuteSteps.length];
-      choicesSet.add(fmtTime(d3Hour, d3Min));
-
-      while (choicesSet.size < 4) {
-        const rh = Math.floor(Math.random() * 12) + 1;
-        const rm = minuteSteps[Math.floor(Math.random() * minuteSteps.length)];
-        choicesSet.add(fmtTime(rh, rm));
-      }
-
-      const choices = Array.from(choicesSet).slice(0, 4).sort(() => 0.5 - Math.random());
-
-      let method;
-      if (minute === 0) {
-        method = `เข็มสั้น (เข็มชั่วโมง) ชี้ตรงที่เลข ${hour} พอดี และเข็มยาว (เข็มนาที) ชี้ที่เลข 12 แสดงว่าเป็นเวลา ${hour} นาฬิกาตรง`;
-      } else if (minute === 30) {
-        method = `เข็มยาวชี้ที่เลข 6 แปลว่าผ่านมาแล้วครึ่งชั่วโมง (30 นาที) ส่วนเข็มสั้นอยู่ระหว่างเลข ${hour} กับ ${hour === 12 ? 1 : hour + 1} แสดงว่าเป็นเวลา ${hour} นาฬิกา 30 นาที`;
+      if (mode === 0) {
+        // Count total value of a coin/note set
+        const total = (Math.floor(Math.random() * 15) + 3) * 10 - Math.floor(Math.random() * 5);
+        const coins = makeCoinSet(Math.max(total, 10));
+        const answer = coins.reduce((a, b) => a + b, 0);
+        const choices = generateChoices(answer, 1, 1000);
+        const breakdown = coins.map(c => `${c} บาท`).join(' + ');
+        list.push({
+          type: 'count', coins, toys: [],
+          questionText: 'เหรียญและธนบัตรทั้งหมดนี้ รวมเป็นเงินเท่าไร?',
+          speakPrompt: 'เหรียญและธนบัตรทั้งหมดนี้ รวมเป็นเงินเท่าไร',
+          answer, choices,
+          method: `นำเงินทุกจำนวนมาบวกกัน: ${breakdown} = ${answer} บาท`,
+          principle: 'การนับเงินรวม ต้องบวกมูลค่าของเหรียญและธนบัตรทุกชิ้นเข้าด้วยกันทีละจำนวนค่ะ'
+        });
+      } else if (mode === 1) {
+        // Change-making: pay with a note, get change back
+        const toy = pick(TOYS);
+        const price = Math.floor(Math.random() * 85) + 5; // 5-89 บาท
+        const payNote = NOTE_VALUES.find(n => n > price) || 100;
+        const answer = payNote - price;
+        const choices = generateChoices(answer, 0, 100);
+        list.push({
+          type: 'change', coins: [payNote], toys: [{ ...toy, price }],
+          questionText: `ซื้อ ${toy.name} ราคา ${price} บาท จ่ายด้วยแบงก์ ${payNote} บาท จะได้เงินทอนเท่าไร?`,
+          speakPrompt: `ซื้อ${toy.name} ราคา ${price} บาท จ่ายด้วยแบงก์ ${payNote} บาท จะได้เงินทอนเท่าไร`,
+          answer, choices,
+          method: `เงินทอน = เงินที่จ่าย - ราคาของ = ${payNote} - ${price} = ${answer} บาท`,
+          principle: 'การหาเงินทอน คือการนำจำนวนเงินที่จ่ายไป ลบด้วยราคาสินค้าเสมอค่ะ'
+        });
       } else {
-        method = `เข็มยาวชี้ที่ตำแหน่งซึ่งนับจากเลข 12 ไปทีละ 5 นาทีต่อ 1 ตัวเลข ทำให้ได้ ${minute} นาที ส่วนเข็มสั้นอยู่ใกล้เลข ${hour} แสดงว่าเป็นเวลา ${hour} นาฬิกา ${minute} นาที`;
+        // Sum of two toy prices
+        const toyA = pick(TOYS);
+        let toyB = pick(TOYS);
+        while (toyB.name === toyA.name) toyB = pick(TOYS);
+        const priceA = (Math.floor(Math.random() * 20) + 1) * 5;
+        const priceB = (Math.floor(Math.random() * 20) + 1) * 5;
+        const answer = priceA + priceB;
+        const choices = generateChoices(answer, 1, 1000);
+        list.push({
+          type: 'sum', coins: [], toys: [{ ...toyA, price: priceA }, { ...toyB, price: priceB }],
+          questionText: `ซื้อ ${toyA.name} ราคา ${priceA} บาท และ ${toyB.name} ราคา ${priceB} บาท ต้องจ่ายเงินรวมเท่าไร?`,
+          speakPrompt: `ซื้อ${toyA.name} ราคา ${priceA} บาท และ${toyB.name} ราคา ${priceB} บาท ต้องจ่ายเงินรวมเท่าไร`,
+          answer, choices,
+          method: `รวมราคาของทั้งสองอย่าง: ${priceA} + ${priceB} = ${answer} บาท`,
+          principle: 'เมื่อซื้อของหลายอย่างพร้อมกัน ต้องนำราคาของแต่ละอย่างมาบวกรวมกันเพื่อหายอดที่ต้องจ่ายค่ะ'
+        });
       }
-
-      const principle = 'เข็มสั้นบอก "ชั่วโมง" และเข็มยาวบอก "นาที" โดยตัวเลขแต่ละตัวบนหน้าปัดห่างกัน 5 นาทีเสมอ (12 ตัวเลข x 5 นาที = 60 นาทีครบ 1 ชั่วโมงพอดีค่ะ)';
-
-      list.push({
-        questionText: 'นาฬิกาเรือนนี้บอกเวลาอะไรเอ่ย?',
-        speakPrompt: 'นาฬิกาเรือนนี้บอกเวลาอะไร',
-        hour, minute,
-        answer,
-        choices,
-        method,
-        principle,
-        spoken: fmtSpoken(hour, minute)
-      });
     }
     return list;
   }
@@ -495,6 +495,29 @@
     document.getElementById('progress-fill').style.width = pct + '%';
   }
 
+  function renderCoins(coins) {
+    const row = document.getElementById('coin-row');
+    row.innerHTML = '';
+    coins.forEach(value => {
+      const chip = document.createElement('div');
+      const isNote = NOTE_VALUES.includes(value);
+      chip.className = isNote ? 'note-chip' : 'coin-chip';
+      chip.innerText = `${value}฿`;
+      row.appendChild(chip);
+    });
+  }
+
+  function renderToys(toys) {
+    const row = document.getElementById('toy-row');
+    row.innerHTML = '';
+    toys.forEach(toy => {
+      const item = document.createElement('div');
+      item.className = 'toy-item';
+      item.innerHTML = `<span class="toy-emoji">${toy.emoji}</span>${toy.name} ${toy.price} บาท`;
+      row.appendChild(item);
+    });
+  }
+
   function loadQuestion() {
     if (currentIndex >= TOTAL_QUESTIONS) {
       endGame();
@@ -502,7 +525,8 @@
     }
     currentQuestion = questions[currentIndex];
     updateHUD();
-    setClockHands(currentQuestion.hour, currentQuestion.minute);
+    renderCoins(currentQuestion.coins);
+    renderToys(currentQuestion.toys);
 
     document.getElementById('question-text').innerText = currentQuestion.questionText;
 
@@ -511,7 +535,7 @@
     currentQuestion.choices.forEach(choice => {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
-      btn.innerText = choice;
+      btn.innerText = choice + ' บาท';
       btn.addEventListener('click', () => handleAnswer(choice, btn));
       grid.appendChild(btn);
     });
@@ -524,7 +548,7 @@
     const buttons = grid.querySelectorAll('.choice-btn');
     buttons.forEach(b => {
       b.disabled = true;
-      if (b.innerText === currentQuestion.answer) b.classList.add('correct');
+      if (Number(b.innerText.replace(' บาท', '')) === currentQuestion.answer) b.classList.add('correct');
     });
 
     const isCorrect = selected === currentQuestion.answer;
@@ -542,12 +566,12 @@
 
   function showExplanation(isCorrect) {
     document.getElementById('result-icon').innerText = isCorrect ? '🎉' : '💡';
-    document.getElementById('result-title').innerText = isCorrect ? 'เก่งมากค่ะ ตอบถูกต้อง!' : 'ไม่เป็นไรนะคะ มาดูวิธีอ่านกัน';
-    document.getElementById('exp-answer').innerText = `เวลาที่ถูกต้องคือ ${currentQuestion.answer} (${currentQuestion.spoken})`;
+    document.getElementById('result-title').innerText = isCorrect ? 'เก่งมากค่ะ ตอบถูกต้อง!' : 'ไม่เป็นไรนะคะ มาดูวิธีคิดกัน';
+    document.getElementById('exp-answer').innerText = `${currentQuestion.answer} บาท`;
     document.getElementById('exp-method').innerText = currentQuestion.method;
     document.getElementById('exp-principle').innerText = currentQuestion.principle;
 
-    speakText((isCorrect ? 'ถูกต้องค่ะ! ' : 'มาดูวิธีอ่านกันค่ะ ') + currentQuestion.method);
+    speakText((isCorrect ? 'ถูกต้องค่ะ! ' : 'มาดูวิธีคิดกันค่ะ ') + currentQuestion.method);
 
     document.getElementById('explanation-overlay').classList.add('active');
   }
@@ -569,7 +593,7 @@
     renderLeaderboard();
 
     setTimeout(() => {
-      speakText(`เก่งมากค่ะ ${playerName}! ไขปริศนาหอนาฬิกาสำเร็จแล้ว ได้คะแนน ${score} คะแนน`);
+      speakText(`เก่งมากค่ะ ${playerName}! ทำภารกิจร้านขายของเล่นหมีน้อยสำเร็จแล้ว ได้คะแนน ${score} คะแนน`);
     }, 300);
 
     showScreen('screen-summary');
@@ -613,14 +637,12 @@
     score = 0;
     correctCount = 0;
     currentIndex = 0;
-    questions = generateTimeQuestions(TOTAL_QUESTIONS);
+    questions = generateMoneyQuestions(TOTAL_QUESTIONS);
     showScreen('screen-game');
     loadQuestion();
   }
 
   // --- Event bindings ---
-  drawClockFace();
-
   document.getElementById('btn-start').addEventListener('click', () => {
     synth.init();
     startGame();

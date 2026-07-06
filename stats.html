@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Itim&family=Sriracha&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
   <style>
     .stats-wrap {
       max-width: 760px;
@@ -142,7 +148,7 @@
     </div>
 
     <div class="stats-note">
-      <strong>หมายเหตุ:</strong> สถิตินี้เก็บข้อมูลไว้ในเบราว์เซอร์ของอุปกรณ์นี้เท่านั้น (localStorage) เนื่องจากเว็บนี้เป็นเว็บไซต์แบบ static บน GitHub Pages ที่ไม่มีระบบเซิร์ฟเวอร์หรือฐานข้อมูลกลางคอยเก็บข้อมูลผู้เข้าใช้จากทุกเครื่อง ดังนั้นตัวเลขนี้จะนับเฉพาะการเข้าใช้งานผ่านเบราว์เซอร์นี้บนอุปกรณ์นี้เท่านั้นค่ะ หากล้างข้อมูลเบราว์เซอร์ (clear browsing data) หรือเปิดจากอุปกรณ์อื่น ตัวเลขจะเริ่มนับใหม่หรือแยกกันไปค่ะ
+      <strong>หมายเหตุ:</strong> สถิตินี้เชื่อมกับฐานข้อมูลคลาวด์ (Firebase) แล้ว จึงรวมยอดการเข้าใช้งานจากทุกอุปกรณ์/เบราว์เซอร์เข้าด้วยกันค่ะ (หากออฟไลน์หรือเชื่อมคลาวด์ไม่ได้ชั่วคราว จะแสดงข้อมูลที่เก็บไว้ในเบราว์เซอร์นี้แทน)
       <div style="margin-top:10px;">
         <button class="btn-clear-log" id="btn-clear-log">ล้างสถิตินี้ (เฉพาะเครื่องนี้)</button>
       </div>
@@ -165,8 +171,19 @@
       return `${d.getDate()}/${d.getMonth() + 1}`;
     }
 
-    function render() {
-      const log = loadLog();
+    function mergeLogs(localLog, cloudLog) {
+      const seen = new Set();
+      const merged = [];
+      [...cloudLog, ...localLog].forEach(entry => {
+        if (!entry || !entry.time || seen.has(entry.time)) return;
+        seen.add(entry.time);
+        merged.push(entry);
+      });
+      return merged;
+    }
+
+    function render(log) {
+      log = log || loadLog();
       const totalEl = document.getElementById('stat-total');
       const daysEl = document.getElementById('stat-days');
       const todayEl = document.getElementById('stat-today');
@@ -235,13 +252,18 @@
     });
 
     document.getElementById('btn-clear-log').addEventListener('click', () => {
-      if (confirm('ต้องการล้างสถิติการเข้าใช้งานบนเครื่องนี้หรือไม่คะ?')) {
+      if (confirm('ต้องการล้างสถิติการเข้าใช้งานบนเครื่องนี้หรือไม่คะ? (ข้อมูลบนคลาวด์จะไม่ถูกลบ)')) {
         localStorage.removeItem(KEY);
         render();
       }
     });
 
     render();
+    if (typeof fbLoadAllVisits === 'function') {
+      fbLoadAllVisits(cloudLog => {
+        if (cloudLog) render(mergeLogs(loadLog(), cloudLog));
+      });
+    }
   </script>
 </body>
 </html>

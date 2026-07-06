@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ห้องเรียนอนาคตใหม่ | สำหรับ น้ำฟ้า 💖</title>
+  <title>ห้องเรียนอนาคตใหม่ | สำหรับ น้ำฟ้า 💖 น้ำตาล</title>
   <script>
     window.onerror = function(message, source, lineno, colno, error) {
       const div = document.createElement('div');
@@ -81,7 +81,7 @@
           </svg>
         </div>
         <h1>ห้องเรียนอนาคตใหม่</h1>
-        <p class="subtitle">สำหรับ น้ำฟ้า 💖 (ป.2)</p>
+        <p class="subtitle">สำหรับ น้ำฟ้า 💖 น้ำตาล</p>
       </div>
       <button id="btn-start-game" class="btn btn-primary btn-large">
         เข้าสู่ดินแดนแสนสนุก 🚀
@@ -161,6 +161,15 @@
           <p>ฝึกสะกดคำพ้องเสียงและคำที่มักสะกดผิดแสนสนุก 20 ข้อ!</p>
           <button class="btn btn-thai" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปสะกดคำกัน 🚀</button>
         </div>
+
+        <!-- Thai Spelling Rules Adventure Card -->
+        <div class="game-card card-thai" id="btn-select-dragoncave" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge">ภาษาไทย ป.2</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🐉🔥</div>
+          <h4>ถ้ำมังกรมาตราตัวสะกด</h4>
+          <p>ผจญภัยในถ้ำมังกรฝึกจำแนกมาตราตัวสะกดทั้ง 8 มาตราแสนสนุก!</p>
+          <button class="btn btn-thai" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปผจญภัยกัน 🚀</button>
+        </div>
       </div>
     </main>
   </div>
@@ -216,6 +225,15 @@
           <h4>แบบฝึกสอบเข้า ม.1</h4>
           <p>ติวเข้มทุกวิชา คณิต อังกฤษ ไทย วิทย์ สังคม พร้อมเฉลยละเอียดทุกข้อ!</p>
           <button class="btn btn-icecream" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปติวเข้มกัน 🚀</button>
+        </div>
+
+        <!-- Brain Training (EF) Card -->
+        <div class="game-card card-geometry" id="btn-goto-brain6" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge" style="background: #6366f1;">พัฒนาทักษะการคิด (EF)</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🧠🦉</div>
+          <h4>ห้องทดลองนักคิด ป.6</h4>
+          <p>ฝึกสังเกตแบบรูป ให้เหตุผลเชิงตรรกะ จัดหมวดหมู่ และวางแผนแก้ปัญหาแสนสนุก!</p>
+          <button class="btn btn-geometry" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปฝึกคิดกัน 🚀</button>
         </div>
       </div>
     </main>
@@ -347,6 +365,15 @@
           <h4>ตลาดชั่งตวงแสนสนุก</h4>
           <p>ฝึกเรื่องน้ำหนัก (กิโลกรัม/ขีด) และการตวง (ลิตร) ช่วยเจ้าช้างขายของในตลาด!</p>
           <button class="btn btn-geometry btn-play" style="pointer-events: none;">เล่นเลย! ⚖️</button>
+        </div>
+
+        <!-- Money Counting Game Card -->
+        <div class="game-card card-carrot" id="btn-select-money" style="cursor: pointer;">
+          <div class="card-badge">การนับเงินและทอนเงิน</div>
+          <div class="card-image-placeholder">🐻🧸</div>
+          <h4>ร้านขายของเล่นหมีน้อย</h4>
+          <p>ฝึกนับเหรียญ ธนบัตร และคิดเงินทอนไม่เกิน 1,000 บาท ช่วยเจ้าหมีขายของเล่น!</p>
+          <button class="btn btn-carrot btn-play" style="pointer-events: none;">เล่นเลย! 🧸</button>
         </div>
       </div>
     </main>
@@ -691,6 +718,12 @@
   </div>
 
   <!-- JavaScript Main Script -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

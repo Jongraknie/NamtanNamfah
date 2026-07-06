@@ -7,6 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-gate.js"></script>
+<script src="firebase-helpers.js"></script>
 <style>
   :root {
     --banana: #ffd93d;
@@ -526,17 +532,18 @@
   }
 
   function saveLeaderboard() {
+    const entry = { name: playerName || 'นักเรียนคนเก่ง', score, date: new Date().toLocaleDateString('th-TH') };
     const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
-    list.push({ name: playerName || 'นักเรียนคนเก่ง', score, date: new Date().toLocaleDateString('th-TH') });
+    list.push(entry);
     list.sort((a, b) => b.score - a.score);
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+    if (typeof fbSaveScore === 'function') fbSaveScore(LEADERBOARD_KEY, entry);
   }
 
-  function renderLeaderboard() {
-    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+  function renderLeaderboardList(list) {
     const el = document.getElementById('leaderboard-list');
     el.innerHTML = '';
-    if (list.length === 0) {
+    if (!list || list.length === 0) {
       el.innerHTML = '<div class="lb-row">ยังไม่มีข้อมูลค่ะ</div>';
       return;
     }
@@ -546,6 +553,15 @@
       row.innerHTML = `<span>${idx + 1}. ${entry.name}</span><span>${entry.score} คะแนน</span>`;
       el.appendChild(row);
     });
+  }
+
+  function renderLeaderboard() {
+    renderLeaderboardList(JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]'));
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(LEADERBOARD_KEY, cloudList => {
+        if (cloudList && cloudList.length) renderLeaderboardList(cloudList);
+      });
+    }
   }
 
   function startGame() {

@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
   <style>
     :root {
       --color-forest-dark: #064e3b;
@@ -1144,13 +1150,13 @@
       leaderboard.sort((a, b) => b.score - a.score);
       leaderboard = leaderboard.slice(0, 5);
       localStorage.setItem('thai_spelling_leaderboard', JSON.stringify(leaderboard));
+      if (typeof fbSaveScore === 'function') fbSaveScore('thai_spelling_leaderboard', { name: playerName, title: playerTitle, score: score });
     }
 
-    function renderLeaderboard() {
-      const leaderboard = JSON.parse(localStorage.getItem('thai_spelling_leaderboard')) || [];
+    function renderLeaderboardBox(leaderboard) {
       const box = document.getElementById('leaderboard-box');
 
-      if (leaderboard.length === 0) {
+      if (!leaderboard || leaderboard.length === 0) {
         box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีบัลลังก์เกียรติยศสูงสุดค่ะ</div>`;
         return;
       }
@@ -1168,6 +1174,15 @@
           </div>
         `;
       }).join('');
+    }
+
+    function renderLeaderboard() {
+      renderLeaderboardBox(JSON.parse(localStorage.getItem('thai_spelling_leaderboard')) || []);
+      if (typeof fbLoadTopScores === 'function') {
+        fbLoadTopScores('thai_spelling_leaderboard', cloudList => {
+          if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
+        });
+      }
     }
 
     // Initial render

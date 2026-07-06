@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cyberpunk Neon Maze Explorer</title>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
   <style>
     /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Prompt:wght@300;400;700&display=swap');
@@ -629,10 +635,11 @@
       
       leaderboard.sort((a, b) => b.score - a.score);
       leaderboard = leaderboard.slice(0, 5);
-      
+
       localStorage.setItem('maze_leaderboard', JSON.stringify(leaderboard));
+      if (typeof fbSaveScore === 'function') fbSaveScore('maze_leaderboard', { name: currentPlayerName, title: currentPlayerTitle, score: finalScore });
       renderLeaderboard();
-      
+
       // Check if this player holds absolute #1
       if (leaderboard.length > 0 && leaderboard[0].name === currentPlayerName && leaderboard[0].score === finalScore) {
         return true;
@@ -640,14 +647,13 @@
       return false;
     }
 
-    function renderLeaderboard() {
-      const leaderboard = JSON.parse(localStorage.getItem('maze_leaderboard')) || [];
+    function renderLeaderboardHTML(leaderboard) {
       const listContainer = document.getElementById('leaderboard-list');
       const winList = document.getElementById('win-leaderboard-list');
       const loseList = document.getElementById('lose-leaderboard-list');
-      
+
       const generateHTML = () => {
-        if (leaderboard.length === 0) {
+        if (!leaderboard || leaderboard.length === 0) {
           return `<div style="text-align: center; color: rgba(255,255,255,0.4); padding: 5px;">ยังไม่มีบัลลังก์ผู้เล่นสูงสุดค่ะ</div>`;
         }
         return leaderboard.map((item, idx) => {
@@ -655,7 +661,7 @@
           const crownColor = item.title === 'king' ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
           const rankColor = idx === 0 ? 'var(--neon-green)' : idx === 1 ? 'var(--neon-cyan)' : 'rgba(255,255,255,0.85)';
           const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-          
+
           return `
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}">
               <span>${medal} <strong style="color: ${crownColor}">${crown}</strong> ${item.name}</span>
@@ -664,11 +670,20 @@
           `;
         }).join('');
       };
-      
+
       const html = generateHTML();
       if (listContainer) listContainer.innerHTML = html;
       if (winList) winList.innerHTML = html;
       if (loseList) loseList.innerHTML = html;
+    }
+
+    function renderLeaderboard() {
+      renderLeaderboardHTML(JSON.parse(localStorage.getItem('maze_leaderboard')) || []);
+      if (typeof fbLoadTopScores === 'function') {
+        fbLoadTopScores('maze_leaderboard', cloudList => {
+          if (cloudList && cloudList.length) renderLeaderboardHTML(cloudList);
+        });
+      }
     }
 
     // Depth-First Search (DFS) Randomized Maze Generation

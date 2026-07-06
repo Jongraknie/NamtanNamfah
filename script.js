@@ -1241,6 +1241,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const tutorBtn = document.getElementById('btn-select-tutor');
+  if (tutorBtn) {
+    tutorBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปเรียนกับครูสอนพิเศษกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'tutor.html';
+      }, 1000);
+    });
+  }
+
   const monthsBtn = document.getElementById('btn-select-months');
   if (monthsBtn) {
     monthsBtn.addEventListener('click', () => {

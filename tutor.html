@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ครูสอนพิเศษออนไลน์ | สำหรับ น้ำฟ้า 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <style>
+    :root {
+      --t-primary: #ff6b9d;
+      --t-secondary: #ffc2d1;
+      --t-bg: #fff0f5;
+      --color-accent-orange: #f59e0b;
+      --color-text-dark: #1f2937;
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--t-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(255, 107, 157, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+      transition: background-color 0.4s ease;
+    }
+    .app-header {
+      width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; background: rgba(255, 255, 255, 0.9); padding: 12px 25px; border-radius: 25px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06); border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.3rem; color: var(--t-primary); }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; }
+
+    .screen { display: none; width: 100%; max-width: 800px; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+
+    /* --- Teacher select --- */
+    .teacher-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 18px; width: 100%; }
+    .teacher-card { background: white; border-radius: 26px; padding: 22px 14px; text-align: center; cursor: pointer; border: 3px solid transparent; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.2s; position: relative; }
+    .teacher-card:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(0,0,0,0.12); }
+    .teacher-card.recommended::before { content: "แนะนำ ⭐"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--color-accent-orange); color: white; font-size: 0.7rem; padding: 3px 12px; border-radius: 20px; font-weight: bold; white-space: nowrap; }
+    .teacher-card .emoji { font-size: 3.5rem; margin-bottom: 8px; }
+    .teacher-card h4 { font-size: 1.1rem; margin-bottom: 4px; }
+    .teacher-card p { font-size: 0.8rem; color: #64748b; }
+
+    /* --- Topic select --- */
+    .topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; width: 100%; }
+    .topic-card { background: white; border-radius: 24px; padding: 24px 18px; text-align: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.2s; border: 3px solid transparent; }
+    .topic-card:hover { transform: translateY(-5px); border-color: var(--t-primary); }
+    .topic-card .subject-tag { display: inline-block; font-size: 0.75rem; font-weight: bold; background: var(--t-bg); color: var(--t-primary); padding: 4px 12px; border-radius: 15px; margin-bottom: 10px; }
+    .topic-card .icon { font-size: 2.8rem; margin-bottom: 8px; }
+    .topic-card h4 { font-size: 1.05rem; margin-bottom: 6px; }
+    .topic-card p { font-size: 0.85rem; color: #64748b; }
+
+    .selected-teacher-strip { display: flex; align-items: center; gap: 10px; background: white; padding: 8px 18px; border-radius: 20px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); }
+    .selected-teacher-strip .emoji { font-size: 1.6rem; }
+    .selected-teacher-strip span { font-size: 0.9rem; color: #64748b; }
+
+    /* --- Lesson screen --- */
+    .lesson-card { background: white; border-radius: 30px; padding: 30px 25px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .teacher-stage { width: 220px; height: 220px; margin-bottom: 6px; }
+    .teacher-svg .body-shape { fill: var(--t-primary); }
+    .teacher-svg .head-shape { fill: var(--t-secondary); }
+    .mouth-open { display: none; }
+    .talking .mouth-open { display: block; }
+    .talking .mouth-closed { display: none; }
+    @keyframes teacherBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .teacher-stage.speaking { animation: teacherBob 0.5s ease-in-out infinite; }
+
+    .slide-progress { display: flex; gap: 6px; margin-bottom: 14px; }
+    .slide-dot { width: 9px; height: 9px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s; }
+    .slide-dot.active { background: var(--t-primary); width: 22px; border-radius: 6px; }
+    .slide-illustration { font-size: 2.6rem; margin-bottom: 10px; }
+    .slide-text { font-size: 1.25rem; line-height: 1.7; color: var(--color-text-dark); margin-bottom: 22px; min-height: 90px; display: flex; align-items: center; justify-content: center; }
+    .lesson-controls { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+    .btn-action { font-family: var(--font-playful); font-size: 1.1rem; font-weight: bold; color: white; background: linear-gradient(135deg, var(--t-primary) 0%, #ff9a76 100%); border: none; border-radius: 50px; padding: 12px 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); }
+    .btn-action.secondary { background: white; color: var(--t-primary); border: 2px solid var(--t-secondary); box-shadow: none; }
+
+    /* --- Quiz screen --- */
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; width: 100%; margin-bottom: 18px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid var(--t-secondary); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+    .hud-value { font-size: 1.3rem; font-weight: bold; color: var(--t-primary); }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+    .question-sentence { font-size: 1.3rem; line-height: 1.6; margin-bottom: 20px; font-weight: 600; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.1rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.2s; }
+    .choice-btn:hover { border-color: var(--t-secondary); transform: translateY(-3px); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+
+    .overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; max-width: 500px; width: 100%; padding: 30px 25px; text-align: center; }
+    .result-icon { font-size: 3.5rem; margin-bottom: 8px; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 10px; }
+    .exp-step-title { font-weight: bold; color: var(--t-primary); }
+
+    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+    .stars-display { font-size: 3rem; margin: 15px 0; letter-spacing: 5px; color: var(--color-accent-orange); }
+    .certificate-card { border: 8px double var(--t-primary); border-radius: 20px; padding: 25px; max-width: 480px; margin: 20px auto; }
+    .leaderboard-container { margin-top: 15px; max-width: 320px; margin-left: auto; margin-right: auto; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--t-secondary); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--t-secondary); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin: 10px 0 15px; outline: none; }
+
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .teacher-stage { width: 160px; height: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🍎</span>
+      <h2>ครูสอนพิเศษออนไลน์</h2>
+    </div>
+    <button id="btn-toggle-sound" class="btn-icon" onclick="toggleSound()" title="เปิด/ปิดเสียง">🔊</button>
+  </header>
+
+  <!-- Screen 1: Choose Teacher -->
+  <div id="screen-teacher" class="screen active">
+    <h3 style="margin-bottom: 6px; font-size: 1.4rem;">เลือกครูที่จะมาสอนหนูวันนี้ค่ะ 💖</h3>
+    <p style="color: #64748b; margin-bottom: 20px;">แตะที่ครูคนที่ชอบได้เลยค่ะ</p>
+    <div class="teacher-grid" id="teacher-grid"></div>
+  </div>
+
+  <!-- Screen 2: Choose Topic -->
+  <div id="screen-topic" class="screen">
+    <div class="selected-teacher-strip">
+      <span class="emoji" id="topic-teacher-emoji">🐰</span>
+      <span>วันนี้ <strong id="topic-teacher-name">ครูกระต่าย</strong> จะมาสอนหนูค่ะ — <span id="topic-teacher-change" style="color:var(--t-primary); cursor:pointer; text-decoration:underline;">เปลี่ยนครู</span></span>
+    </div>
+    <h3 style="margin-bottom: 18px; font-size: 1.3rem;">อยากเรียนเรื่องอะไรดีคะ?</h3>
+    <div class="topic-grid" id="topic-grid"></div>
+  </div>
+
+  <!-- Screen 3: Lesson -->
+  <div id="screen-lesson" class="screen">
+    <div class="lesson-card">
+      <div class="teacher-stage" id="teacher-stage"></div>
+      <div class="slide-progress" id="slide-progress"></div>
+      <div class="slide-illustration" id="slide-illustration">📖</div>
+      <div class="slide-text" id="slide-text">กำลังโหลดบทเรียน...</div>
+      <div class="lesson-controls">
+        <button class="btn-action secondary" onclick="repeatSlide()">🔊 ฟังอีกครั้ง</button>
+        <button class="btn-action" id="btn-slide-next" onclick="nextSlide()">ถัดไป ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Quiz -->
+  <div id="screen-quiz" class="screen">
+    <div class="hud-bar">
+      <div class="hud-card"><span class="hud-label">ข้อที่</span><span id="hud-progress" class="hud-value">1/10</span></div>
+      <div class="hud-card"><span class="hud-label">คะแนน</span><span id="hud-score" class="hud-value">0</span></div>
+    </div>
+    <div class="question-card">
+      <div class="teacher-stage" id="quiz-teacher-stage" style="width:100px;height:100px;margin-bottom:10px;"></div>
+      <p class="question-sentence" id="quiz-question">โจทย์โหลด...</p>
+      <div class="choices-grid" id="quiz-choices"></div>
+    </div>
+  </div>
+
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal-card">
+      <div id="result-icon" class="result-icon">🎉</div>
+      <h3 id="result-title" style="margin-bottom: 15px;">เก่งมากค่ะ!</h3>
+      <div class="explanation-box">
+        <div class="exp-step"><span class="exp-step-title">1. เฉลย:</span> <span id="exp-correct">-</span></div>
+        <div class="exp-step"><span class="exp-step-title">2. อธิบาย:</span> <span id="exp-detail">-</span></div>
+        <div class="exp-step"><span class="exp-step-title">3. หลักการ:</span> <span id="exp-principle">-</span></div>
+      </div>
+      <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- Screen 5: Summary -->
+  <div id="screen-summary" class="screen">
+    <div class="summary-screen">
+      <div class="teacher-stage" id="summary-teacher-stage" style="margin: 0 auto;"></div>
+      <h2 id="summary-title" style="font-size: 1.8rem; margin-top: 10px;">เก่งมากเลยค่ะ!</h2>
+      <p id="summary-msg" style="color: #64748b; margin-bottom: 8px;">-</p>
+      <div class="stars-display" id="stars-display">⭐⭐⭐</div>
+
+      <div id="register-name-box" style="margin-bottom: 10px;">
+        <input type="text" id="reg-player-name" placeholder="ใส่ชื่อเพื่อบันทึกคะแนนค่ะ..." maxlength="12" class="register-input">
+        <br>
+        <button class="btn-action" onclick="saveScoreAndShow()">บันทึกคะแนน 💾</button>
+      </div>
+
+      <div class="certificate-card" id="print-area" style="display:none;">
+        <div style="font-size: 1.3rem; font-weight: bold; color: var(--t-primary);">ใบประกาศเกียรติคุณ</div>
+        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px; text-transform: uppercase;">เรียนพิเศษกับ <span id="cert-teacher">ครูกระต่าย</span></div>
+        <input type="text" id="cert-name" readonly class="register-input" style="border:none; border-bottom:2px solid var(--t-primary); font-weight:bold; color: var(--t-primary);" value="น้องน้ำฟ้า">
+        <p style="margin-top: 8px;">ผ่านบทเรียน <strong id="cert-topic">-</strong></p>
+        <p id="cert-score" style="font-weight: bold; color: var(--t-primary); margin-top: 5px;">คะแนนรวม 0</p>
+      </div>
+
+      <div class="leaderboard-container">
+        <div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 6px;">🏆 คะแนนสูงสุดของบทเรียนนี้</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 18px;">
+        <button class="btn-action secondary" id="btn-print" style="display:none;" onclick="window.print()">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="restartToTopics()">🔄 เรียนเรื่องอื่นต่อ</button>
+        <button class="btn-action secondary" onclick="navigateBack()">🏡 กลับหน้าหลัก</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---------- Teacher definitions ----------
+  const TEACHERS = {
+    rabbit: { id: 'rabbit', name: 'ครูกระต่าย', emoji: '🐰', desc: 'สดใส ร่าเริง', primary: '#ff6b9d', secondary: '#ffc2d1', bg: '#fff0f5', greet: 'สวัสดีค่ะ หนูๆ ครูกระต่ายเองค่ะ วันนี้เรามาเรียนกันสนุกๆ นะคะ', recommended: true },
+    bear:   { id: 'bear',   name: 'ครูหมี',   emoji: '🐻', desc: 'อบอุ่น ใจดี',   primary: '#a0522d', secondary: '#e8c39e', bg: '#fdf6ec', greet: 'สวัสดีจ้ะ ครูหมีเองนะคะ วันนี้เรามาเรียนรู้ไปด้วยกันเบาๆ สบายๆ กันนะจ๊ะ' },
+    owl:    { id: 'owl',    name: 'ครูฮูก',   emoji: '🦉', desc: 'ฉลาด รอบรู้',   primary: '#7c3aed', secondary: '#c4b5fd', bg: '#f5f3ff', greet: 'หวัดดีค่ะ ครูฮูกผู้ฉลาดมาแล้วค่ะ มาเรียนรู้เรื่องใหม่ๆ กันเถอะค่ะ' },
+    fox:    { id: 'fox',    name: 'ครูจิ้งจอก', emoji: '🦊', desc: 'ขี้เล่น ผจญภัย', primary: '#ea580c', secondary: '#fed7aa', bg: '#fff7ed', greet: 'เฮ้! ครูจิ้งจอกเองจ้า มาผจญภัยกับความรู้ใหม่ๆ กันเถอะ!' }
+  };
+
+  function buildTeacherSVG(id) {
+    const cfg = TEACHERS[id];
+    let ears = '';
+    let snoutPatch = '';
+    let eyeR = 4.5;
+    if (id === 'rabbit') {
+      ears = `
+        <path d="M 32 30 L 22 -6 L 42 22 Z" fill="${cfg.secondary}" stroke="${cfg.primary}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 68 30 L 78 -6 L 58 22 Z" fill="${cfg.secondary}" stroke="${cfg.primary}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 32 26 L 26 0 L 38 20 Z" fill="#ffe1ea"/>
+        <path d="M 68 26 L 74 0 L 62 20 Z" fill="#ffe1ea"/>`;
+    } else if (id === 'bear') {
+      ears = `
+        <circle cx="26" cy="20" r="13" fill="${cfg.primary}" stroke="#5c3a21" stroke-width="2"/>
+        <circle cx="74" cy="20" r="13" fill="${cfg.primary}" stroke="#5c3a21" stroke-width="2"/>
+        <circle cx="26" cy="20" r="6" fill="${cfg.secondary}"/>
+        <circle cx="74" cy="20" r="6" fill="${cfg.secondary}"/>`;
+      snoutPatch = `<ellipse cx="50" cy="62" rx="16" ry="12" fill="${cfg.secondary}" opacity="0.7"/>`;
+    } else if (id === 'owl') {
+      ears = `
+        <path d="M 30 24 L 22 2 L 42 18 Z" fill="${cfg.primary}"/>
+        <path d="M 70 24 L 78 2 L 58 18 Z" fill="${cfg.primary}"/>`;
+      eyeR = 7;
+    } else if (id === 'fox') {
+      ears = `
+        <path d="M 30 28 L 16 -2 L 44 22 Z" fill="${cfg.primary}" stroke="#a83e0f" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 70 28 L 84 -2 L 56 22 Z" fill="${cfg.primary}" stroke="#a83e0f" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 30 24 L 24 6 L 38 20 Z" fill="#fff"/>
+        <path d="M 70 24 L 76 6 L 62 20 Z" fill="#fff"/>`;
+      snoutPatch = `<path d="M 28 58 C 28 76, 72 76, 72 58 C 72 44, 28 44, 28 58 Z" fill="#fffdfa" opacity="0.9"/>`;
+    }
+    return `
+      <svg class="teacher-svg" viewBox="0 0 100 105" width="100%" height="100%">
+        ${ears}
+        <path class="body-shape" d="M 26 100 C 26 82, 74 82, 74 100 Z" stroke="#00000022" stroke-width="1"/>
+        <circle class="head-shape" cx="50" cy="55" r="36" stroke="#00000022" stroke-width="1"/>
+        ${snoutPatch}
+        <circle cx="28" cy="62" r="5" fill="#ff8080" opacity="0.5"/>
+        <circle cx="72" cy="62" r="5" fill="#ff8080" opacity="0.5"/>
+        <g>
+          <ellipse cx="38" cy="50" rx="${eyeR}" ry="${eyeR}" fill="#2c3e50"/>
+          <circle cx="36" cy="48" r="1.6" fill="#fff"/>
+          <ellipse cx="62" cy="50" rx="${eyeR}" ry="${eyeR}" fill="#2c3e50"/>
+          <circle cx="60" cy="48" r="1.6" fill="#fff"/>
+        </g>
+        <polygon points="48,58 52,58 50,61" fill="#e74c3c"/>
+        <g class="teacher-mouth-group">
+          <path class="mouth-closed" d="M 44 65 Q 50 69, 56 65" fill="transparent" stroke="#00000055" stroke-width="2" stroke-linecap="round"/>
+          <ellipse class="mouth-open" cx="50" cy="67" rx="7" ry="6" fill="#7a3b2e"/>
+        </g>
+      </svg>`;
+  }
+
+  function applyTeacherTheme(id) {
+    const cfg = TEACHERS[id];
+    document.documentElement.style.setProperty('--t-primary', cfg.primary);
+    document.documentElement.style.setProperty('--t-secondary', cfg.secondary);
+    document.documentElement.style.setProperty('--t-bg', cfg.bg);
+  }
+
+  // ---------- Lesson + Quiz content ----------
+  const LESSONS = {
+    'math-regroup': {
+      subject: 'คณิตศาสตร์ ป.2', icon: '🧮', title: 'การบวกเลขสามหลักแบบมีตัวทด',
+      desc: 'เรียนรู้วิธีบวกเลขสามหลักเมื่อผลบวกเกิน 9 ต้องทดไปหลักถัดไป',
+      slides: [
+        { illustration: '🧮', text: 'วันนี้เราจะมาเรียนเรื่อง "การบวกเลขสามหลักแบบมีตัวทด" กันนะคะ ลองดูโจทย์นี้ค่ะ: 158 บวก 267 เท่ากับเท่าไร' },
+        { illustration: '1️⃣', text: 'ขั้นที่ 1: บวกหลักหน่วยก่อน 8 บวก 7 เท่ากับ 15 เขียนเลข 5 ไว้ที่หลักหน่วย แล้ว "ทด" เลข 1 ไปบวกที่หลักสิบค่ะ' },
+        { illustration: '2️⃣', text: 'ขั้นที่ 2: บวกหลักสิบ 5 บวก 6 บวกตัวทด 1 เท่ากับ 12 เขียนเลข 2 ไว้ที่หลักสิบ แล้วทดเลข 1 ไปหลักร้อยค่ะ' },
+        { illustration: '3️⃣', text: 'ขั้นที่ 3: บวกหลักร้อย 1 บวก 2 บวกตัวทด 1 เท่ากับ 4 เขียนเลข 4 ไว้ที่หลักร้อยค่ะ' },
+        { illustration: '✅', text: 'สรุปแล้ว 158 บวก 267 เท่ากับ 425 ค่ะ! หลักสำคัญคือ ถ้าผลบวกในหลักไหนเกิน 9 ให้เขียนหลักหน่วยไว้ แล้วทด 1 ไปบวกหลักถัดไปเสมอนะคะ' }
+      ],
+      questions: [
+        { q: '158 + 267 = ?', a: 425, c: [425, 415, 325, 435] },
+        { q: '246 + 175 = ?', a: 421, c: [421, 411, 321, 431] },
+        { q: '384 + 219 = ?', a: 603, c: [603, 593, 503, 613] },
+        { q: '457 + 168 = ?', a: 625, c: [625, 615, 525, 635] },
+        { q: '129 + 296 = ?', a: 425, c: [425, 415, 325, 435] },
+        { q: '375 + 148 = ?', a: 523, c: [523, 513, 423, 533] },
+        { q: '266 + 159 = ?', a: 425, c: [425, 415, 325, 435] },
+        { q: '348 + 275 = ?', a: 623, c: [623, 613, 523, 633] },
+        { q: '197 + 236 = ?', a: 433, c: [433, 423, 333, 443] },
+        { q: '419 + 187 = ?', a: 606, c: [606, 596, 506, 616] }
+      ].map(item => ({
+        questionText: item.q, answer: item.a, choices: item.c,
+        exp1: `เฉลยคือ ${item.a} ค่ะ`,
+        exp2: `บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักสิบ แล้วบวกหลักสิบรวมตัวทด ถ้าเกิน 9 อีกก็ทดไปหลักร้อยต่อค่ะ`,
+        exp3: 'หลักการ: บวกจากขวาไปซ้ายทีละหลัก เมื่อผลบวกเกิน 9 ให้เขียนหลักหน่วยไว้แล้วทด 1 ไปบวกหลักถัดไปเสมอค่ะ'
+      }))
+    },
+    'thai-wordtypes': {
+      subject: 'ภาษาไทย ป.2', icon: '📖', title: 'ชนิดของคำ: นาม กริยา วิเศษณ์',
+      desc: 'เรียนรู้การจำแนกคำนาม คำกริยา และคำวิเศษณ์เบื้องต้น',
+      slides: [
+        { illustration: '📚', text: 'วันนี้เราจะมาเรียนรู้ "ชนิดของคำ" 3 แบบกันนะคะ ได้แก่ คำนาม คำกริยา และคำวิเศษณ์ค่ะ' },
+        { illustration: '🐱', text: '"คำนาม" คือคำที่เป็นชื่อคน สัตว์ สิ่งของ หรือสถานที่ค่ะ เช่น แมว โต๊ะ โรงเรียน คุณครู' },
+        { illustration: '🏃', text: '"คำกริยา" คือคำที่บอกอาการหรือการกระทำค่ะ เช่น วิ่ง กิน นอน เล่น อ่าน' },
+        { illustration: '🌸', text: '"คำวิเศษณ์" คือคำที่ใช้ขยายบอกลักษณะของคำอื่นค่ะ เช่น สวย เร็ว ใหญ่ น่ารัก' },
+        { illustration: '✨', text: 'ลองดูประโยคนี้ค่ะ "น้องแมวตัวน่ารักวิ่งเร็วมาก" คำว่า แมว คือคำนาม, วิ่ง คือคำกริยา, น่ารักและเร็ว คือคำวิเศษณ์ค่ะ เก่งมากเลย!' }
+      ],
+      questions: [
+        { word: 'แมว', sentence: '"แมว" ในประโยค "แมวกำลังนอนหลับ" เป็นคำชนิดใด?', a: 'คำนาม' },
+        { word: 'นอนหลับ', sentence: '"นอนหลับ" ในประโยค "แมวกำลังนอนหลับ" เป็นคำชนิดใด?', a: 'คำกริยา' },
+        { word: 'สวย', sentence: '"สวย" ในประโยค "ดอกไม้สวยมาก" เป็นคำชนิดใด?', a: 'คำวิเศษณ์' },
+        { word: 'โต๊ะ', sentence: '"โต๊ะ" ในประโยค "โต๊ะตัวนี้แข็งแรง" เป็นคำชนิดใด?', a: 'คำนาม' },
+        { word: 'วิ่ง', sentence: '"วิ่ง" ในประโยค "น้องวิ่งไปโรงเรียน" เป็นคำชนิดใด?', a: 'คำกริยา' },
+        { word: 'ใหญ่', sentence: '"ใหญ่" ในประโยค "ช้างตัวใหญ่มาก" เป็นคำชนิดใด?', a: 'คำวิเศษณ์' },
+        { word: 'โรงเรียน', sentence: '"โรงเรียน" ในประโยค "ครูอยู่ที่โรงเรียน" เป็นคำชนิดใด?', a: 'คำนาม' },
+        { word: 'กิน', sentence: '"กิน" ในประโยค "น้องกินข้าว" เป็นคำชนิดใด?', a: 'คำกริยา' },
+        { word: 'เร็ว', sentence: '"เร็ว" ในประโยค "รถคันนี้วิ่งเร็ว" เป็นคำชนิดใด?', a: 'คำวิเศษณ์' },
+        { word: 'หนังสือ', sentence: '"หนังสือ" ในประโยค "หนังสือเล่มนี้สนุก" เป็นคำชนิดใด?', a: 'คำนาม' }
+      ].map(item => ({
+        questionText: item.sentence, answer: item.a, choices: ['คำนาม', 'คำกริยา', 'คำวิเศษณ์', 'คำสรรพนาม'],
+        exp1: `เฉลยคือ ${item.a} ค่ะ`,
+        exp2: item.a === 'คำนาม' ? `เพราะ "${item.word}" เป็นชื่อคน สัตว์ สิ่งของ หรือสถานที่` :
+              item.a === 'คำกริยา' ? `เพราะ "${item.word}" บอกอาการหรือการกระทำ` :
+              `เพราะ "${item.word}" ใช้ขยายบอกลักษณะของคำอื่น`,
+        exp3: 'หลักการ: คำนาม = ชื่อคน/สัตว์/สิ่งของ/สถานที่, คำกริยา = อาการ/การกระทำ, คำวิเศษณ์ = ขยายบอกลักษณะค่ะ'
+      }))
+    },
+    'eng-daysmonths': {
+      subject: 'ภาษาอังกฤษ ป.2', icon: '📅', title: 'Days of the Week & Months',
+      desc: 'เรียนรู้ชื่อวันในสัปดาห์และเดือนทั้ง 12 เดือนเป็นภาษาอังกฤษ',
+      slides: [
+        { illustration: '📅', text: 'Today we will learn the Days of the Week! วันนี้เราจะมาเรียนชื่อวันทั้ง 7 วันในสัปดาห์กันค่ะ' },
+        { illustration: '🗓️', text: 'Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday — นี่คือชื่อวันทั้ง 7 วันเรียงตามลำดับค่ะ' },
+        { illustration: '🌍', text: 'Now let\'s learn the Months! ต่อไปเรามาเรียนชื่อเดือนทั้ง 12 เดือนกันค่ะ' },
+        { illustration: '☀️', text: 'January, February, March, April, May, June, July, August, September, October, November, December — 12 เดือนในหนึ่งปีค่ะ' },
+        { illustration: '🎂', text: 'ลองพูดประโยคนี้ดูนะคะ "Today is Monday" แปลว่า วันนี้คือวันจันทร์ และ "My birthday is in June" แปลว่า วันเกิดของฉันอยู่ในเดือนมิถุนายนค่ะ' }
+      ],
+      questions: [
+        { q: 'What day comes after Monday?', a: 'Tuesday', c: ['Tuesday', 'Sunday', 'Friday', 'Wednesday'] },
+        { q: 'What day comes before Sunday?', a: 'Saturday', c: ['Saturday', 'Monday', 'Friday', 'Thursday'] },
+        { q: 'How many days are there in a week?', a: '7', c: ['7', '5', '10', '12'] },
+        { q: 'Which is the first day of the week?', a: 'Sunday', c: ['Sunday', 'Monday', 'Saturday', 'Friday'] },
+        { q: 'Which month comes after January?', a: 'February', c: ['February', 'March', 'December', 'April'] },
+        { q: 'Which month comes before December?', a: 'November', c: ['November', 'October', 'January', 'September'] },
+        { q: 'How many months are there in a year?', a: '12', c: ['12', '10', '7', '52'] },
+        { q: 'Which is the first month of the year?', a: 'January', c: ['January', 'December', 'March', 'June'] },
+        { q: 'What day is between Wednesday and Friday?', a: 'Thursday', c: ['Thursday', 'Tuesday', 'Saturday', 'Monday'] },
+        { q: 'Which month comes after June?', a: 'July', c: ['July', 'May', 'August', 'September'] }
+      ].map(item => ({
+        questionText: item.q, answer: item.a, choices: item.c,
+        exp1: `The answer is ${item.a} ค่ะ`,
+        exp2: 'ลองท่องลำดับวันหรือเดือนใหม่อีกครั้ง: Sunday-Monday-Tuesday-Wednesday-Thursday-Friday-Saturday และ January-February-...-December ค่ะ',
+        exp3: 'หลักการ: จำลำดับวันในสัปดาห์ 7 วัน และเดือนในหนึ่งปี 12 เดือนให้แม่นยำ จะช่วยตอบคำถามแบบนี้ได้ง่ายขึ้นค่ะ'
+      }))
+    }
+  };
+
+  // ---------- State ----------
+  let soundEnabled = true;
+  let speechEnabled = true;
+  let selectedTeacher = 'rabbit';
+  let selectedTopicId = null;
+  let slideIdx = 0;
+  let quizQuestions = [];
+  let quizIdx = 0;
+  let score = 0;
+  let correctCount = 0;
+  let playerName = '';
+  let talkTimer = null;
+
+  const synth = {
+    ctx: null,
+    init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+    tone(freq, dur, type = 'sine') {
+      if (!soundEnabled || !this.ctx) return;
+      const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(); osc.stop(this.ctx.currentTime + dur);
+    },
+    correct() { this.tone(523.25, 0.15); setTimeout(() => this.tone(783.99, 0.2), 100); },
+    wrong() { this.tone(150, 0.3, 'sawtooth'); },
+    victory() { [392, 523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.4), i * 120)); }
+  };
+
+  function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function navigateBack() { window.speechSynthesis.cancel(); window.location.href = 'index.html'; }
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    document.getElementById('btn-toggle-sound').innerText = soundEnabled ? '🔊' : '🔇';
+  }
+
+  function speakWithLipSync(text, stageSelector, lang) {
+    window.speechSynthesis.cancel();
+    stopTalking(stageSelector);
+    if (!speechEnabled || !('speechSynthesis' in window)) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang || 'th-TH';
+    utter.rate = 0.95;
+    utter.onstart = () => startTalking(stageSelector);
+    utter.onend = () => stopTalking(stageSelector);
+    utter.onerror = () => stopTalking(stageSelector);
+    window.speechSynthesis.speak(utter);
+  }
+
+  function startTalking(stageSelector) {
+    const stage = document.querySelector(stageSelector);
+    if (!stage) return;
+    stage.classList.add('speaking');
+    const mouthGroup = stage.querySelector('.teacher-mouth-group');
+    if (!mouthGroup) return;
+    stopTalkTimer();
+    talkTimer = setInterval(() => {
+      mouthGroup.classList.toggle('talking');
+    }, 140 + Math.random() * 80);
+  }
+  function stopTalking(stageSelector) {
+    stopTalkTimer();
+    const stage = document.querySelector(stageSelector);
+    if (!stage) return;
+    stage.classList.remove('speaking');
+    const mouthGroup = stage.querySelector('.teacher-mouth-group');
+    if (mouthGroup) mouthGroup.classList.remove('talking');
+  }
+  function stopTalkTimer() { if (talkTimer) { clearInterval(talkTimer); talkTimer = null; } }
+
+  // ---------- Screen 1: Teacher select ----------
+  function renderTeacherGrid() {
+    const grid = document.getElementById('teacher-grid');
+    grid.innerHTML = '';
+    Object.values(TEACHERS).forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'teacher-card' + (t.recommended ? ' recommended' : '');
+      card.innerHTML = `<div class="emoji">${t.emoji}</div><h4>${t.name}</h4><p>${t.desc}</p>`;
+      card.addEventListener('click', () => selectTeacher(t.id));
+      grid.appendChild(card);
+    });
+  }
+  function selectTeacher(id) {
+    selectedTeacher = id;
+    applyTeacherTheme(id);
+    synth.init();
+    document.getElementById('topic-teacher-emoji').innerText = TEACHERS[id].emoji;
+    document.getElementById('topic-teacher-name').innerText = TEACHERS[id].name;
+    showScreen('screen-topic');
+    renderTopicGrid();
+    speakWithLipSync(TEACHERS[id].greet, '#topic-teacher-emoji');
+  }
+  document.getElementById('topic-teacher-change').addEventListener('click', () => showScreen('screen-teacher'));
+
+  // ---------- Screen 2: Topic select ----------
+  function renderTopicGrid() {
+    const grid = document.getElementById('topic-grid');
+    grid.innerHTML = '';
+    Object.keys(LESSONS).forEach(key => {
+      const topic = LESSONS[key];
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.innerHTML = `<span class="subject-tag">${topic.subject}</span><div class="icon">${topic.icon}</div><h4>${topic.title}</h4><p>${topic.desc}</p>`;
+      card.addEventListener('click', () => startLesson(key));
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- Screen 3: Lesson ----------
+  function startLesson(topicId) {
+    selectedTopicId = topicId;
+    slideIdx = 0;
+    document.getElementById('teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
+    renderSlideProgress();
+    showScreen('screen-lesson');
+    loadSlide();
+  }
+  function renderSlideProgress() {
+    const wrap = document.getElementById('slide-progress');
+    wrap.innerHTML = '';
+    const total = LESSONS[selectedTopicId].slides.length;
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'slide-dot' + (i === slideIdx ? ' active' : '');
+      wrap.appendChild(dot);
+    }
+  }
+  function loadSlide() {
+    const lesson = LESSONS[selectedTopicId];
+    const slide = lesson.slides[slideIdx];
+    document.getElementById('slide-illustration').innerText = slide.illustration;
+    document.getElementById('slide-text').innerText = slide.text;
+    renderSlideProgress();
+    const nextBtn = document.getElementById('btn-slide-next');
+    nextBtn.innerText = (slideIdx === lesson.slides.length - 1) ? 'เริ่มทำข้อสอบกันเลย! 🚀' : 'ถัดไป ➡️';
+    speakWithLipSync(slide.text, '#teacher-stage', /^[A-Za-z]/.test(slide.text) ? 'en-US' : 'th-TH');
+  }
+  function repeatSlide() {
+    const slide = LESSONS[selectedTopicId].slides[slideIdx];
+    speakWithLipSync(slide.text, '#teacher-stage', /^[A-Za-z]/.test(slide.text) ? 'en-US' : 'th-TH');
+  }
+  function nextSlide() {
+    const lesson = LESSONS[selectedTopicId];
+    if (slideIdx < lesson.slides.length - 1) {
+      slideIdx++;
+      loadSlide();
+    } else {
+      startQuiz();
+    }
+  }
+
+  // ---------- Screen 4: Quiz ----------
+  function startQuiz() {
+    window.speechSynthesis.cancel();
+    quizQuestions = shuffle([...LESSONS[selectedTopicId].questions]);
+    quizIdx = 0; score = 0; correctCount = 0;
+    document.getElementById('quiz-teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
+    showScreen('screen-quiz');
+    loadQuestion();
+  }
+  function loadQuestion() {
+    if (quizIdx >= quizQuestions.length) { finishQuiz(); return; }
+    document.getElementById('hud-progress').innerText = `${quizIdx + 1}/${quizQuestions.length}`;
+    document.getElementById('hud-score').innerText = score;
+    const q = quizQuestions[quizIdx];
+    document.getElementById('quiz-question').innerText = q.questionText;
+    const grid = document.getElementById('quiz-choices');
+    grid.innerHTML = '';
+    shuffle([...q.choices]).forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.setAttribute('data-value', choice);
+      btn.addEventListener('click', () => checkAnswer(choice, btn));
+      grid.appendChild(btn);
+    });
+    if (speechEnabled) {
+      setTimeout(() => speakWithLipSync(q.questionText, '#quiz-teacher-stage', /^[A-Za-z]/.test(q.questionText) ? 'en-US' : 'th-TH'), 400);
+    }
+  }
+  function checkAnswer(value, btnEl) {
+    window.speechSynthesis.cancel();
+    const q = quizQuestions[quizIdx];
+    const isCorrect = String(value) === String(q.answer);
+    document.querySelectorAll('#quiz-choices .choice-btn').forEach(b => {
+      b.disabled = true;
+      if (String(b.getAttribute('data-value')) === String(q.answer)) b.classList.add('correct-ui');
+    });
+    if (isCorrect) {
+      synth.correct(); score += 100; correctCount++;
+      document.getElementById('result-icon').innerText = '🎉';
+      document.getElementById('result-title').innerText = 'เก่งมากค่ะ! ถูกต้องนะ';
+    } else {
+      synth.wrong(); btnEl.classList.add('incorrect-ui');
+      document.getElementById('result-icon').innerText = '😢';
+      document.getElementById('result-title').innerText = 'พยายามใหม่นะคนเก่ง!';
+    }
+    document.getElementById('exp-correct').innerText = q.exp1;
+    document.getElementById('exp-detail').innerText = q.exp2;
+    document.getElementById('exp-principle').innerText = q.exp3;
+    setTimeout(() => {
+      document.getElementById('explanation-overlay').classList.add('active');
+      if (speechEnabled) speakWithLipSync(`${q.exp1}. ${q.exp2}. ${q.exp3}`, '#quiz-teacher-stage');
+    }, 600);
+  }
+  function nextQuestion() {
+    window.speechSynthesis.cancel();
+    document.getElementById('explanation-overlay').classList.remove('active');
+    quizIdx++;
+    loadQuestion();
+  }
+
+  // ---------- Screen 5: Summary ----------
+  function finishQuiz() {
+    synth.victory();
+    showScreen('screen-summary');
+    document.getElementById('summary-teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
+    document.getElementById('summary-teacher-stage').style.width = '150px';
+    document.getElementById('summary-teacher-stage').style.height = '150px';
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    document.getElementById('summary-msg').innerText = `ตอบถูก ${correctCount} จาก ${quizQuestions.length} ข้อ (คะแนน ${score})`;
+    document.getElementById('cert-teacher').innerText = TEACHERS[selectedTeacher].name;
+    document.getElementById('cert-topic').innerText = LESSONS[selectedTopicId].title;
+    document.getElementById('register-name-box').style.display = 'block';
+    document.getElementById('print-area').style.display = 'none';
+    document.getElementById('btn-print').style.display = 'none';
+    renderLeaderboardBox([]);
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(leaderboardKey(), cloudList => {
+        if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
+      });
+    }
+    const finishMsg = correctCount >= 9
+      ? `เก่งมากเลยค่ะ ${TEACHERS[selectedTeacher].name} ภูมิใจในตัวหนูมากค่ะ!`
+      : `ทำได้ดีมากค่ะ ลองทบทวนอีกนิดแล้วมาลองใหม่ได้นะคะ`;
+    speakWithLipSync(finishMsg, '#summary-teacher-stage');
+  }
+  function leaderboardKey() { return `tutor_${selectedTopicId}_leaderboard`; }
+  function saveScoreAndShow() {
+    const nameInput = document.getElementById('reg-player-name');
+    const name = nameInput.value.trim();
+    if (!name) { alert('กรุณาใส่ชื่อก่อนบันทึกคะแนนนะคะ! 😊'); return; }
+    playerName = name;
+    const entry = { name: playerName, score, topic: selectedTopicId, teacher: selectedTeacher };
+    let list = JSON.parse(localStorage.getItem(leaderboardKey()) || '[]');
+    const idx = list.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
+    if (idx !== -1) { if (score > list[idx].score) list[idx].score = score; }
+    else { list.push(entry); }
+    list.sort((a, b) => b.score - a.score);
+    list = list.slice(0, 5);
+    localStorage.setItem(leaderboardKey(), JSON.stringify(list));
+    if (typeof fbSaveScore === 'function') fbSaveScore(leaderboardKey(), entry);
+    renderLeaderboardBox(list);
+    document.getElementById('cert-name').value = playerName;
+    document.getElementById('cert-score').innerText = `คะแนนรวม ${score} คะแนน`;
+    document.getElementById('print-area').style.display = 'block';
+    document.getElementById('btn-print').style.display = 'inline-block';
+    document.getElementById('register-name-box').style.display = 'none';
+  }
+  function renderLeaderboardBox(list) {
+    const box = document.getElementById('leaderboard-box');
+    if (!list || list.length === 0) {
+      box.innerHTML = `<div style="text-align:center; color:#64748b; padding:4px;">ยังไม่มีคะแนนสูงสุดค่ะ</div>`;
+      return;
+    }
+    box.innerHTML = list.map((item, idx) => {
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+      return `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${medal} ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+    }).join('');
+  }
+  function restartToTopics() {
+    window.speechSynthesis.cancel();
+    showScreen('screen-topic');
+    document.getElementById('reg-player-name').value = '';
+  }
+
+  // ---------- Init ----------
+  renderTeacherGrid();
+  applyTeacherTheme(selectedTeacher);
+</script>
+</body>
+</html>

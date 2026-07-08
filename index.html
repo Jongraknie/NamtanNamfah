@@ -170,6 +170,15 @@
           <p>ผจญภัยในถ้ำมังกรฝึกจำแนกมาตราตัวสะกดทั้ง 8 มาตราแสนสนุก!</p>
           <button class="btn btn-thai" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปผจญภัยกัน 🚀</button>
         </div>
+
+        <!-- Online Special Tutor Card -->
+        <div class="game-card card-carrot" id="btn-select-tutor" style="cursor: pointer; min-height: 250px; padding: 20px;">
+          <div class="card-badge" style="background: #ff6b9d;">ครูสอนพิเศษ</div>
+          <div class="card-image-placeholder" style="font-size: 3.5rem; margin: 15px 0 5px 0;">🐰🍎</div>
+          <h4>ครูสอนพิเศษออนไลน์</h4>
+          <p>เลือกครูที่ชอบ ฟังครูสอนเป็นเรื่องๆ แล้วลองทำข้อสอบ 10 ข้อกันค่ะ!</p>
+          <button class="btn btn-carrot" style="pointer-events: none; font-size: 1rem; padding: 8px 20px;">ไปเรียนกับครูกัน 🚀</button>
+        </div>
       </div>
     </main>
   </div>
@@ -700,6 +709,17 @@
       </div>
 
       <button id="btn-save-settings" class="btn btn-primary btn-full-width">บันทึกและใช้ตั้งค่า 💾</button>
+    </div>
+  </div>
+
+  <!-- Name Entry Gate (shown before starting any embedded game) -->
+  <div id="name-gate-modal" class="modal">
+    <div class="modal-content" style="text-align: center; max-width: 380px;">
+      <h3 style="border: none; margin-bottom: 10px;">ก่อนเริ่มเล่น บอกชื่อหนูหน่อยค่ะ 💖</h3>
+      <p style="color: #64748b; margin-bottom: 16px; font-size: 0.9rem;">ครูจะได้เก็บสถิติการเล่นของหนูไว้ค่ะ</p>
+      <input type="text" id="name-gate-input" placeholder="ใส่ชื่อหนูตรงนี้ค่ะ..." maxlength="20" style="font-family: inherit; font-size: 1.1rem; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 16px; outline: none;">
+      <br>
+      <button id="btn-name-gate-start" class="btn btn-primary btn-large">เริ่มเล่นเลย 🚀</button>
     </div>
   </div>
 

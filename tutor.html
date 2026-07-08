@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ครูสอนพิเศษออนไลน์ | สำหรับ น้ำฟ้า 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <style>
+    :root {
+      --t-primary: #ff6b9d;
+      --t-secondary: #ffc2d1;
+      --t-bg: #fff0f5;
+      --color-accent-orange: #f59e0b;
+      --color-text-dark: #1f2937;
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--t-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(255, 107, 157, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.1) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+      transition: background-color 0.4s ease;
+    }
+    .app-header {
+      width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; background: rgba(255, 255, 255, 0.9); padding: 12px 25px; border-radius: 25px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06); border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.3rem; color: var(--t-primary); }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; }
+
+    .screen { display: none; width: 100%; max-width: 800px; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+
+    /* --- Teacher select --- */
+    .teacher-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 18px; width: 100%; }
+    .teacher-card { background: white; border-radius: 26px; padding: 22px 14px; text-align: center; cursor: pointer; border: 3px solid transparent; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.2s; position: relative; }
+    .teacher-card:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(0,0,0,0.12); }
+    .teacher-card.recommended::before { content: "แนะนำ ⭐"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--color-accent-orange); color: white; font-size: 0.7rem; padding: 3px 12px; border-radius: 20px; font-weight: bold; white-space: nowrap; }
+    .teacher-card .emoji { font-size: 3.5rem; margin-bottom: 8px; }
+    .teacher-card h4 { font-size: 1.1rem; margin-bottom: 4px; }
+    .teacher-card p { font-size: 0.8rem; color: #64748b; }
+
+    /* --- Topic select --- */
+    .topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; width: 100%; }
+    .topic-card { background: white; border-radius: 24px; padding: 24px 18px; text-align: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.2s; border: 3px solid transparent; }
+    .topic-card:hover { transform: translateY(-5px); border-color: var(--t-primary); }
+    .topic-card .subject-tag { display: inline-block; font-size: 0.75rem; font-weight: bold; background: var(--t-bg); color: var(--t-primary); padding: 4px 12px; border-radius: 15px; margin-bottom: 10px; }
+    .topic-card .icon { font-size: 2.8rem; margin-bottom: 8px; }
+    .topic-card h4 { font-size: 1.05rem; margin-bottom: 6px; }
+    .topic-card p { font-size: 0.85rem; color: #64748b; }
+
+    .selected-teacher-strip { display: flex; align-items: center; gap: 10px; background: white; padding: 8px 18px; border-radius: 20px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); }
+    .selected-teacher-strip .emoji { font-size: 1.6rem; }
+    .selected-teacher-strip span { font-size: 0.9rem; color: #64748b; }
+
+    /* --- Name entry --- */
+    .name-card { background: white; border-radius: 30px; padding: 40px 28px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .name-card .big-emoji { font-size: 3.5rem; margin-bottom: 10px; }
+
+    /* --- Lesson screen --- */
+    .lesson-card { background: white; border-radius: 30px; padding: 30px 25px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .teacher-stage { width: 220px; height: 220px; margin-bottom: 6px; }
+    .teacher-svg .body-shape { fill: var(--t-primary); }
+    .teacher-svg .head-shape { fill: var(--t-secondary); }
+    .mouth-open { display: none; }
+    .talking .mouth-open { display: block; }
+    .talking .mouth-closed { display: none; }
+    @keyframes teacherBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .teacher-stage.speaking { animation: teacherBob 0.5s ease-in-out infinite; }
+
+    .slide-progress { display: flex; gap: 6px; margin-bottom: 14px; }
+    .slide-dot { width: 9px; height: 9px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s; }
+    .slide-dot.active { background: var(--t-primary); width: 22px; border-radius: 6px; }
+    @keyframes slidePop { 0% { transform: scale(0.7) rotate(-6deg); opacity: 0; } 60% { transform: scale(1.1) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+    .slide-illustration { font-size: 2.6rem; margin-bottom: 10px; animation: slidePop 0.5s ease; }
+    .slide-text { font-size: 1.25rem; line-height: 1.7; color: var(--color-text-dark); margin-bottom: 22px; min-height: 90px; display: flex; align-items: center; justify-content: center; }
+    .thinking-indicator { font-size: 1.1rem; color: var(--t-primary); font-weight: bold; margin-bottom: 16px; display: none; }
+    .thinking-indicator.active { display: block; }
+    .thinking-indicator .dots span { animation: dotPulse 1.2s infinite; opacity: 0.2; }
+    .thinking-indicator .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-indicator .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+    .lesson-controls { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+    .btn-action { font-family: var(--font-playful); font-size: 1.1rem; font-weight: bold; color: white; background: linear-gradient(135deg, var(--t-primary) 0%, #ff9a76 100%); border: none; border-radius: 50px; padding: 12px 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); }
+    .btn-action.secondary { background: white; color: var(--t-primary); border: 2px solid var(--t-secondary); box-shadow: none; }
+    .btn-action:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* --- Quiz screen --- */
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; width: 100%; margin-bottom: 18px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-bottom: 4px solid var(--t-secondary); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+    .hud-value { font-size: 1.3rem; font-weight: bold; color: var(--t-primary); }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+    .question-sentence { font-size: 1.3rem; line-height: 1.6; margin-bottom: 20px; font-weight: 600; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.1rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.2s; }
+    .choice-btn:hover { border-color: var(--t-secondary); transform: translateY(-3px); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+
+    .overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; max-width: 500px; width: 100%; padding: 30px 25px; text-align: center; }
+    .result-icon { font-size: 3.5rem; margin-bottom: 8px; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 10px; }
+    .exp-step-title { font-weight: bold; color: var(--t-primary); }
+
+    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+    .stars-display { font-size: 3rem; margin: 15px 0; letter-spacing: 5px; color: var(--color-accent-orange); }
+    .certificate-card { border: 8px double var(--t-primary); border-radius: 20px; padding: 25px; max-width: 480px; margin: 20px auto; }
+    .leaderboard-container { margin-top: 15px; max-width: 320px; margin-left: auto; margin-right: auto; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--t-secondary); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--t-secondary); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin: 10px 0 15px; outline: none; }
+
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .teacher-stage { width: 160px; height: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🍎</span>
+      <h2>ครูสอนพิเศษออนไลน์</h2>
+    </div>
+    <button id="btn-toggle-sound" class="btn-icon" onclick="toggleSound()" title="เปิด/ปิดเสียง">🔊</button>
+  </header>
+
+  <!-- Screen 0: Name entry -->
+  <div id="screen-name" class="screen active">
+    <div class="name-card">
+      <div class="big-emoji">🍎</div>
+      <h3 style="margin-bottom: 10px; font-size: 1.3rem;">สวัสดีค่ะ หนูชื่ออะไรคะ?</h3>
+      <p style="color: #64748b; margin-bottom: 18px; font-size: 0.9rem;">ครูจะได้เรียกชื่อหนูระหว่างสอนด้วยค่ะ</p>
+      <input type="text" id="student-name-input" class="register-input" placeholder="ใส่ชื่อหนูตรงนี้ค่ะ..." maxlength="12">
+      <br>
+      <button class="btn-action" onclick="submitStudentName()">เริ่มกันเลย 🚀</button>
+    </div>
+  </div>
+
+  <!-- Screen 1: Choose Teacher -->
+  <div id="screen-teacher" class="screen">
+    <h3 style="margin-bottom: 6px; font-size: 1.4rem;">เลือกครูที่จะมาสอนหนูวันนี้ค่ะ 💖</h3>
+    <p style="color: #64748b; margin-bottom: 20px;">แตะที่ครูคนที่ชอบได้เลยค่ะ</p>
+    <div class="teacher-grid" id="teacher-grid"></div>
+  </div>
+
+  <!-- Screen 2: Choose Topic -->
+  <div id="screen-topic" class="screen">
+    <div class="selected-teacher-strip">
+      <span class="emoji" id="topic-teacher-emoji">🐰</span>
+      <span>วันนี้ <strong id="topic-teacher-name">ครูกระต่าย</strong> จะมาสอนหนูค่ะ — <span id="topic-teacher-change" style="color:var(--t-primary); cursor:pointer; text-decoration:underline;">เปลี่ยนครู</span></span>
+    </div>
+    <h3 style="margin-bottom: 18px; font-size: 1.3rem;">อยากเรียนเรื่องอะไรดีคะ?</h3>
+    <div class="topic-grid" id="topic-grid"></div>
+  </div>
+
+  <!-- Screen 3: Lesson -->
+  <div id="screen-lesson" class="screen">
+    <div class="lesson-card">
+      <div class="teacher-stage" id="teacher-stage"></div>
+      <div class="slide-progress" id="slide-progress"></div>
+      <div class="slide-illustration" id="slide-illustration">📖</div>
+      <div class="slide-text" id="slide-text">กำลังโหลดบทเรียน...</div>
+      <div class="thinking-indicator" id="thinking-indicator">🤔 คิดสักครู่นะคะ<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+      <div class="lesson-controls">
+        <button class="btn-action secondary" onclick="repeatSlide()">🔊 ฟังอีกครั้ง</button>
+        <button class="btn-action" id="btn-slide-next" onclick="nextSlide()" disabled>ถัดไป ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Quiz -->
+  <div id="screen-quiz" class="screen">
+    <div class="hud-bar">
+      <div class="hud-card"><span class="hud-label">ข้อที่</span><span id="hud-progress" class="hud-value">1/10</span></div>
+      <div class="hud-card"><span class="hud-label">คะแนน</span><span id="hud-score" class="hud-value">0</span></div>
+    </div>
+    <div class="question-card">
+      <div class="teacher-stage" id="quiz-teacher-stage" style="width:100px;height:100px;margin-bottom:10px;"></div>
+      <p class="question-sentence" id="quiz-question">โจทย์โหลด...</p>
+      <div class="choices-grid" id="quiz-choices"></div>
+    </div>
+  </div>
+
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal-card">
+      <div id="result-icon" class="result-icon">🎉</div>
+      <h3 id="result-title" style="margin-bottom: 15px;">เก่งมากค่ะ!</h3>
+      <div class="explanation-box">
+        <div class="exp-step"><span class="exp-step-title">1. เฉลย:</span> <span id="exp-correct">-</span></div>
+        <div class="exp-step"><span class="exp-step-title">2. อธิบาย:</span> <span id="exp-detail">-</span></div>
+        <div class="exp-step"><span class="exp-step-title">3. หลักการ:</span> <span id="exp-principle">-</span></div>
+      </div>
+      <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- Screen 5: Summary -->
+  <div id="screen-summary" class="screen">
+    <div class="summary-screen">
+      <div class="teacher-stage" id="summary-teacher-stage" style="margin: 0 auto;"></div>
+      <h2 id="summary-title" style="font-size: 1.8rem; margin-top: 10px;">เก่งมากเลยค่ะ!</h2>
+      <p id="summary-msg" style="color: #64748b; margin-bottom: 8px;">-</p>
+      <div class="stars-display" id="stars-display">⭐⭐⭐</div>
+
+      <div id="register-name-box" style="margin-bottom: 10px;">
+        <input type="text" id="reg-player-name" placeholder="ใส่ชื่อเพื่อบันทึกคะแนนค่ะ..." maxlength="12" class="register-input">
+        <br>
+        <button class="btn-action" onclick="saveScoreAndShow()">บันทึกคะแนน 💾</button>
+      </div>
+
+      <div class="certificate-card" id="print-area" style="display:none;">
+        <div style="font-size: 1.3rem; font-weight: bold; color: var(--t-primary);">ใบประกาศเกียรติคุณ</div>
+        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px; text-transform: uppercase;">เรียนพิเศษกับ <span id="cert-teacher">ครูกระต่าย</span></div>
+        <input type="text" id="cert-name" readonly class="register-input" style="border:none; border-bottom:2px solid var(--t-primary); font-weight:bold; color: var(--t-primary);" value="น้องน้ำฟ้า">
+        <p style="margin-top: 8px;">ผ่านบทเรียน <strong id="cert-topic">-</strong></p>
+        <p id="cert-score" style="font-weight: bold; color: var(--t-primary); margin-top: 5px;">คะแนนรวม 0</p>
+      </div>
+
+      <div class="leaderboard-container">
+        <div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 6px;">🏆 คะแนนสูงสุดของบทเรียนนี้</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 18px;">
+        <button class="btn-action secondary" id="btn-print" style="display:none;" onclick="window.print()">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="restartToTopics()">🔄 เรียนเรื่องอื่นต่อ</button>
+        <button class="btn-action secondary" onclick="navigateBack()">🏡 กลับหน้าหลัก</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---------- Teacher definitions ----------
+  const TEACHERS = {
+    rabbit: { id: 'rabbit', name: 'ครูกระต่าย', emoji: '🐰', desc: 'สดใส ร่าเริง', primary: '#ff6b9d', secondary: '#ffc2d1', bg: '#fff0f5', greet: 'สวัสดีค่ะ หนูๆ ครูกระต่ายเองค่ะ วันนี้เรามาเรียนกันสนุกๆ นะคะ', recommended: true },
+    bear:   { id: 'bear',   name: 'ครูหมี',   emoji: '🐻', desc: 'อบอุ่น ใจดี',   primary: '#a0522d', secondary: '#e8c39e', bg: '#fdf6ec', greet: 'สวัสดีจ้ะ ครูหมีเองนะคะ วันนี้เรามาเรียนรู้ไปด้วยกันเบาๆ สบายๆ กันนะจ๊ะ' },
+    owl:    { id: 'owl',    name: 'ครูฮูก',   emoji: '🦉', desc: 'ฉลาด รอบรู้',   primary: '#7c3aed', secondary: '#c4b5fd', bg: '#f5f3ff', greet: 'หวัดดีค่ะ ครูฮูกผู้ฉลาดมาแล้วค่ะ มาเรียนรู้เรื่องใหม่ๆ กันเถอะค่ะ' },
+    fox:    { id: 'fox',    name: 'ครูจิ้งจอก', emoji: '🦊', desc: 'ขี้เล่น ผจญภัย', primary: '#ea580c', secondary: '#fed7aa', bg: '#fff7ed', greet: 'เฮ้! ครูจิ้งจอกเองจ้า มาผจญภัยกับความรู้ใหม่ๆ กันเถอะ!' }
+  };
+
+  function buildTeacherSVG(id) {
+    const cfg = TEACHERS[id];
+    let ears = '';
+    let snoutPatch = '';
+    let eyeR = 4.5;
+    if (id === 'rabbit') {
+      ears = `
+        <path d="M 32 30 L 22 -6 L 42 22 Z" fill="${cfg.secondary}" stroke="${cfg.primary}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 68 30 L 78 -6 L 58 22 Z" fill="${cfg.secondary}" stroke="${cfg.primary}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 32 26 L 26 0 L 38 20 Z" fill="#ffe1ea"/>
+        <path d="M 68 26 L 74 0 L 62 20 Z" fill="#ffe1ea"/>`;
+    } else if (id === 'bear') {
+      ears = `
+        <circle cx="26" cy="20" r="13" fill="${cfg.primary}" stroke="#5c3a21" stroke-width="2"/>
+        <circle cx="74" cy="20" r="13" fill="${cfg.primary}" stroke="#5c3a21" stroke-width="2"/>
+        <circle cx="26" cy="20" r="6" fill="${cfg.secondary}"/>
+        <circle cx="74" cy="20" r="6" fill="${cfg.secondary}"/>`;
+      snoutPatch = `<ellipse cx="50" cy="62" rx="16" ry="12" fill="${cfg.secondary}" opacity="0.7"/>`;
+    } else if (id === 'owl') {
+      ears = `
+        <path d="M 30 24 L 22 2 L 42 18 Z" fill="${cfg.primary}"/>
+        <path d="M 70 24 L 78 2 L 58 18 Z" fill="${cfg.primary}"/>`;
+      eyeR = 7;
+    } else if (id === 'fox') {
+      ears = `
+        <path d="M 30 28 L 16 -2 L 44 22 Z" fill="${cfg.primary}" stroke="#a83e0f" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 70 28 L 84 -2 L 56 22 Z" fill="${cfg.primary}" stroke="#a83e0f" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 30 24 L 24 6 L 38 20 Z" fill="#fff"/>
+        <path d="M 70 24 L 76 6 L 62 20 Z" fill="#fff"/>`;
+      snoutPatch = `<path d="M 28 58 C 28 76, 72 76, 72 58 C 72 44, 28 44, 28 58 Z" fill="#fffdfa" opacity="0.9"/>`;
+    }
+    return `
+      <svg class="teacher-svg" viewBox="0 0 100 105" width="100%" height="100%">
+        ${ears}
+        <path class="body-shape" d="M 26 100 C 26 82, 74 82, 74 100 Z" stroke="#00000022" stroke-width="1"/>
+        <circle class="head-shape" cx="50" cy="55" r="36" stroke="#00000022" stroke-width="1"/>
+        ${snoutPatch}
+        <circle cx="28" cy="62" r="5" fill="#ff8080" opacity="0.5"/>
+        <circle cx="72" cy="62" r="5" fill="#ff8080" opacity="0.5"/>
+        <g>
+          <ellipse cx="38" cy="50" rx="${eyeR}" ry="${eyeR}" fill="#2c3e50"/>
+          <circle cx="36" cy="48" r="1.6" fill="#fff"/>
+          <ellipse cx="62" cy="50" rx="${eyeR}" ry="${eyeR}" fill="#2c3e50"/>
+          <circle cx="60" cy="48" r="1.6" fill="#fff"/>
+        </g>
+        <polygon points="48,58 52,58 50,61" fill="#e74c3c"/>
+        <g class="teacher-mouth-group">
+          <path class="mouth-closed" d="M 44 65 Q 50 69, 56 65" fill="transparent" stroke="#00000055" stroke-width="2" stroke-linecap="round"/>
+          <ellipse class="mouth-open" cx="50" cy="67" rx="7" ry="6" fill="#7a3b2e"/>
+        </g>
+      </svg>`;
+  }
+
+  function applyTeacherTheme(id) {
+    const cfg = TEACHERS[id];
+    document.documentElement.style.setProperty('--t-primary', cfg.primary);
+    document.documentElement.style.setProperty('--t-secondary', cfg.secondary);
+    document.documentElement.style.setProperty('--t-bg', cfg.bg);
+  }
+
+  // ---------- Lesson + Quiz content ----------
+  const LESSONS = {
+    'math-examprep': {
+      subject: 'คณิตศาสตร์ ป.2', icon: '📝', title: 'เตรียมสอบคณิตศาสตร์ กลางภาค 1/2569',
+      desc: 'ตรงตามแนวข้อสอบกลางภาคเรียนที่ 1/2569 ครอบคลุมจำนวนนับ การบวก และการลบไม่เกิน 1,000',
+      slides: [
+        { type: 'teach', illustration: '📋', text: 'สวัสดีค่ะ {name}! วันนี้ครูมีข่าวดีมาบอกค่ะ เนื้อหาที่เราจะเรียนกันวันนี้ตรงกับแนวข้อสอบกลางภาคเรียนที่ 1 ปีการศึกษา 2569 วิชาคณิตศาสตร์ ชั้นประถมศึกษาปีที่ 2 เลยนะคะ ถ้าหนูตั้งใจเรียนเรื่องนี้ ไปสอบได้แน่นอนค่ะ!' },
+        { type: 'teach', illustration: '📚', text: 'วันนี้เราจะเรียนกัน 3 เรื่องใหญ่ๆ ค่ะ เรื่องแรกคือจำนวนนับไม่เกิน 1,000 เรื่องที่สองคือการบวกจำนวนไม่เกิน 1,000 และเรื่องที่สามคือการลบจำนวนไม่เกิน 1,000 ค่ะ' },
+        { type: 'teach', illustration: '💯', text: 'เรื่องแรกคือ จำนวนนับไม่เกิน 1,000 ค่ะ ตัวเลขสามหลักมีหลักหน่วย หลักสิบ และหลักร้อยนะคะ เช่นเลข 347 หลักร้อยคือ 3 หลักสิบคือ 4 หลักหน่วยคือ 7 ค่ะ' },
+        { type: 'teach', illustration: '📊', text: 'การเรียงลำดับจำนวนก็สำคัญค่ะ ถ้าจะเรียงจากน้อยไปมาก ให้ดูหลักร้อยก่อน ถ้าหลักร้อยเท่ากันค่อยดูหลักสิบ ถ้าหลักสิบเท่ากันอีกค่อยดูหลักหน่วยค่ะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองคิดดูสิคะ {name} ระหว่าง 452 กับ 425 ตัวไหนมีค่ามากกว่ากันคะ ลองคิดดูก่อนนะคะ', thinkSeconds: 5, reveal: '452 มากกว่าค่ะ เพราะหลักร้อยเท่ากันคือ 4 แต่หลักสิบของ 452 คือ 5 ซึ่งมากกว่า 2 ของ 425 ค่ะ เก่งมาก {name}!' },
+        { type: 'teach', illustration: '🔢', text: 'อีกเรื่องที่สำคัญคือการนับเพิ่มทีละ 1, 2, 5, 10 และ 100 ค่ะ เช่น นับเพิ่มทีละ 10 จาก 350 ก็จะเป็น 360, 370, 380 ไปเรื่อยๆ ค่ะ' },
+        { type: 'teach', illustration: '➕', text: 'ต่อไปเรื่องที่สอง การบวกจำนวนไม่เกิน 1,000 ค่ะ เรามาเริ่มจากการบวกแบบไม่มีตัวทดก่อนนะคะ เช่น 123 บวก 45 เท่ากับ 168 ค่ะ ง่ายมากเลยใช่ไหมคะ' },
+        { type: 'teach', illustration: '🎒', text: 'ทีนี้มาดูการบวกแบบมีตัวทดกันบ้างค่ะ เวลาบวกเลขในหลักเดียวกันแล้วผลบวกเกิน 9 เราต้องเขียนแค่หลักหน่วยไว้ แล้ว "ทด" ตัวเลขที่เหลือไปบวกกับหลักถัดไปค่ะ' },
+        { type: 'teach', illustration: '🧮', text: 'ลองดูโจทย์นี้กันค่ะ 158 บวก 267 ขั้นแรกบวกหลักหน่วยก่อน 8 บวก 7 เท่ากับ 15 เขียน 5 ไว้ แล้วทด 1 ไปหลักสิบค่ะ' },
+        { type: 'teach', illustration: '✅', text: 'ขั้นที่สอง บวกหลักสิบ 5 บวก 6 บวกตัวทด 1 เท่ากับ 12 เขียน 2 ทด 1 ขั้นที่สาม บวกหลักร้อย 1 บวก 2 บวกตัวทด 1 เท่ากับ 4 ดังนั้น 158 บวก 267 เท่ากับ 425 ค่ะ' },
+        { type: 'check', illustration: '💭', prompt: 'ลองคิดดูสิคะ {name} 234 บวก 189 หลักหน่วยคือ 4 บวก 9 เท่ากับเท่าไรคะ ลองคิดในใจดูก่อนนะคะ', thinkSeconds: 5, reveal: '4 บวก 9 เท่ากับ 13 ค่ะ เพราะเกิน 9 เราจึงเขียน 3 ไว้ แล้วทด 1 ไปหลักสิบค่ะ เก่งมาก {name}!' },
+        { type: 'teach', illustration: '➖', text: 'ต่อไปเรื่องที่สาม การลบจำนวนไม่เกิน 1,000 ค่ะ เรามาเริ่มจากการลบแบบไม่มีตัวยืมก่อนนะคะ เช่น 486 ลบ 253 เท่ากับ 233 ค่ะ ลบแต่ละหลักตรงๆ ได้เลย' },
+        { type: 'teach', illustration: '🎯', text: 'ทีนี้มาดูการลบแบบมีตัวยืมกันบ้างค่ะ ถ้าตัวตั้งในหลักไหนน้อยกว่าตัวลบ เราต้อง "ยืม" 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนค่ะ' },
+        { type: 'teach', illustration: '🐵', text: 'ลองดูโจทย์นี้กันค่ะ 342 ลบ 168 หลักหน่วย 2 ลบ 8 ลบไม่ได้เพราะ 2 น้อยกว่า 8 เราต้องยืม 1 จากหลักสิบมาเป็น 12 แล้ว 12 ลบ 8 เท่ากับ 4 ค่ะ' },
+        { type: 'teach', illustration: '🏁', text: 'หลักสิบที่ยืมไปแล้วเหลือ 3 ลบ 6 อีก ลบไม่ได้อีกเช่นกัน ต้องยืมจากหลักร้อยมาเป็น 13 ลบ 6 เท่ากับ 7 หลักร้อยเหลือ 2 ลบ 1 เท่ากับ 1 ดังนั้น 342 ลบ 168 เท่ากับ 174 ค่ะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองคิดดูสิคะ {name} 523 ลบ 267 หลักหน่วยคือ 3 ลบ 7 เราต้องทำยังไงคะ ลองคิดดูก่อนนะคะ', thinkSeconds: 6, reveal: 'เพราะ 3 น้อยกว่า 7 เราต้องยืม 1 จากหลักสิบมาเป็น 13 แล้ว 13 ลบ 7 เท่ากับ 6 ค่ะ เก่งมาก {name}!' },
+        { type: 'teach', illustration: '🏆', text: 'สรุปแล้ววันนี้เราเรียนครบทั้ง 3 เรื่องแล้วนะคะ {name} จำนวนนับไม่เกิน 1,000 การบวกไม่เกิน 1,000 และการลบไม่เกิน 1,000 ค่ะ เนื้อหาตรงตามแนวข้อสอบกลางภาคเรียนที่ 1/2569 เป๊ะเลยค่ะ ต่อไปเราจะไปลองทำข้อสอบ 10 ข้อกันนะคะ สู้ๆ ค่ะ!' }
+      ],
+      questions: [
+        { q: 'ตัวเลข 347 หลักสิบคือเลขอะไร?', a: 4, c: [4, 3, 7, 0],
+          exp2: 'เลข 347 แยกหลักได้เป็น หลักร้อย = 3, หลักสิบ = 4, หลักหน่วย = 7 ค่ะ',
+          exp3: 'หลักการ: ตัวเลขสามหลักอ่านจากซ้ายไปขวาคือ หลักร้อย หลักสิบ หลักหน่วย ตามลำดับค่ะ' },
+        { q: 'ข้อใดมีค่ามากที่สุด?', a: 452, c: [452, 425, 254, 245],
+          exp2: '452 มีหลักร้อยเป็น 4 เท่ากับ 425 แต่หลักสิบของ 452 คือ 5 มากกว่า 2 ของ 425 จึงมากที่สุดค่ะ',
+          exp3: 'หลักการ: เปรียบเทียบจำนวน ให้ดูหลักร้อยก่อน ถ้าเท่ากันค่อยดูหลักสิบ ถ้ายังเท่ากันอีกค่อยดูหลักหน่วยค่ะ' },
+        { q: 'นับเพิ่มทีละ 10 จาก 350 ตัวถัดไปคือเท่าไร?', a: 360, c: [360, 351, 450, 340],
+          exp2: 'การนับเพิ่มทีละ 10 คือการบวกเพิ่มครั้งละ 10 ดังนั้น 350 บวก 10 เท่ากับ 360 ค่ะ',
+          exp3: 'หลักการ: นับเพิ่มทีละ 10 หลักหน่วยจะไม่เปลี่ยน ส่วนหลักสิบจะเพิ่มขึ้นทีละ 1 ค่ะ' },
+        { q: '123 + 45 = ?', a: 168, c: [168, 178, 158, 167],
+          exp2: 'บวกหลักหน่วย 3 บวก 5 เท่ากับ 8, หลักสิบ 2 บวก 4 เท่ากับ 6, หลักร้อยคือ 1 ดังนั้นได้ 168 ค่ะ',
+          exp3: 'หลักการ: การบวกแบบไม่มีตัวทด บวกแต่ละหลักตรงๆ ได้เลยค่ะ' },
+        { q: '158 + 267 = ?', a: 425, c: [425, 415, 325, 435],
+          exp2: 'หลักหน่วย 8+7=15 เขียน 5 ทด 1, หลักสิบ 5+6+1=12 เขียน 2 ทด 1, หลักร้อย 1+2+1=4 ค่ะ',
+          exp3: 'หลักการ: บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักถัดไปเสมอค่ะ' },
+        { q: '246 + 175 = ?', a: 421, c: [421, 411, 321, 431],
+          exp2: 'หลักหน่วย 6+5=11 เขียน 1 ทด 1, หลักสิบ 4+7+1=12 เขียน 2 ทด 1, หลักร้อย 2+1+1=4 ค่ะ',
+          exp3: 'หลักการ: บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักถัดไปเสมอค่ะ' },
+        { q: '375 + 248 = ?', a: 623, c: [623, 613, 523, 633],
+          exp2: 'หลักหน่วย 5+8=13 เขียน 3 ทด 1, หลักสิบ 7+4+1=12 เขียน 2 ทด 1, หลักร้อย 3+2+1=6 ค่ะ',
+          exp3: 'หลักการ: บวกหลักหน่วยก่อน ถ้าเกิน 9 ให้ทด 1 ไปหลักถัดไปเสมอค่ะ' },
+        { q: '486 - 253 = ?', a: 233, c: [233, 243, 223, 333],
+          exp2: 'ลบหลักหน่วย 6-3=3, หลักสิบ 8-5=3, หลักร้อย 4-2=2 ลบตรงๆ ได้เลยเพราะไม่ต้องยืมค่ะ',
+          exp3: 'หลักการ: การลบแบบไม่มีตัวยืม ลบแต่ละหลักตรงๆ ได้เลยเมื่อตัวตั้งมากกว่าหรือเท่ากับตัวลบทุกหลักค่ะ' },
+        { q: '342 - 168 = ?', a: 174, c: [174, 184, 274, 164],
+          exp2: '2-8 ลบไม่ได้ ต้องยืม 1 จากหลักสิบมาเป็น 12-8=4, หลักสิบเหลือ 3 ลบ 6 ยืมจากหลักร้อยมาเป็น 13-6=7, หลักร้อยเหลือ 2-1=1 ค่ะ',
+          exp3: 'หลักการ: ถ้าตัวตั้งในหลักใดน้อยกว่าตัวลบ ต้องยืม 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนลบเสมอค่ะ' },
+        { q: '523 - 267 = ?', a: 256, c: [256, 266, 246, 356],
+          exp2: '3-7 ลบไม่ได้ ยืมจากหลักสิบมาเป็น 13-7=6, หลักสิบเหลือ 1 ลบ 6 ยืมจากหลักร้อยมาเป็น 11-6=5, หลักร้อยเหลือ 4 ลบ 2=2 ค่ะ',
+          exp3: 'หลักการ: ถ้าตัวตั้งในหลักใดน้อยกว่าตัวลบ ต้องยืม 1 จากหลักถัดไปทางซ้ายมาเพิ่มค่าอีก 10 ก่อนลบเสมอค่ะ' }
+      ].map(item => ({
+        questionText: item.q, answer: item.a, choices: item.c,
+        exp1: `เฉลยคือ ${item.a} ค่ะ`,
+        exp2: item.exp2,
+        exp3: item.exp3
+      }))
+    },
+    'thai-wordtypes': {
+      subject: 'ภาษาไทย ป.2', icon: '📖', title: 'ชนิดของคำ: นาม กริยา วิเศษณ์',
+      desc: 'เรียนรู้การจำแนกคำนาม คำกริยา และคำวิเศษณ์เบื้องต้น',
+      slides: [
+        { type: 'teach', illustration: '👋', text: 'สวัสดีค่ะ {name}! วันนี้ครูจะพาไปเรียนรู้เรื่อง "ชนิดของคำ" กันนะคะ มีทั้งหมด 3 ชนิดที่เราจะเรียนกันวันนี้ค่ะ' },
+        { type: 'teach', illustration: '🐱', text: 'ชนิดแรกคือ "คำนาม" ค่ะ คำนามคือคำที่เป็นชื่อคน สัตว์ สิ่งของ หรือสถานที่ต่างๆ ค่ะ' },
+        { type: 'teach', illustration: '🏫', text: 'ตัวอย่างคำนามเช่น แมว โต๊ะ โรงเรียน คุณครู หนังสือ ลองสังเกตดูนะคะ ทุกคำนี้เป็นชื่อเรียกสิ่งต่างๆ ทั้งนั้นเลยค่ะ' },
+        { type: 'teach', illustration: '🏃', text: 'ชนิดที่สองคือ "คำกริยา" ค่ะ คำกริยาคือคำที่บอกอาการหรือการกระทำของประธานในประโยคค่ะ' },
+        { type: 'teach', illustration: '🍚', text: 'ตัวอย่างคำกริยาเช่น วิ่ง กิน นอน เล่น อ่าน ลองสังเกตดูว่าทุกคำนี้บอกว่า "กำลังทำอะไร" ทั้งนั้นเลยค่ะ' },
+        { type: 'teach', illustration: '🌸', text: 'ชนิดที่สามคือ "คำวิเศษณ์" ค่ะ คำวิเศษณ์คือคำที่ใช้ขยายบอกลักษณะของคำนามหรือคำกริยาให้ชัดเจนขึ้นค่ะ' },
+        { type: 'teach', illustration: '💎', text: 'ตัวอย่างคำวิเศษณ์เช่น สวย เร็ว ใหญ่ น่ารัก คำเหล่านี้ช่วยบอกลักษณะให้เราเห็นภาพชัดขึ้นค่ะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองดูประโยคนี้นะคะ {name} "น้องแมวตัวน่ารักวิ่งเร็วมาก" ลองคิดดูสิคะ ว่าคำว่า "แมว" เป็นคำชนิดไหนคะ', thinkSeconds: 5, reveal: '"แมว" เป็นคำนามค่ะ เพราะเป็นชื่อเรียกสัตว์ เก่งมากค่ะที่ลองคิดดูนะคะ {name}!' },
+        { type: 'teach', illustration: '✨', text: 'ในประโยคเดียวกัน คำว่า "วิ่ง" เป็นคำกริยา เพราะบอกการกระทำ ส่วนคำว่า "น่ารัก" และ "เร็ว" เป็นคำวิเศษณ์ เพราะช่วยขยายบอกลักษณะค่ะ' },
+        { type: 'check', illustration: '💭', prompt: 'ลองอีกประโยคนะคะ {name} "ดอกไม้สีแดงสวยงามมาก" คำว่า "สวยงาม" เป็นคำชนิดไหนคะ ลองคิดดูก่อนนะคะ', thinkSeconds: 5, reveal: '"สวยงาม" เป็นคำวิเศษณ์ค่ะ เพราะขยายบอกลักษณะของดอกไม้ เก่งมากเลย {name}!' },
+        { type: 'teach', illustration: '💡', text: 'มีเคล็ดลับจำง่ายๆ ค่ะ ถ้าเป็นชื่อ คือคำนาม ถ้าบอกการกระทำ คือคำกริยา ถ้าบอกลักษณะ คือคำวิเศษณ์ค่ะ' },
+        { type: 'teach', illustration: '📖', text: 'ลองดูอีกประโยคนึงค่ะ "คุณครูใจดีสอนหนังสือเก่งมาก" คำว่า คุณครู และ หนังสือ เป็นคำนาม คำว่า สอน เป็นคำกริยา ส่วนคำว่า ใจดี และ เก่ง เป็นคำวิเศษณ์ค่ะ' },
+        { type: 'teach', illustration: '🏆', text: 'สรุปแล้ววันนี้เราได้เรียนรู้คำนาม คำกริยา และคำวิเศษณ์กันแล้วนะคะ {name} เก่งมากเลยค่ะ ต่อไปเราจะไปลองทำข้อสอบ 10 ข้อกันค่ะ สู้ๆ นะคะ!' }
+      ],
+      questions: [
+        { word: 'แมว', sentence: '"แมว" ในประโยค "แมวกำลังนอนหลับ" เป็นคำชนิดใด?', a: 'คำนาม' },
+        { word: 'นอนหลับ', sentence: '"นอนหลับ" ในประโยค "แมวกำลังนอนหลับ" เป็นคำชนิดใด?', a: 'คำกริยา' },
+        { word: 'สวย', sentence: '"สวย" ในประโยค "ดอกไม้สวยมาก" เป็นคำชนิดใด?', a: 'คำวิเศษณ์' },
+        { word: 'โต๊ะ', sentence: '"โต๊ะ" ในประโยค "โต๊ะตัวนี้แข็งแรง" เป็นคำชนิดใด?', a: 'คำนาม' },
+        { word: 'วิ่ง', sentence: '"วิ่ง" ในประโยค "น้องวิ่งไปโรงเรียน" เป็นคำชนิดใด?', a: 'คำกริยา' },
+        { word: 'ใหญ่', sentence: '"ใหญ่" ในประโยค "ช้างตัวใหญ่มาก" เป็นคำชนิดใด?', a: 'คำวิเศษณ์' },
+        { word: 'โรงเรียน', sentence: '"โรงเรียน" ในประโยค "ครูอยู่ที่โรงเรียน" เป็นคำชนิดใด?', a: 'คำนาม' },
+        { word: 'กิน', sentence: '"กิน" ในประโยค "น้องกินข้าว" เป็นคำชนิดใด?', a: 'คำกริยา' },
+        { word: 'เร็ว', sentence: '"เร็ว" ในประโยค "รถคันนี้วิ่งเร็ว" เป็นคำชนิดใด?', a: 'คำวิเศษณ์' },
+        { word: 'หนังสือ', sentence: '"หนังสือ" ในประโยค "หนังสือเล่มนี้สนุก" เป็นคำชนิดใด?', a: 'คำนาม' }
+      ].map(item => ({
+        questionText: item.sentence, answer: item.a, choices: ['คำนาม', 'คำกริยา', 'คำวิเศษณ์', 'คำสรรพนาม'],
+        exp1: `เฉลยคือ ${item.a} ค่ะ`,
+        exp2: item.a === 'คำนาม' ? `เพราะ "${item.word}" เป็นชื่อคน สัตว์ สิ่งของ หรือสถานที่` :
+              item.a === 'คำกริยา' ? `เพราะ "${item.word}" บอกอาการหรือการกระทำ` :
+              `เพราะ "${item.word}" ใช้ขยายบอกลักษณะของคำอื่น`,
+        exp3: 'หลักการ: คำนาม = ชื่อคน/สัตว์/สิ่งของ/สถานที่, คำกริยา = อาการ/การกระทำ, คำวิเศษณ์ = ขยายบอกลักษณะค่ะ'
+      }))
+    },
+    'eng-daysmonths': {
+      subject: 'ภาษาอังกฤษ ป.2', icon: '📅', title: 'Days of the Week & Months',
+      desc: 'เรียนรู้ชื่อวันในสัปดาห์และเดือนทั้ง 12 เดือนเป็นภาษาอังกฤษ',
+      slides: [
+        { type: 'teach', illustration: '👋', text: 'สวัสดีค่ะ {name}! วันนี้ครูจะพาไปเรียนรู้ชื่อวันในสัปดาห์และเดือนต่างๆ เป็นภาษาอังกฤษกันนะคะ' },
+        { type: 'teach', illustration: '📅', text: 'หนึ่งสัปดาห์มี 7 วันค่ะ เรามาเรียนชื่อวันทั้ง 7 กันเลยนะคะ' },
+        { type: 'teach', illustration: '🌞', text: 'วันอาทิตย์ภาษาอังกฤษคือ Sunday ค่ะ วันจันทร์คือ Monday ค่ะ' },
+        { type: 'teach', illustration: '🌤️', text: 'วันอังคารคือ Tuesday ค่ะ วันพุธคือ Wednesday ค่ะ' },
+        { type: 'teach', illustration: '🌥️', text: 'วันพฤหัสบดีคือ Thursday ค่ะ วันศุกร์คือ Friday ค่ะ และวันเสาร์คือ Saturday ค่ะ ครบ 7 วันแล้วนะคะ' },
+        { type: 'check', illustration: '🤔', prompt: 'ลองคิดดูสิคะ {name} ถ้าวันนี้คือ Monday แล้ววันพรุ่งนี้ภาษาอังกฤษจะเรียกว่าอะไรคะ ลองคิดในใจดูก่อนนะคะ', thinkSeconds: 5, reveal: 'คำตอบคือ Tuesday ค่ะ เพราะวันหลังจาก Monday คือ Tuesday เก่งมากค่ะ {name}!' },
+        { type: 'teach', illustration: '🗓️', text: 'ทีนี้เรามาเรียนชื่อเดือนกันบ้างนะคะ หนึ่งปีมี 12 เดือนค่ะ' },
+        { type: 'teach', illustration: '❄️', text: 'เดือนมกราคมคือ January เดือนกุมภาพันธ์คือ February เดือนมีนาคมคือ March ค่ะ' },
+        { type: 'teach', illustration: '🌸', text: 'เดือนเมษายนคือ April เดือนพฤษภาคมคือ May เดือนมิถุนายนคือ June ค่ะ' },
+        { type: 'teach', illustration: '☀️', text: 'เดือนกรกฎาคมคือ July เดือนสิงหาคมคือ August เดือนกันยายนคือ September ค่ะ' },
+        { type: 'teach', illustration: '🍂', text: 'เดือนตุลาคมคือ October เดือนพฤศจิกายนคือ November และเดือนธันวาคมคือ December ค่ะ ครบ 12 เดือนแล้วนะคะ' },
+        { type: 'check', illustration: '💭', prompt: 'ลองคิดดูสิคะ {name} เดือนเกิดของหนูอยู่เดือนอะไรคะ ลองนึกถึงชื่อเดือนนั้นเป็นภาษาอังกฤษดูสิคะ', thinkSeconds: 6, reveal: 'เก่งมากค่ะ ไม่ว่าเดือนเกิดของหนูจะเป็นเดือนไหน ตอนนี้หนูรู้จักชื่อเดือนครบทั้ง 12 เดือนเป็นภาษาอังกฤษแล้วนะคะ {name}!' },
+        { type: 'teach', illustration: '🏆', text: 'สรุปแล้ววันนี้เราได้เรียนรู้ชื่อวันทั้ง 7 วัน และเดือนทั้ง 12 เดือนเป็นภาษาอังกฤษกันแล้วนะคะ {name} เก่งมากเลยค่ะ ต่อไปเราจะไปลองทำข้อสอบ 10 ข้อกันค่ะ สู้ๆ นะคะ!' }
+      ],
+      questions: [
+        { q: 'What day comes after Monday?', a: 'Tuesday', c: ['Tuesday', 'Sunday', 'Friday', 'Wednesday'] },
+        { q: 'What day comes before Sunday?', a: 'Saturday', c: ['Saturday', 'Monday', 'Friday', 'Thursday'] },
+        { q: 'How many days are there in a week?', a: '7', c: ['7', '5', '10', '12'] },
+        { q: 'Which is the first day of the week?', a: 'Sunday', c: ['Sunday', 'Monday', 'Saturday', 'Friday'] },
+        { q: 'Which month comes after January?', a: 'February', c: ['February', 'March', 'December', 'April'] },
+        { q: 'Which month comes before December?', a: 'November', c: ['November', 'October', 'January', 'September'] },
+        { q: 'How many months are there in a year?', a: '12', c: ['12', '10', '7', '52'] },
+        { q: 'Which is the first month of the year?', a: 'January', c: ['January', 'December', 'March', 'June'] },
+        { q: 'What day is between Wednesday and Friday?', a: 'Thursday', c: ['Thursday', 'Tuesday', 'Saturday', 'Monday'] },
+        { q: 'Which month comes after June?', a: 'July', c: ['July', 'May', 'August', 'September'] }
+      ].map(item => ({
+        questionText: item.q, answer: item.a, choices: item.c,
+        exp1: `The answer is ${item.a} ค่ะ`,
+        exp2: 'ลองท่องลำดับวันหรือเดือนใหม่อีกครั้ง: Sunday-Monday-Tuesday-Wednesday-Thursday-Friday-Saturday และ January-February-...-December ค่ะ',
+        exp3: 'หลักการ: จำลำดับวันในสัปดาห์ 7 วัน และเดือนในหนึ่งปี 12 เดือนให้แม่นยำ จะช่วยตอบคำถามแบบนี้ได้ง่ายขึ้นค่ะ'
+      }))
+    }
+  };
+
+  // ---------- State ----------
+  let soundEnabled = true;
+  let speechEnabled = true;
+  let studentName = '';
+  let selectedTeacher = 'rabbit';
+  let selectedTopicId = null;
+  let slideIdx = 0;
+  let slideRevealed = false; // for 'check' slides: false = showing prompt, true = showing reveal
+  let quizQuestions = [];
+  let quizIdx = 0;
+  let score = 0;
+  let correctCount = 0;
+  let playerName = '';
+  let talkTimer = null;
+
+  function personalize(text) {
+    return String(text).split('{name}').join(studentName || 'หนู');
+  }
+  function submitStudentName() {
+    const input = document.getElementById('student-name-input');
+    const name = input.value.trim();
+    if (!name) { alert('บอกครูหน่อยนะคะ ว่าหนูชื่ออะไรคะ 😊'); return; }
+    studentName = name;
+    synth.init();
+    showScreen('screen-teacher');
+  }
+
+  const synth = {
+    ctx: null,
+    init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+    tone(freq, dur, type = 'sine') {
+      if (!soundEnabled || !this.ctx) return;
+      const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(); osc.stop(this.ctx.currentTime + dur);
+    },
+    correct() { this.tone(523.25, 0.15); setTimeout(() => this.tone(783.99, 0.2), 100); },
+    wrong() { this.tone(150, 0.3, 'sawtooth'); },
+    victory() { [392, 523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.4), i * 120)); }
+  };
+
+  function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function navigateBack() { window.speechSynthesis.cancel(); window.location.href = 'index.html'; }
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    document.getElementById('btn-toggle-sound').innerText = soundEnabled ? '🔊' : '🔇';
+  }
+
+  function speakWithLipSync(text, stageSelector, lang, onEnd) {
+    window.speechSynthesis.cancel();
+    stopTalking(stageSelector);
+    if (!speechEnabled || !('speechSynthesis' in window)) {
+      if (onEnd) onEnd();
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang || 'th-TH';
+    utter.rate = 0.95;
+    utter.onstart = () => startTalking(stageSelector);
+    utter.onend = () => { stopTalking(stageSelector); if (onEnd) onEnd(); };
+    utter.onerror = () => { stopTalking(stageSelector); if (onEnd) onEnd(); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  function startTalking(stageSelector) {
+    const stage = document.querySelector(stageSelector);
+    if (!stage) return;
+    stage.classList.add('speaking');
+    const mouthGroup = stage.querySelector('.teacher-mouth-group');
+    if (!mouthGroup) return;
+    stopTalkTimer();
+    talkTimer = setInterval(() => {
+      mouthGroup.classList.toggle('talking');
+    }, 140 + Math.random() * 80);
+  }
+  function stopTalking(stageSelector) {
+    stopTalkTimer();
+    const stage = document.querySelector(stageSelector);
+    if (!stage) return;
+    stage.classList.remove('speaking');
+    const mouthGroup = stage.querySelector('.teacher-mouth-group');
+    if (mouthGroup) mouthGroup.classList.remove('talking');
+  }
+  function stopTalkTimer() { if (talkTimer) { clearInterval(talkTimer); talkTimer = null; } }
+
+  // ---------- Screen 1: Teacher select ----------
+  function renderTeacherGrid() {
+    const grid = document.getElementById('teacher-grid');
+    grid.innerHTML = '';
+    Object.values(TEACHERS).forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'teacher-card' + (t.recommended ? ' recommended' : '');
+      card.innerHTML = `<div class="emoji">${t.emoji}</div><h4>${t.name}</h4><p>${t.desc}</p>`;
+      card.addEventListener('click', () => selectTeacher(t.id));
+      grid.appendChild(card);
+    });
+  }
+  function selectTeacher(id) {
+    selectedTeacher = id;
+    applyTeacherTheme(id);
+    synth.init();
+    document.getElementById('topic-teacher-emoji').innerText = TEACHERS[id].emoji;
+    document.getElementById('topic-teacher-name').innerText = TEACHERS[id].name;
+    showScreen('screen-topic');
+    renderTopicGrid();
+    speakWithLipSync(personalize(`สวัสดีค่ะ {name}! ${TEACHERS[id].greet}`), '#topic-teacher-emoji');
+  }
+  document.getElementById('topic-teacher-change').addEventListener('click', () => showScreen('screen-teacher'));
+
+  // ---------- Screen 2: Topic select ----------
+  function renderTopicGrid() {
+    const grid = document.getElementById('topic-grid');
+    grid.innerHTML = '';
+    Object.keys(LESSONS).forEach(key => {
+      const topic = LESSONS[key];
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.innerHTML = `<span class="subject-tag">${topic.subject}</span><div class="icon">${topic.icon}</div><h4>${topic.title}</h4><p>${topic.desc}</p>`;
+      card.addEventListener('click', () => startLesson(key));
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- Screen 3: Lesson ----------
+  function startLesson(topicId) {
+    selectedTopicId = topicId;
+    slideIdx = 0;
+    if (typeof fbLogActivity === 'function') fbLogActivity(studentName, `ครูสอนพิเศษ: ${LESSONS[topicId].title}`);
+    document.getElementById('teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
+    renderSlideProgress();
+    showScreen('screen-lesson');
+    loadSlide();
+  }
+  function renderSlideProgress() {
+    const wrap = document.getElementById('slide-progress');
+    wrap.innerHTML = '';
+    const total = LESSONS[selectedTopicId].slides.length;
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'slide-dot' + (i === slideIdx ? ' active' : '');
+      wrap.appendChild(dot);
+    }
+  }
+  function setNextEnabled(enabled) {
+    document.getElementById('btn-slide-next').disabled = !enabled;
+  }
+  function loadSlide() {
+    const lesson = LESSONS[selectedTopicId];
+    const slide = lesson.slides[slideIdx];
+    slideRevealed = false;
+    renderSlideProgress();
+    document.getElementById('thinking-indicator').classList.remove('active');
+    setNextEnabled(false);
+    const nextBtn = document.getElementById('btn-slide-next');
+    nextBtn.innerText = (slideIdx === lesson.slides.length - 1) ? 'เริ่มทำข้อสอบกันเลย! 🚀' : 'ถัดไป ➡️';
+
+    if (slide.type === 'check') {
+      document.getElementById('slide-illustration').innerText = slide.illustration;
+      document.getElementById('slide-text').innerText = personalize(slide.prompt);
+      speakCurrentSlideText();
+    } else {
+      document.getElementById('slide-illustration').innerText = slide.illustration;
+      document.getElementById('slide-text').innerText = personalize(slide.text);
+      speakCurrentSlideText();
+    }
+  }
+  function speakCurrentSlideText() {
+    const slide = LESSONS[selectedTopicId].slides[slideIdx];
+    if (slide.type === 'check' && !slideRevealed) {
+      document.getElementById('thinking-indicator').classList.add('active');
+      let narrationDone = false, timeUp = false;
+      const tryReveal = () => { if (narrationDone && timeUp) revealCheckSlide(); };
+      speakWithLipSync(personalize(slide.prompt), '#teacher-stage', 'th-TH', () => { narrationDone = true; tryReveal(); });
+      setTimeout(() => { timeUp = true; tryReveal(); }, (slide.thinkSeconds || 4) * 1000);
+    } else if (slide.type === 'check' && slideRevealed) {
+      speakWithLipSync(personalize(slide.reveal), '#teacher-stage', 'th-TH', () => setNextEnabled(true));
+    } else {
+      speakWithLipSync(personalize(slide.text), '#teacher-stage', 'th-TH', () => setNextEnabled(true));
+    }
+  }
+  function revealCheckSlide() {
+    const slide = LESSONS[selectedTopicId].slides[slideIdx];
+    slideRevealed = true;
+    document.getElementById('thinking-indicator').classList.remove('active');
+    document.getElementById('slide-illustration').innerText = '🎉';
+    document.getElementById('slide-text').innerText = personalize(slide.reveal);
+    speakCurrentSlideText();
+  }
+  function repeatSlide() {
+    const slide = LESSONS[selectedTopicId].slides[slideIdx];
+    if (slide.type === 'check' && !slideRevealed) {
+      speakWithLipSync(personalize(slide.prompt), '#teacher-stage', 'th-TH');
+    } else if (slide.type === 'check' && slideRevealed) {
+      speakWithLipSync(personalize(slide.reveal), '#teacher-stage', 'th-TH');
+    } else {
+      speakWithLipSync(personalize(slide.text), '#teacher-stage', 'th-TH');
+    }
+  }
+  function nextSlide() {
+    if (document.getElementById('btn-slide-next').disabled) return;
+    const lesson = LESSONS[selectedTopicId];
+    if (slideIdx < lesson.slides.length - 1) {
+      slideIdx++;
+      loadSlide();
+    } else {
+      startQuiz();
+    }
+  }
+
+  // ---------- Screen 4: Quiz ----------
+  function startQuiz() {
+    window.speechSynthesis.cancel();
+    quizQuestions = shuffle([...LESSONS[selectedTopicId].questions]);
+    quizIdx = 0; score = 0; correctCount = 0;
+    document.getElementById('quiz-teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
+    showScreen('screen-quiz');
+    loadQuestion();
+  }
+  function loadQuestion() {
+    if (quizIdx >= quizQuestions.length) { finishQuiz(); return; }
+    document.getElementById('hud-progress').innerText = `${quizIdx + 1}/${quizQuestions.length}`;
+    document.getElementById('hud-score').innerText = score;
+    const q = quizQuestions[quizIdx];
+    document.getElementById('quiz-question').innerText = q.questionText;
+    const grid = document.getElementById('quiz-choices');
+    grid.innerHTML = '';
+    shuffle([...q.choices]).forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.setAttribute('data-value', choice);
+      btn.addEventListener('click', () => checkAnswer(choice, btn));
+      grid.appendChild(btn);
+    });
+    if (speechEnabled) {
+      setTimeout(() => speakWithLipSync(q.questionText, '#quiz-teacher-stage', /^[A-Za-z]/.test(q.questionText) ? 'en-US' : 'th-TH'), 400);
+    }
+  }
+  function checkAnswer(value, btnEl) {
+    window.speechSynthesis.cancel();
+    const q = quizQuestions[quizIdx];
+    const isCorrect = String(value) === String(q.answer);
+    document.querySelectorAll('#quiz-choices .choice-btn').forEach(b => {
+      b.disabled = true;
+      if (String(b.getAttribute('data-value')) === String(q.answer)) b.classList.add('correct-ui');
+    });
+    if (isCorrect) {
+      synth.correct(); score += 100; correctCount++;
+      document.getElementById('result-icon').innerText = '🎉';
+      document.getElementById('result-title').innerText = 'เก่งมากค่ะ! ถูกต้องนะ';
+    } else {
+      synth.wrong(); btnEl.classList.add('incorrect-ui');
+      document.getElementById('result-icon').innerText = '😢';
+      document.getElementById('result-title').innerText = 'พยายามใหม่นะคนเก่ง!';
+    }
+    document.getElementById('exp-correct').innerText = q.exp1;
+    document.getElementById('exp-detail').innerText = q.exp2;
+    document.getElementById('exp-principle').innerText = q.exp3;
+    setTimeout(() => {
+      document.getElementById('explanation-overlay').classList.add('active');
+      if (speechEnabled) speakWithLipSync(`${q.exp1}. ${q.exp2}. ${q.exp3}`, '#quiz-teacher-stage');
+    }, 600);
+  }
+  function nextQuestion() {
+    window.speechSynthesis.cancel();
+    document.getElementById('explanation-overlay').classList.remove('active');
+    quizIdx++;
+    loadQuestion();
+  }
+
+  // ---------- Screen 5: Summary ----------
+  function finishQuiz() {
+    synth.victory();
+    showScreen('screen-summary');
+    document.getElementById('summary-teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
+    document.getElementById('summary-teacher-stage').style.width = '150px';
+    document.getElementById('summary-teacher-stage').style.height = '150px';
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    document.getElementById('summary-msg').innerText = `ตอบถูก ${correctCount} จาก ${quizQuestions.length} ข้อ (คะแนน ${score})`;
+    document.getElementById('cert-teacher').innerText = TEACHERS[selectedTeacher].name;
+    document.getElementById('cert-topic').innerText = LESSONS[selectedTopicId].title;
+    document.getElementById('register-name-box').style.display = 'block';
+    document.getElementById('print-area').style.display = 'none';
+    document.getElementById('btn-print').style.display = 'none';
+    renderLeaderboardBox([]);
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(leaderboardKey(), cloudList => {
+        if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
+      });
+    }
+    const finishMsg = correctCount >= 9
+      ? personalize(`เก่งมากเลยค่ะ {name}! ${TEACHERS[selectedTeacher].name}ภูมิใจในตัวหนูมากค่ะ!`)
+      : personalize(`ทำได้ดีมากค่ะ {name} ลองทบทวนอีกนิดแล้วมาลองใหม่ได้นะคะ`);
+    speakWithLipSync(finishMsg, '#summary-teacher-stage', 'th-TH');
+    const nameInput = document.getElementById('reg-player-name');
+    if (nameInput && !nameInput.value) nameInput.value = studentName;
+  }
+  function leaderboardKey() { return `tutor_${selectedTopicId}_leaderboard`; }
+  function saveScoreAndShow() {
+    const nameInput = document.getElementById('reg-player-name');
+    const name = nameInput.value.trim();
+    if (!name) { alert('กรุณาใส่ชื่อก่อนบันทึกคะแนนนะคะ! 😊'); return; }
+    playerName = name;
+    const entry = { name: playerName, score, topic: selectedTopicId, teacher: selectedTeacher };
+    let list = JSON.parse(localStorage.getItem(leaderboardKey()) || '[]');
+    const idx = list.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
+    if (idx !== -1) { if (score > list[idx].score) list[idx].score = score; }
+    else { list.push(entry); }
+    list.sort((a, b) => b.score - a.score);
+    list = list.slice(0, 5);
+    localStorage.setItem(leaderboardKey(), JSON.stringify(list));
+    if (typeof fbSaveScore === 'function') fbSaveScore(leaderboardKey(), entry);
+    renderLeaderboardBox(list);
+    document.getElementById('cert-name').value = playerName;
+    document.getElementById('cert-score').innerText = `คะแนนรวม ${score} คะแนน`;
+    document.getElementById('print-area').style.display = 'block';
+    document.getElementById('btn-print').style.display = 'inline-block';
+    document.getElementById('register-name-box').style.display = 'none';
+  }
+  function renderLeaderboardBox(list) {
+    const box = document.getElementById('leaderboard-box');
+    if (!list || list.length === 0) {
+      box.innerHTML = `<div style="text-align:center; color:#64748b; padding:4px;">ยังไม่มีคะแนนสูงสุดค่ะ</div>`;
+      return;
+    }
+    box.innerHTML = list.map((item, idx) => {
+      const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+      return `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${medal} ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+    }).join('');
+  }
+  function restartToTopics() {
+    window.speechSynthesis.cancel();
+    showScreen('screen-topic');
+    document.getElementById('reg-player-name').value = '';
+  }
+
+  // ---------- Init ----------
+  renderTeacherGrid();
+  applyTeacherTheme(selectedTeacher);
+</script>
+</body>
+</html>

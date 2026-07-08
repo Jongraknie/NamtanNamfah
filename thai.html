@@ -925,6 +925,7 @@
         return;
       }
       playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ป่าสะกดคำภาษาไทย (ป.2)');
 
       const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
       playerTitle = titleRadio ? titleRadio.value : "king";

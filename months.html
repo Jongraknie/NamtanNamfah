@@ -1013,6 +1013,7 @@
         return;
       }
       playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ยานอวกาศสะกดคำบอกเดือน (ป.2)');
 
       const titleRadio = document.querySelector('input[name="reg-player-title"]:checked');
       playerTitle = titleRadio ? titleRadio.value : "king";

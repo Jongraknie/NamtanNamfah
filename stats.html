@@ -114,6 +114,12 @@
       padding: 6px 12px;
       cursor: pointer;
     }
+    .activity-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+    .activity-table th { text-align: left; color: #888; font-weight: 600; padding: 6px 8px; border-bottom: 2px solid #e2e2ee; white-space: nowrap; }
+    .activity-table td { padding: 8px; border-bottom: 1px solid #f0f0f6; vertical-align: top; }
+    .activity-table tr:last-child td { border-bottom: none; }
+    .device-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; background: #eef1ff; color: #5b6bf5; white-space: nowrap; }
+    .activity-scroll { max-height: 420px; overflow-y: auto; border: 1px solid #eee; border-radius: 12px; padding: 4px 10px; }
   </style>
 </head>
 <body>
@@ -152,6 +158,18 @@
       <div style="margin-top:10px;">
         <button class="btn-clear-log" id="btn-clear-log">ล้างสถิตินี้ (เฉพาะเครื่องนี้)</button>
       </div>
+    </div>
+
+    <h4 style="margin: 24px 0 6px;">🧒 กิจกรรมการเล่นล่าสุด (ใคร เล่นอะไร จากอุปกรณ์ไหน)</h4>
+    <div class="activity-scroll">
+      <table class="activity-table" id="activity-table">
+        <thead>
+          <tr><th>ชื่อ</th><th>วิชา/เกม</th><th>อุปกรณ์</th><th>วันเวลา</th></tr>
+        </thead>
+        <tbody id="activity-tbody">
+          <tr><td colspan="4" class="empty-msg">กำลังโหลดข้อมูลค่ะ...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -263,6 +281,36 @@
       fbLoadAllVisits(cloudLog => {
         if (cloudLog) render(mergeLogs(loadLog(), cloudLog));
       });
+    }
+
+    function fmtActivityDate(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) +
+               ' ' + d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) { return iso || '-'; }
+    }
+
+    function renderActivity(list) {
+      const tbody = document.getElementById('activity-tbody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">ยังไม่มีข้อมูลกิจกรรมการเล่นค่ะ</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(item => `
+        <tr>
+          <td>${item.name || '-'}</td>
+          <td>${item.game || '-'}</td>
+          <td><span class="device-badge">${item.device || '-'}</span></td>
+          <td>${fmtActivityDate(item.date)}</td>
+        </tr>
+      `).join('');
+    }
+
+    if (typeof fbLoadAllActivity === 'function') {
+      fbLoadAllActivity(list => renderActivity(list));
+    } else {
+      renderActivity(null);
     }
   </script>
 </body>

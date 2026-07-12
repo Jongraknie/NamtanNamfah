@@ -265,6 +265,7 @@
     function toggleSpeech() {
       speechEnabled = !speechEnabled;
       document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
     }
 
     function registerAndStart() {
@@ -280,7 +281,7 @@
       document.getElementById('play-screen').style.display = 'flex';
       synth.init();
       const welcomeMsg = `Welcome ${playerName} to English Grammar Quest! Let's start!`;
-      if ('speechSynthesis' in window) {
+      if (speechEnabled && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(welcomeMsg);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);

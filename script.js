@@ -1145,6 +1145,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const oxford6Btn = document.getElementById('btn-goto-oxford6');
+  if (oxford6Btn) {
+    oxford6Btn.addEventListener('click', () => {
+      sounds.init();
+      speakText("Let's go on an Oxford 3000 vocabulary adventure!", 'en-US');
+      setTimeout(() => {
+        window.location.href = 'oxford-adventure.html?child=namtan';
+      }, 1000);
+    });
+  }
+
   const english6Btn = document.getElementById('btn-goto-english6');
   if (english6Btn) {
     english6Btn.addEventListener('click', () => {
@@ -1185,6 +1196,17 @@ document.addEventListener('DOMContentLoaded', () => {
       speakText('ไปฝึกทักษะการคิดที่ห้องทดลองนักคิดกันเลยค่ะน้องน้ำตาล!', 'th-TH');
       setTimeout(() => {
         window.location.href = 'brain6.html';
+      }, 1000);
+    });
+  }
+
+  const exammapBtn = document.getElementById('btn-select-exammap');
+  if (exammapBtn) {
+    exammapBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปดูแผนที่พิชิตข้อสอบกลางภาคกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'examprep-map.html';
       }, 1000);
     });
   }
@@ -1252,6 +1274,17 @@ document.addEventListener('DOMContentLoaded', () => {
       speakText('ไปเรียนกับครูสอนพิเศษกันเลยค่ะน้ำฟ้า!', 'th-TH');
       setTimeout(() => {
         window.location.href = 'tutor.html';
+      }, 1000);
+    });
+  }
+
+  const oxfordBtn = document.getElementById('btn-select-oxford');
+  if (oxfordBtn) {
+    oxfordBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText("Let's go on an Oxford 3000 vocabulary adventure!", 'en-US');
+      setTimeout(() => {
+        window.location.href = 'oxford-adventure.html?child=namfah';
       }, 1000);
     });
   }

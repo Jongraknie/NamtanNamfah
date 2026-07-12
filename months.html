@@ -1002,6 +1002,7 @@
     function toggleSpeech() {
       speechEnabled = !speechEnabled;
       document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
     }
 
     // Register Player
@@ -1027,7 +1028,7 @@
       const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
       const welcomeMsg = `Welcome ${roleTh} ${playerName} to Space Months spelling game! Let's start!`;
 
-      if ('speechSynthesis' in window) {
+      if (speechEnabled && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(welcomeMsg);
         utterance.lang = 'en-US';
         window.speechSynthesis.speak(utterance);

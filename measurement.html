@@ -362,6 +362,7 @@
 
   function speakText(text) {
     window.speechSynthesis.cancel();
+    if (!soundOn) return;
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'th-TH';
     u.rate = 0.92;
@@ -651,6 +652,7 @@
   document.getElementById('btn-toggle-sound').addEventListener('click', (e) => {
     soundOn = !soundOn;
     e.target.innerText = soundOn ? '🔊' : '🔇';
+    if (!soundOn) window.speechSynthesis.cancel();
   });
 
   document.getElementById('btn-next').addEventListener('click', () => {

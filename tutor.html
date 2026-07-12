@@ -13,6 +13,7 @@
   <script src="firebase-config.js"></script>
   <script src="auth-gate.js"></script>
   <script src="firebase-helpers.js"></script>
+  <script src="examprep-progress.js"></script>
   <style>
     :root {
       --t-primary: #ff6b9d;
@@ -227,6 +228,7 @@
       <h2 id="summary-title" style="font-size: 1.8rem; margin-top: 10px;">เก่งมากเลยค่ะ!</h2>
       <p id="summary-msg" style="color: #64748b; margin-bottom: 8px;">-</p>
       <div class="stars-display" id="stars-display">⭐⭐⭐</div>
+      <p id="summary-coins-earned" style="display:none; color: var(--color-accent-orange); font-weight: bold; margin-bottom: 10px;"></p>
 
       <div id="register-name-box" style="margin-bottom: 10px;">
         <input type="text" id="reg-player-name" placeholder="ใส่ชื่อเพื่อบันทึกคะแนนค่ะ..." maxlength="12" class="register-input">
@@ -250,6 +252,7 @@
       <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 18px;">
         <button class="btn-action secondary" id="btn-print" style="display:none;" onclick="window.print()">🖨️ พิมพ์ใบประกาศ</button>
         <button class="btn-action" onclick="restartToTopics()">🔄 เรียนเรื่องอื่นต่อ</button>
+        <button class="btn-action secondary" onclick="window.location.href='examprep-map.html'">🗺️ กลับแผนที่พิชิตข้อสอบ</button>
         <button class="btn-action secondary" onclick="navigateBack()">🏡 กลับหน้าหลัก</button>
       </div>
     </div>
@@ -687,10 +690,13 @@
   };
 
   // ---------- State ----------
+  const urlParams = new URLSearchParams(window.location.search);
+  const presetTopic = urlParams.get('topic');
+
   let soundEnabled = true;
   let speechEnabled = true;
   let studentName = '';
-  let selectedTeacher = 'rabbit';
+  let selectedTeacher = localStorage.getItem('tutorLastTeacher') || 'rabbit';
   let selectedTopicId = null;
   let slideIdx = 0;
   let slideRevealed = false; // for 'check' slides: false = showing prompt, true = showing reveal
@@ -709,8 +715,16 @@
     const name = input.value.trim();
     if (!name) { alert('บอกครูหน่อยนะคะ ว่าหนูชื่ออะไรคะ 😊'); return; }
     studentName = name;
+    localStorage.setItem('tutorStudentName', name);
     synth.init();
-    showScreen('screen-teacher');
+    // Arriving from the Learning Map with a topic already chosen: skip teacher/topic
+    // selection and go straight into the lesson with the student's last-used teacher.
+    if (presetTopic && LESSONS[presetTopic]) {
+      applyTeacherTheme(selectedTeacher);
+      startLesson(presetTopic);
+    } else {
+      showScreen('screen-teacher');
+    }
   }
 
   const synth = {
@@ -739,7 +753,9 @@
   function navigateBack() { window.speechSynthesis.cancel(); window.location.href = 'index.html'; }
   function toggleSound() {
     soundEnabled = !soundEnabled;
+    speechEnabled = soundEnabled;
     document.getElementById('btn-toggle-sound').innerText = soundEnabled ? '🔊' : '🔇';
+    if (!soundEnabled) window.speechSynthesis.cancel();
   }
 
   function speakWithLipSync(text, stageSelector, lang, onEnd) {
@@ -793,6 +809,7 @@
   }
   function selectTeacher(id) {
     selectedTeacher = id;
+    localStorage.setItem('tutorLastTeacher', id);
     applyTeacherTheme(id);
     synth.init();
     document.getElementById('topic-teacher-emoji').innerText = TEACHERS[id].emoji;
@@ -974,6 +991,15 @@
     const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
     document.getElementById('stars-display').innerText = stars;
     document.getElementById('summary-msg').innerText = `ตอบถูก ${correctCount} จาก ${quizQuestions.length} ข้อ (คะแนน ${score})`;
+
+    if (typeof ExamMapProgress !== 'undefined') {
+      const result = ExamMapProgress.recordTopicResult(selectedTopicId, correctCount, quizQuestions.length, score);
+      const coinsEl = document.getElementById('summary-coins-earned');
+      if (coinsEl) {
+        coinsEl.style.display = 'block';
+        coinsEl.innerText = `🪙 ได้เหรียญเพิ่ม ${result.coinsEarned} เหรียญ! (รวม ${result.totalCoins} เหรียญ)`;
+      }
+    }
     document.getElementById('cert-teacher').innerText = TEACHERS[selectedTeacher].name;
     document.getElementById('cert-topic').innerText = LESSONS[selectedTopicId].title;
     document.getElementById('register-name-box').style.display = 'block';
@@ -1034,6 +1060,10 @@
   // ---------- Init ----------
   renderTeacherGrid();
   applyTeacherTheme(selectedTeacher);
+  (function prefillSavedName() {
+    const savedName = localStorage.getItem('tutorStudentName');
+    if (savedName) document.getElementById('student-name-input').value = savedName;
+  })();
 </script>
 </body>
 </html>

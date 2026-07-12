@@ -266,6 +266,7 @@
     function toggleSpeech() {
       speechEnabled = !speechEnabled;
       document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
     }
 
     function registerAndStart() {
@@ -279,7 +280,7 @@
       document.getElementById('play-screen').style.display = 'flex';
       synth.init();
       const welcomeMsg = `ยินดีต้อนรับ ${playerName} เข้าสู่ถ้ำมังกรมาตราตัวสะกดค่ะ`;
-      if ('speechSynthesis' in window) {
+      if (speechEnabled && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(welcomeMsg);
         utterance.lang = 'th-TH';
         window.speechSynthesis.speak(utterance);

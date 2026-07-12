@@ -339,6 +339,7 @@
     function toggleSpeech() {
       speechEnabled = !speechEnabled;
       document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
     }
 
     function loadProgress() {
@@ -368,7 +369,7 @@
       loadProgress();
       
       const roleTh = playerTitle === 'king' ? 'พระราชา' : 'ราชินี';
-      if ('speechSynthesis' in window) {
+      if (speechEnabled && 'speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(`ยินดีต้อนรับ ${roleTh} ${playerName} เข้าสู่ห้องติวเข้มสอบเข้า ม.1 ค่ะ`);
         utterance.lang = 'th-TH';
         window.speechSynthesis.speak(utterance);

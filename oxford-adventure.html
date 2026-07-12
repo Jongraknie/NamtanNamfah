@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oxford 3000 Adventure | ทายคำศัพท์ภาษาอังกฤษ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <script src="oxford-words.js"></script>
+  <style>
+    :root {
+      --p-primary: #ff6b9d;
+      --p-secondary: #ffc2d1;
+      --p-bg: #fff0f5;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text-dark: #1f2937;
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-playful);
+      background: var(--p-bg);
+      background-image: radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--p-primary) 12%, transparent) 0%, transparent 40%),
+                         radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--gold) 10%, transparent) 0%, transparent 45%);
+      color: var(--text-dark);
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+      background: rgba(255,255,255,0.95); padding: 10px 16px; border-radius: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06); margin-bottom: 16px;
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 0.9rem; padding: 8px 14px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; cursor: pointer; font-weight: bold; }
+    .btn-back:hover { background: #f1f5f9; }
+    .header-title { font-size: 1.05rem; color: var(--p-primary); font-weight: bold; }
+    .header-stats { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { display: flex; align-items: center; gap: 4px; background: #fff7e0; border: 2px solid #fde68a; border-radius: 20px; padding: 4px 10px; font-weight: bold; color: #b45309; font-size: 0.85rem; }
+    .chip.xp { background: #ede9fe; border-color: #c4b5fd; color: #6d28d9; }
+    .chip.level { background: #dcfce7; border-color: #86efac; color: #166534; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ---- Map screen ---- */
+    .band-title { font-size: 1.05rem; font-weight: bold; margin: 18px 0 8px; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+    .band-title .band-tag { font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; color: white; }
+    .level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+    .level-node {
+      background: white; border-radius: 18px; padding: 10px 6px; text-align: center; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06); border: 3px solid transparent; transition: transform 0.15s;
+    }
+    .level-node:hover { transform: translateY(-3px); }
+    .level-node.locked { opacity: 0.55; filter: grayscale(0.5); cursor: not-allowed; }
+    .level-node.locked:hover { transform: none; }
+    .level-node .lvl-num { font-size: 1.1rem; font-weight: bold; }
+    .level-node .lvl-stars { font-size: 0.75rem; }
+    .badges-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+    .badge-pill { background: white; border-radius: 16px; padding: 6px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
+    .badge-pill.locked { opacity: 0.4; filter: grayscale(1); }
+    .top-actions { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .btn-mini { font-family: var(--font-playful); font-size: 0.85rem; padding: 8px 16px; border-radius: 20px; border: none; background: var(--p-primary); color: white; cursor: pointer; font-weight: bold; }
+    .btn-mini.secondary { background: white; color: var(--p-primary); border: 2px solid var(--p-secondary); }
+
+    /* ---- Picker screen ---- */
+    .picker-header { text-align: center; margin-bottom: 14px; }
+    .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .game-card {
+      background: white; border-radius: 20px; padding: 18px 12px; text-align: center; cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06); border: 3px solid transparent; transition: transform 0.15s;
+    }
+    .game-card:hover { transform: translateY(-4px); border-color: var(--p-secondary); }
+    .game-card.soon { opacity: 0.55; cursor: not-allowed; }
+    .game-card.soon:hover { transform: none; }
+    .game-card .icon { font-size: 2.2rem; margin-bottom: 6px; }
+    .game-card .name { font-weight: bold; font-size: 0.95rem; }
+    .game-card .soon-tag { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
+
+    /* ---- Play screen ---- */
+    .play-card { background: white; border-radius: 28px; padding: 24px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+    .progress-line { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; }
+    .big-emoji { font-size: 4.5rem; margin: 10px 0; }
+    .prompt-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 18px; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.05rem; font-weight: bold; background: white; border: 3px solid #e2e8f0; border-radius: 18px; padding: 16px 10px; cursor: pointer; transition: all 0.15s; }
+    .choice-btn:hover { border-color: var(--p-secondary); transform: translateY(-2px); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: var(--green); color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fef2f2; border-color: var(--red); color: #991b1b; }
+    .btn-voice { background: var(--p-primary); color: white; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .spell-input { font-family: var(--font-playful); font-size: 1.4rem; letter-spacing: 2px; text-align: center; padding: 10px; border: 3px solid var(--p-secondary); border-radius: 16px; width: 100%; max-width: 300px; margin: 14px 0; outline: none; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.05rem; font-weight: bold; color: white; background: linear-gradient(135deg, var(--p-primary), #ff9a76); border: none; border-radius: 50px; padding: 12px 30px; cursor: pointer; margin-top: 10px; }
+
+    /* Match game */
+    .match-columns { display: flex; gap: 18px; justify-content: center; }
+    .match-col { display: flex; flex-direction: column; gap: 8px; flex: 1; max-width: 200px; }
+    .match-item { background: white; border: 3px solid #e2e8f0; border-radius: 14px; padding: 10px; cursor: pointer; font-weight: bold; }
+    .match-item.selected { border-color: var(--gold); background: #fffbeb; }
+    .match-item.solved { border-color: var(--green); background: #ecfdf5; opacity: 0.5; cursor: default; pointer-events: none; }
+    .match-item.emoji-item { font-size: 1.6rem; }
+
+    /* Memory game */
+    .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .memory-card { aspect-ratio: 1; background: var(--p-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; cursor: pointer; color: white; user-select: none; }
+    .memory-card.flipped, .memory-card.matched { background: white; border: 3px solid var(--p-secondary); color: var(--text-dark); font-size: 1.3rem; }
+    .memory-card.matched { border-color: var(--green); opacity: 0.6; cursor: default; }
+
+    /* Flashcard */
+    .flash-card { background: linear-gradient(135deg, #fff, #fff7fb); border: 3px solid var(--p-secondary); border-radius: 24px; padding: 30px 20px; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+    .flash-word { font-size: 1.6rem; font-weight: bold; margin-top: 8px; }
+    .flash-meaning { display: none; margin-top: 10px; color: var(--p-primary); font-weight: bold; }
+    .flash-meaning.show { display: block; }
+    .flash-example { font-size: 0.85rem; color: #64748b; margin-top: 6px; }
+    .flash-nav { display: flex; justify-content: center; gap: 14px; margin-top: 16px; }
+
+    /* Result screen */
+    .result-card { background: white; border-radius: 30px; padding: 34px 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    .result-stars { font-size: 2.6rem; margin: 10px 0; }
+    .result-line { color: #64748b; margin-bottom: 6px; }
+    .badge-toast { background: #fff7e0; border: 2px dashed var(--gold); border-radius: 16px; padding: 12px; margin: 14px 0; font-weight: bold; color: #92400e; }
+
+    /* Report modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .report-box { background: white; border-radius: 24px; padding: 26px 22px; max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto; }
+    .report-box h3 { color: var(--p-primary); margin-bottom: 10px; }
+    .report-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; }
+    @media print {
+      .app-header, .top-actions, .btn-action, #btn-close-report { display: none !important; }
+      .modal-overlay { position: static; background: none; }
+      .report-box { max-height: none; box-shadow: none; }
+    }
+
+    .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-120%); background: white; border-radius: 18px; padding: 12px 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); font-weight: bold; z-index: 9999; transition: transform 0.4s ease; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      .match-columns { gap: 10px; }
+      .memory-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="wrap">
+    <header class="app-header">
+      <button class="btn-back" id="btn-back">⬅️ กลับ</button>
+      <span class="header-title" id="header-title">🎯 Oxford 3000 Adventure</span>
+      <div class="header-stats">
+        <span class="chip level">📈 <span id="stat-level">1</span></span>
+        <span class="chip xp">✨ <span id="stat-xp">0</span> XP</span>
+        <span class="chip">🪙 <span id="stat-coins">0</span></span>
+      </div>
+    </header>
+
+    <!-- Screen 1: Level map -->
+    <section class="screen active" id="screen-map">
+      <div class="top-actions">
+        <button class="btn-mini secondary" id="btn-open-report">📄 รายงานผลการเรียน</button>
+      </div>
+      <div class="badges-row" id="badges-row"></div>
+      <div id="bands-container"></div>
+    </section>
+
+    <!-- Screen 2: Game picker -->
+    <section class="screen" id="screen-picker">
+      <div class="picker-header">
+        <button class="btn-mini secondary" onclick="showScreen('screen-map')">⬅️ กลับแผนที่ด่าน</button>
+        <h3 style="margin-top:10px;" id="picker-title">ด่านที่ 1</h3>
+        <p style="color:#64748b; font-size:0.9rem;">เลือกเกมที่อยากเล่นกับคำศัพท์ชุดนี้ค่ะ</p>
+      </div>
+      <div class="game-grid" id="game-grid"></div>
+    </section>
+
+    <!-- Screen 3: Play area -->
+    <section class="screen" id="screen-play">
+      <div class="play-card">
+        <div class="progress-line" id="play-progress">1/10</div>
+        <div id="play-area"></div>
+      </div>
+    </section>
+
+    <!-- Screen 4: Result -->
+    <section class="screen" id="screen-result">
+      <div class="result-card">
+        <div id="result-emoji" style="font-size:3rem;">🎉</div>
+        <h2 id="result-title">เก่งมากเลย!</h2>
+        <div class="result-stars" id="result-stars">⭐⭐⭐</div>
+        <p class="result-line" id="result-score">ตอบถูก 8/10</p>
+        <p class="result-line" id="result-xp">+80 XP · +40 🪙</p>
+        <div id="badge-toast-area"></div>
+        <button class="btn-action" onclick="showScreen('screen-picker')">🔄 เล่นเกมอื่นในด่านนี้</button>
+        <br>
+        <button class="btn-mini secondary" style="margin-top:10px;" onclick="showScreen('screen-map')">🗺️ กลับแผนที่ด่าน</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Report modal -->
+  <div class="modal-overlay" id="report-modal">
+    <div class="report-box">
+      <h3>📄 รายงานผลการเรียน</h3>
+      <div id="report-child-name" style="font-weight:bold; margin-bottom:10px;"></div>
+      <div class="report-row"><span>เลเวลปัจจุบัน</span><span id="rep-level">1</span></div>
+      <div class="report-row"><span>คะแนนสะสม (XP)</span><span id="rep-xp">0</span></div>
+      <div class="report-row"><span>เหรียญสะสม</span><span id="rep-coins">0</span></div>
+      <div class="report-row"><span>ด่านที่ผ่านแล้ว</span><span id="rep-stages">0 / 0</span></div>
+      <div class="report-row"><span>คำศัพท์ที่เรียนแล้ว</span><span id="rep-words">0 / 0</span></div>
+      <div class="report-row"><span>เหรียญตรา (Badges)</span><span id="rep-badges">0</span></div>
+      <h3 style="margin-top:14px;">จุดที่ควรฝึกเพิ่ม</h3>
+      <div id="rep-weak" style="font-size:0.9rem; color:#64748b;"></div>
+      <button class="btn-action" onclick="window.print()">🖨️ พิมพ์รายงาน</button>
+      <button class="btn-mini secondary" id="btn-close-report" style="margin-top:10px; width:100%;">ปิดหน้าต่างนี้</button>
+    </div>
+  </div>
+
+<script>
+  // ---------- Child / room setup ----------
+  const params = new URLSearchParams(window.location.search);
+  const CHILD = params.get('child') === 'namtan' ? 'namtan' : 'namfah';
+  const CHILD_THEME = {
+    namfah: { primary: '#ff6b9d', secondary: '#ffc2d1', bg: '#fff0f5', name: 'น้ำฟ้า', backUrl: 'index.html', backLabel: '⬅️ ห้องน้ำฟ้า' },
+    namtan: { primary: '#0284c7', secondary: '#7dd3fc', bg: '#f0f9ff', name: 'น้ำตาล', backUrl: 'english6.html', backLabel: '⬅️ ห้องน้ำตาล' }
+  };
+  (function applyTheme() {
+    const t = CHILD_THEME[CHILD];
+    document.documentElement.style.setProperty('--p-primary', t.primary);
+    document.documentElement.style.setProperty('--p-secondary', t.secondary);
+    document.documentElement.style.setProperty('--p-bg', t.bg);
+    document.getElementById('btn-back').innerText = t.backLabel;
+    document.getElementById('btn-back').addEventListener('click', () => window.location.href = t.backUrl);
+    document.getElementById('btn-close-report').addEventListener('click', () => document.getElementById('report-modal').classList.remove('active'));
+    document.getElementById('btn-open-report').addEventListener('click', openReport);
+  })();
+
+  const STAGE_SIZE = 10;
+  const STAGES = OxfordWords.stages(STAGE_SIZE);
+  const CEFR_ORDER = ['A1', 'A2', 'B1', 'B2'];
+  const CEFR_COLOR = { A1: '#22c55e', A2: '#0ea5e9', B1: '#a855f7', B2: '#ef4444' };
+
+  const GAME_TYPES = [
+    { id: 'flashcard', name: 'Flash Card', icon: '🗂️', enabled: true },
+    { id: 'guess', name: 'Guess the Picture', icon: '🖼️', enabled: true },
+    { id: 'match', name: 'Match Word & Picture', icon: '🧩', enabled: true },
+    { id: 'memory', name: 'Memory Game', icon: '🧠', enabled: true },
+    { id: 'listening', name: 'Listening Quiz', icon: '🎧', enabled: true },
+    { id: 'spelling', name: 'Spelling Bee', icon: '🐝', enabled: true },
+    { id: 'hangman', name: 'Hangman', icon: '🪢', enabled: false },
+    { id: 'wordsearch', name: 'Word Search', icon: '🔎', enabled: false },
+    { id: 'dragdrop', name: 'Drag & Drop', icon: '🖐️', enabled: false },
+    { id: 'crossword', name: 'Crossword', icon: '✏️', enabled: false }
+  ];
+
+  const BADGES = [
+    { id: 'first_stage', name: 'ด่านแรกสำเร็จ', icon: '🥉', check: p => Object.values(p.stages).some(s => s.bestPercent >= 60) },
+    { id: 'five_stages', name: 'นักผจญภัย 5 ด่าน', icon: '🥈', check: p => Object.values(p.stages).filter(s => s.bestPercent >= 60).length >= 5 },
+    { id: 'ten_stages', name: 'นักผจญภัย 10 ด่าน', icon: '🥇', check: p => Object.values(p.stages).filter(s => s.bestPercent >= 60).length >= 10 },
+    { id: 'perfect_score', name: 'ตอบถูกครบ 100%', icon: '💯', check: p => p.hadPerfect === true },
+    { id: 'level5', name: 'เลเวล 5', icon: '⭐', check: p => 1 + Math.floor(p.xp / 100) >= 5 }
+  ];
+
+  // ---------- Progress storage ----------
+  const STORE_KEY = `oxfordAdventure_${CHILD}`;
+  function loadProgress() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+      return { xp: raw.xp || 0, coins: raw.coins || 0, stages: raw.stages || {}, badges: raw.badges || [], hadPerfect: !!raw.hadPerfect };
+    } catch (e) { return { xp: 0, coins: 0, stages: {}, badges: [], hadPerfect: false }; }
+  }
+  function saveProgress(p) { localStorage.setItem(STORE_KEY, JSON.stringify(p)); }
+  let progress = loadProgress();
+
+  function playerLevel(p) { return 1 + Math.floor(p.xp / 100); }
+  function isStageUnlocked(idx) {
+    if (idx === 0) return true;
+    const prev = progress.stages[idx - 1];
+    return !!(prev && prev.bestPercent >= 60);
+  }
+  function stagePercentToStars(pct) { return pct >= 90 ? 3 : pct >= 70 ? 2 : pct >= 40 ? 1 : 0; }
+
+  function checkNewBadges() {
+    const newly = [];
+    BADGES.forEach(b => {
+      if (!progress.badges.includes(b.id) && b.check(progress)) {
+        progress.badges.push(b.id);
+        newly.push(b);
+      }
+    });
+    return newly;
+  }
+
+  function recordGameResult(stageIdx, gameId, correct, total) {
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 100;
+    const xpEarned = gameId === 'flashcard' ? 30 : correct * 8;
+    const coinsEarned = gameId === 'flashcard' ? 15 : correct * 4;
+    progress.xp += xpEarned;
+    progress.coins += coinsEarned;
+    if (pct === 100 && gameId !== 'flashcard') progress.hadPerfect = true;
+    const prevStage = progress.stages[stageIdx] || { bestPercent: 0, plays: 0 };
+    progress.stages[stageIdx] = { bestPercent: Math.max(prevStage.bestPercent, pct), plays: prevStage.plays + 1 };
+    const newBadges = checkNewBadges();
+    saveProgress(progress);
+    return { pct, xpEarned, coinsEarned, newBadges };
+  }
+
+  // ---------- Shared helpers ----------
+  function shuffle(arr) { return [...arr].sort(() => 0.5 - Math.random()); }
+  function pickDistractors(correctWord, pool, n) {
+    const others = pool.filter(w => w.word !== correctWord.word);
+    return shuffle(others).slice(0, n);
+  }
+  function speak(text, lang = 'en-US') {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = 0.85;
+    window.speechSynthesis.speak(u);
+  }
+  function showToast(text) {
+    const t = document.getElementById('toast');
+    t.innerText = text;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-map') renderMap();
+  }
+  function refreshHud() {
+    document.getElementById('stat-level').innerText = playerLevel(progress);
+    document.getElementById('stat-xp').innerText = progress.xp;
+    document.getElementById('stat-coins').innerText = progress.coins;
+  }
+
+  // ---------- Screen 1: Map ----------
+  function renderMap() {
+    refreshHud();
+    const container = document.getElementById('bands-container');
+    container.innerHTML = '';
+    let stageCursor = 0;
+    CEFR_ORDER.forEach(level => {
+      const levelWordCount = OxfordWords.byLevel(level).length;
+      if (levelWordCount === 0) return;
+      const stagesInBand = Math.ceil(levelWordCount / STAGE_SIZE);
+      const band = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'band-title';
+      title.innerHTML = `${level} <span class="band-tag" style="background:${CEFR_COLOR[level]}">${levelWordCount} คำ</span>`;
+      band.appendChild(title);
+      const grid = document.createElement('div');
+      grid.className = 'level-grid';
+      for (let i = 0; i < stagesInBand; i++) {
+        const idx = stageCursor;
+        const unlocked = isStageUnlocked(idx);
+        const stageProgress = progress.stages[idx];
+        const stars = stageProgress ? stagePercentToStars(stageProgress.bestPercent) : 0;
+        const node = document.createElement('div');
+        node.className = 'level-node' + (unlocked ? '' : ' locked');
+        node.innerHTML = `<div class="lvl-num">${idx + 1}</div><div class="lvl-stars">${unlocked ? '⭐'.repeat(stars) + '☆'.repeat(3 - stars) : '🔒'}</div>`;
+        node.addEventListener('click', () => {
+          if (!unlocked) { showToast('🔒 ผ่านด่านก่อนหน้าให้ได้อย่างน้อย 60% ก่อนนะคะ'); return; }
+          openPicker(idx);
+        });
+        grid.appendChild(node);
+        stageCursor++;
+      }
+      band.appendChild(grid);
+      container.appendChild(band);
+    });
+
+    const badgesRow = document.getElementById('badges-row');
+    badgesRow.innerHTML = BADGES.map(b => {
+      const earned = progress.badges.includes(b.id);
+      return `<span class="badge-pill${earned ? '' : ' locked'}">${b.icon} ${b.name}</span>`;
+    }).join('');
+
+    if (typeof fbLogActivity === 'function') {
+      fbLogActivity(CHILD_THEME[CHILD].name, 'เปิด Oxford 3000 Adventure');
+    }
+  }
+
+  // ---------- Screen 2: Picker ----------
+  let currentStageIdx = 0;
+  function openPicker(idx) {
+    currentStageIdx = idx;
+    document.getElementById('picker-title').innerText = `ด่านที่ ${idx + 1} (${STAGES[idx][0].cefr})`;
+    const grid = document.getElementById('game-grid');
+    grid.innerHTML = '';
+    GAME_TYPES.forEach(g => {
+      const card = document.createElement('div');
+      card.className = 'game-card' + (g.enabled ? '' : ' soon');
+      card.innerHTML = `<div class="icon">${g.icon}</div><div class="name">${g.name}</div>${g.enabled ? '' : '<div class="soon-tag">เร็วๆ นี้</div>'}`;
+      card.addEventListener('click', () => {
+        if (!g.enabled) { showToast('🚧 เกมนี้กำลังจะมาเร็วๆ นี้ค่ะ'); return; }
+        startGame(g.id, idx);
+      });
+      grid.appendChild(card);
+    });
+    showScreen('screen-picker');
+  }
+
+  // ---------- Screen 3: Play (dispatch) ----------
+  let session = null;
+  function startGame(gameId, stageIdx) {
+    session = { gameId, stageIdx, words: STAGES[stageIdx], idx: 0, correct: 0, mistakes: 0 };
+    showScreen('screen-play');
+    if (gameId === 'flashcard') return playFlashcard();
+    if (gameId === 'guess') return playGuess();
+    if (gameId === 'match') return playMatch();
+    if (gameId === 'memory') return playMemory();
+    if (gameId === 'listening') return playListening();
+    if (gameId === 'spelling') return playSpelling();
+  }
+  function setProgressLine(text) { document.getElementById('play-progress').innerText = text; }
+
+  function finishSession() {
+    const total = session.gameId === 'match' || session.gameId === 'memory' ? session.words.length : session.words.length;
+    const result = recordGameResult(session.stageIdx, session.gameId, session.correct, total);
+    document.getElementById('result-stars').innerText = '⭐'.repeat(stagePercentToStars(result.pct)) + '☆'.repeat(3 - stagePercentToStars(result.pct));
+    document.getElementById('result-score').innerText = `ถูกต้อง ${session.correct}/${total} (${result.pct}%)`;
+    document.getElementById('result-xp').innerText = `+${result.xpEarned} XP · +${result.coinsEarned} 🪙`;
+    document.getElementById('result-title').innerText = result.pct >= 70 ? 'เก่งมากเลย! 🎉' : 'ทำได้ดีมาก ลองอีกครั้งนะ! 💪';
+    const badgeArea = document.getElementById('badge-toast-area');
+    badgeArea.innerHTML = result.newBadges.map(b => `<div class="badge-toast">🎉 ปลดล็อกเหรียญตราใหม่! ${b.icon} ${b.name}</div>`).join('');
+    refreshHud();
+    showScreen('screen-result');
+  }
+
+  // ---- Flash Card ----
+  function playFlashcard() {
+    session.correct = session.words.length; // review-style: completion = mastery credit
+    renderFlashcard();
+  }
+  function renderFlashcard() {
+    setProgressLine(`การ์ดที่ ${session.idx + 1}/${session.words.length}`);
+    const w = session.words[session.idx];
+    const area = document.getElementById('play-area');
+    area.innerHTML = `
+      <div class="flash-card" id="flash-card-el">
+        <div class="big-emoji">${w.emoji}</div>
+        <div class="flash-word">${w.word}</div>
+        <div class="flash-meaning" id="flash-meaning">${w.thai} <span style="font-weight:normal; font-size:0.8rem;">(${w.pos})</span><div class="flash-example">"${w.example}"</div></div>
+      </div>
+      <div class="flash-nav">
+        <button class="btn-voice" onclick="speak('${w.word.replace(/'/g, "\\'")}')" title="ฟังเสียง">🔊</button>
+      </div>
+      <div class="flash-nav">
+        <button class="btn-mini secondary" id="btn-flash-prev" ${session.idx === 0 ? 'disabled' : ''}>⬅️ ก่อนหน้า</button>
+        <button class="btn-action" id="btn-flash-next">${session.idx === session.words.length - 1 ? 'จบการ์ดชุดนี้ 🎉' : 'ถัดไป ➡️'}</button>
+      </div>`;
+    document.getElementById('flash-card-el').addEventListener('click', () => document.getElementById('flash-meaning').classList.toggle('show'));
+    document.getElementById('btn-flash-prev').addEventListener('click', () => { session.idx--; renderFlashcard(); });
+    document.getElementById('btn-flash-next').addEventListener('click', () => {
+      if (session.idx === session.words.length - 1) return finishSession();
+      session.idx++; renderFlashcard();
+    });
+    speak(w.word);
+  }
+
+  // ---- Guess the Picture ----
+  function playGuess() { renderGuess(); }
+  function renderGuess() {
+    if (session.idx >= session.words.length) return finishSession();
+    setProgressLine(`ข้อที่ ${session.idx + 1}/${session.words.length}`);
+    const w = session.words[session.idx];
+    const distractors = pickDistractors(w, OXFORD_WORDS, 3);
+    const choices = shuffle([w, ...distractors]);
+    const area = document.getElementById('play-area');
+    area.innerHTML = `
+      <div class="big-emoji">${w.emoji}</div>
+      <div class="prompt-text">รูปนี้คือคำว่าอะไรคะ?</div>
+      <div class="choices-grid" id="guess-choices"></div>`;
+    const grid = document.getElementById('guess-choices');
+    choices.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = c.word;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#guess-choices .choice-btn').forEach(b => b.disabled = true);
+        const isCorrect = c.word === w.word;
+        btn.classList.add(isCorrect ? 'correct-ui' : 'incorrect-ui');
+        if (!isCorrect) {
+          [...document.querySelectorAll('#guess-choices .choice-btn')].find(b => b.innerText === w.word).classList.add('correct-ui');
+        } else { session.correct++; }
+        showToast(isCorrect ? '⭐ เก่งมาก!' : `🐰 คำตอบคือ "${w.word}" ค่ะ`);
+        setTimeout(() => { session.idx++; renderGuess(); }, 1000);
+      });
+      grid.appendChild(btn);
+    });
+    speak(w.word);
+  }
+
+  // ---- Match Word & Picture ----
+  function playMatch() {
+    const words = session.words;
+    const leftOrder = shuffle(words);
+    const rightOrder = shuffle(words);
+    session.matchSolved = new Set();
+    session.matchSelectedWord = null;
+    session.matchSelectedEmoji = null;
+    setProgressLine(`จับคู่ให้ครบ ${words.length} คำ`);
+    const area = document.getElementById('play-area');
+    area.innerHTML = `<div class="match-columns"><div class="match-col" id="match-words"></div><div class="match-col" id="match-emojis"></div></div>`;
+    const wordsCol = document.getElementById('match-words');
+    const emojisCol = document.getElementById('match-emojis');
+    leftOrder.forEach(w => {
+      const el = document.createElement('div');
+      el.className = 'match-item';
+      el.innerText = w.word;
+      el.dataset.word = w.word;
+      el.addEventListener('click', () => selectMatchWord(el, w));
+      wordsCol.appendChild(el);
+    });
+    rightOrder.forEach(w => {
+      const el = document.createElement('div');
+      el.className = 'match-item emoji-item';
+      el.innerText = w.emoji;
+      el.dataset.word = w.word;
+      el.addEventListener('click', () => selectMatchEmoji(el, w));
+      emojisCol.appendChild(el);
+    });
+  }
+  function selectMatchWord(el, w) {
+    if (el.classList.contains('solved')) return;
+    document.querySelectorAll('#match-words .match-item').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    session.matchSelectedWord = { el, w };
+    tryMatchResolve();
+  }
+  function selectMatchEmoji(el, w) {
+    if (el.classList.contains('solved')) return;
+    document.querySelectorAll('#match-emojis .match-item').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    session.matchSelectedEmoji = { el, w };
+    tryMatchResolve();
+  }
+  function tryMatchResolve() {
+    if (!session.matchSelectedWord || !session.matchSelectedEmoji) return;
+    const { el: wEl, w: wWord } = session.matchSelectedWord;
+    const { el: eEl, w: eWord } = session.matchSelectedEmoji;
+    if (wWord.word === eWord.word) {
+      wEl.classList.add('solved'); eEl.classList.add('solved');
+      wEl.classList.remove('selected'); eEl.classList.remove('selected');
+      session.matchSolved.add(wWord.word);
+      if (session.matchSolved.size === session.words.length) {
+        session.correct = Math.max(0, session.words.length - Math.round(session.mistakes / 2));
+        setTimeout(finishSession, 500);
+      }
+    } else {
+      session.mistakes++;
+      wEl.classList.add('incorrect-ui'); eEl.classList.add('incorrect-ui');
+      setTimeout(() => { wEl.classList.remove('incorrect-ui', 'selected'); eEl.classList.remove('incorrect-ui', 'selected'); }, 500);
+    }
+    session.matchSelectedWord = null; session.matchSelectedEmoji = null;
+  }
+
+  // ---- Memory Game ----
+  function playMemory() {
+    const words = session.words.slice(0, 8); // cap grid size for a playable board
+    const cards = shuffle([
+      ...words.map(w => ({ key: w.word, label: w.word, type: 'word' })),
+      ...words.map(w => ({ key: w.word, label: w.emoji, type: 'emoji' }))
+    ]);
+    session.memoryWords = words;
+    session.memoryCards = cards;
+    session.memoryFlipped = [];
+    session.memoryMatched = new Set();
+    session.mistakes = 0;
+    setProgressLine(`จับคู่ความจำ ${words.length} คำ`);
+    const area = document.getElementById('play-area');
+    area.innerHTML = `<div class="memory-grid" id="memory-grid"></div>`;
+    const grid = document.getElementById('memory-grid');
+    cards.forEach((c, i) => {
+      const el = document.createElement('div');
+      el.className = 'memory-card';
+      el.dataset.index = i;
+      el.innerText = '❓';
+      el.addEventListener('click', () => flipMemoryCard(i));
+      grid.appendChild(el);
+    });
+  }
+  function flipMemoryCard(i) {
+    const cardsEls = document.querySelectorAll('#memory-grid .memory-card');
+    const el = cardsEls[i];
+    if (el.classList.contains('matched') || el.classList.contains('flipped') || session.memoryFlipped.length === 2) return;
+    el.classList.add('flipped');
+    el.innerText = session.memoryCards[i].label;
+    session.memoryFlipped.push(i);
+    if (session.memoryFlipped.length === 2) {
+      const [a, b] = session.memoryFlipped;
+      const cardA = session.memoryCards[a], cardB = session.memoryCards[b];
+      if (cardA.key === cardB.key && a !== b) {
+        cardsEls[a].classList.add('matched'); cardsEls[b].classList.add('matched');
+        session.memoryMatched.add(cardA.key);
+        session.memoryFlipped = [];
+        if (session.memoryMatched.size === session.memoryWords.length) {
+          session.correct = Math.max(0, session.memoryWords.length - Math.round(session.mistakes / 2));
+          setTimeout(finishSession, 500);
+        }
+      } else {
+        session.mistakes++;
+        setTimeout(() => {
+          cardsEls[a].classList.remove('flipped'); cardsEls[a].innerText = '❓';
+          cardsEls[b].classList.remove('flipped'); cardsEls[b].innerText = '❓';
+          session.memoryFlipped = [];
+        }, 800);
+      }
+    }
+  }
+
+  // ---- Listening Quiz ----
+  function playListening() { renderListening(); }
+  function renderListening() {
+    if (session.idx >= session.words.length) return finishSession();
+    setProgressLine(`ข้อที่ ${session.idx + 1}/${session.words.length}`);
+    const w = session.words[session.idx];
+    const distractors = pickDistractors(w, OXFORD_WORDS, 3);
+    const choices = shuffle([w, ...distractors]);
+    const area = document.getElementById('play-area');
+    area.innerHTML = `
+      <div class="prompt-text">ฟังคำศัพท์แล้วเลือกคำแปลที่ถูกต้อง</div>
+      <button class="btn-voice" id="btn-listen-again">🔊</button>
+      <div class="choices-grid" id="listen-choices" style="margin-top:16px;"></div>`;
+    document.getElementById('btn-listen-again').addEventListener('click', () => speak(w.word));
+    const grid = document.getElementById('listen-choices');
+    choices.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = c.thai;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#listen-choices .choice-btn').forEach(b => b.disabled = true);
+        const isCorrect = c.word === w.word;
+        btn.classList.add(isCorrect ? 'correct-ui' : 'incorrect-ui');
+        if (!isCorrect) {
+          [...document.querySelectorAll('#listen-choices .choice-btn')].find(b => b.innerText === w.thai).classList.add('correct-ui');
+        } else { session.correct++; }
+        setTimeout(() => { session.idx++; renderListening(); }, 1000);
+      });
+      grid.appendChild(btn);
+    });
+    speak(w.word);
+  }
+
+  // ---- Spelling Bee ----
+  function playSpelling() { renderSpelling(); }
+  function renderSpelling() {
+    if (session.idx >= session.words.length) return finishSession();
+    setProgressLine(`ข้อที่ ${session.idx + 1}/${session.words.length}`);
+    const w = session.words[session.idx];
+    const area = document.getElementById('play-area');
+    area.innerHTML = `
+      <div class="big-emoji">${w.emoji}</div>
+      <div class="prompt-text">${w.thai}</div>
+      <button class="btn-voice" id="btn-spell-listen">🔊</button>
+      <br>
+      <input type="text" class="spell-input" id="spell-input" placeholder="พิมพ์สะกดคำที่นี่..." autocomplete="off">
+      <br>
+      <button class="btn-action" id="btn-spell-submit">ตรวจคำตอบ ✅</button>`;
+    document.getElementById('btn-spell-listen').addEventListener('click', () => speak(w.word));
+    const input = document.getElementById('spell-input');
+    const submit = () => {
+      const val = input.value.trim().toLowerCase();
+      const isCorrect = val === w.word.toLowerCase();
+      if (isCorrect) session.correct++;
+      showToast(isCorrect ? '⭐ สะกดถูกต้อง!' : `🐰 สะกดที่ถูกคือ "${w.word}" ค่ะ`);
+      input.disabled = true;
+      document.getElementById('btn-spell-submit').disabled = true;
+      setTimeout(() => { session.idx++; renderSpelling(); }, 1200);
+    };
+    document.getElementById('btn-spell-submit').addEventListener('click', submit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    speak(w.word);
+    setTimeout(() => input.focus(), 100);
+  }
+
+  // ---------- Report ----------
+  function openReport() {
+    document.getElementById('report-child-name').innerText = `${CHILD_THEME[CHILD].name} — ${new Date().toLocaleDateString('th-TH')}`;
+    document.getElementById('rep-level').innerText = playerLevel(progress);
+    document.getElementById('rep-xp').innerText = progress.xp;
+    document.getElementById('rep-coins').innerText = progress.coins;
+    const clearedStages = Object.values(progress.stages).filter(s => s.bestPercent >= 60).length;
+    document.getElementById('rep-stages').innerText = `${clearedStages} / ${STAGES.length}`;
+    document.getElementById('rep-words').innerText = `${Math.min(OXFORD_WORDS.length, clearedStages * STAGE_SIZE)} / ${OXFORD_WORDS.length}`;
+    document.getElementById('rep-badges').innerText = `${progress.badges.length} / ${BADGES.length}`;
+    const weakEntries = Object.entries(progress.stages).filter(([, s]) => s.bestPercent < 70).slice(0, 5);
+    const weakBox = document.getElementById('rep-weak');
+    weakBox.innerHTML = weakEntries.length
+      ? weakEntries.map(([idx, s]) => `<div>• ด่านที่ ${Number(idx) + 1} (${STAGES[idx][0].cefr}) — ทำได้ ${s.bestPercent}%</div>`).join('')
+      : '<div>ยังไม่มีข้อมูลเพียงพอ ลองเล่นต่ออีกนิดนะคะ</div>';
+    document.getElementById('report-modal').classList.add('active');
+  }
+
+  // ---------- Init ----------
+  renderMap();
+</script>
+</body>
+</html>

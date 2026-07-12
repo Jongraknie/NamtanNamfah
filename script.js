@@ -1133,6 +1133,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const namtanExamprepBtn = document.getElementById('btn-goto-namtan-examprep');
+  if (namtanExamprepBtn) {
+    namtanExamprepBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปที่ Midterm Prep Academy กันเลยค่ะน้องน้ำตาล!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'namtan-examprep-map.html';
+      }, 1000);
+    });
+  }
+
   // 1d. Namtan (ป.6) subject cards -> standalone pages
   const math6Btn = document.getElementById('btn-goto-math6');
   if (math6Btn) {

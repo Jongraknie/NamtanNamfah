@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Midterm Prep Academy | น้ำตาล ป.6</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <script src="namtan-examprep-progress.js"></script>
+  <style>
+    :root {
+      --purple: #a78bfa;
+      --purple-dark: #6d28d9;
+      --pink: #ec4899;
+      --blue: #38bdf8;
+      --gold: #fbbf24;
+      --text-light: #f5f3ff;
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; }
+    body {
+      font-family: var(--font-playful);
+      color: var(--text-light);
+      min-height: 100vh;
+      background: linear-gradient(180deg, #1e1b4b 0%, #4c1d95 45%, #831843 100%);
+      padding: 18px 16px 60px;
+      position: relative;
+    }
+    .star { position: fixed; color: #fff; opacity: 0.6; pointer-events: none; z-index: 0; animation: twinkle 2.6s ease-in-out infinite; }
+    @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 0.9; transform: scale(1.2); } }
+    .sparkle-orb { position: fixed; border-radius: 50%; filter: blur(30px); opacity: 0.35; pointer-events: none; z-index: 0; }
+
+    .page-wrap { position: relative; z-index: 1; max-width: 660px; margin: 0 auto; }
+
+    .app-header {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: rgba(30, 27, 75, 0.75); backdrop-filter: blur(6px); padding: 10px 18px; border-radius: 22px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3); border: 1px solid rgba(167,139,250,0.3); margin-bottom: 16px;
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 0.9rem; padding: 8px 14px; border: 2px solid rgba(167,139,250,0.4); border-radius: 20px; background: rgba(255,255,255,0.08); color: var(--text-light); cursor: pointer; font-weight: bold; }
+    .btn-back:hover { background: rgba(255,255,255,0.16); }
+    .header-title { font-size: 1.05rem; color: #f0abfc; font-weight: bold; }
+    .coin-chip { display: flex; align-items: center; gap: 5px; background: rgba(251,191,36,0.15); border: 2px solid rgba(251,191,36,0.5); border-radius: 20px; padding: 6px 12px; font-weight: bold; color: var(--gold); font-size: 0.95rem; }
+
+    .hero-card {
+      background: rgba(255,255,255,0.08); backdrop-filter: blur(6px); border: 1px solid rgba(167,139,250,0.3);
+      border-radius: 30px; padding: 26px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 16px;
+    }
+    .hero-mascot { font-size: 4rem; animation: bob 2.6s ease-in-out infinite; filter: drop-shadow(0 0 12px rgba(167,139,250,0.6)); }
+    @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(3deg); } }
+    .hero-title { font-size: 1.5rem; color: #f0abfc; margin: 6px 0 4px; }
+    .hero-subtitle { color: #e9d5ff; font-size: 0.98rem; margin-bottom: 14px; }
+    .countdown-chip { display: inline-block; background: rgba(236,72,153,0.18); border: 2px solid rgba(236,72,153,0.5); border-radius: 20px; padding: 8px 18px; font-weight: bold; color: #fbcfe8; margin-bottom: 16px; }
+    .btn-cta {
+      font-family: var(--font-playful); font-size: 1.1rem; font-weight: bold; color: #1e1b4b;
+      background: linear-gradient(135deg, var(--gold) 0%, #f0abfc 100%); border: none; border-radius: 50px;
+      padding: 14px 34px; cursor: pointer; box-shadow: 0 6px 20px rgba(251,191,36,0.4);
+      animation: pulseCta 1.9s ease-in-out infinite;
+    }
+    @keyframes pulseCta { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+    .btn-sound-hint { display: inline-block; margin-top: 10px; font-size: 0.82rem; color: #e9d5ff; background: none; border: none; cursor: pointer; text-decoration: underline; font-family: var(--font-playful); }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat-chip { background: rgba(255,255,255,0.08); border: 1px solid rgba(167,139,250,0.3); border-radius: 18px; padding: 10px 6px; text-align: center; border-bottom: 3px solid var(--purple); }
+    .stat-chip .stat-icon { font-size: 1.25rem; }
+    .stat-chip .stat-value { font-size: 1.1rem; font-weight: bold; color: var(--text-light); }
+    .stat-chip .stat-label { font-size: 0.65rem; color: #c4b5fd; }
+
+    .card-panel { background: rgba(255,255,255,0.08); border: 1px solid rgba(167,139,250,0.3); border-radius: 20px; padding: 14px 16px; margin-bottom: 16px; }
+    .card-panel-title { font-size: 0.85rem; color: #e9d5ff; margin-bottom: 8px; font-weight: bold; }
+    .calendar-strip { display: flex; justify-content: space-between; gap: 4px; }
+    .cal-day { flex: 1; text-align: center; }
+    .cal-day .cal-dow { font-size: 0.62rem; color: #c4b5fd; }
+    .cal-day .cal-dot { width: 24px; height: 24px; border-radius: 50%; margin: 3px auto 0; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; background: rgba(255,255,255,0.08); }
+    .cal-day.played .cal-dot { background: linear-gradient(135deg, #34d399, #10b981); color: white; }
+    .cal-day.today .cal-dow { color: var(--gold); font-weight: bold; }
+
+    .mission-card {
+      background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(236,72,153,0.15)); border: 2px dashed var(--gold);
+      border-radius: 20px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .mission-icon { font-size: 2rem; flex-shrink: 0; }
+    .mission-text { font-size: 0.92rem; color: #fef3c7; font-weight: bold; line-height: 1.4; }
+
+    .recent-list { font-size: 0.85rem; color: #e9d5ff; }
+    .recent-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(167,139,250,0.25); }
+
+    .map-path { position: relative; padding: 10px 0 30px; }
+    .map-path::before {
+      content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 6px; transform: translateX(-50%);
+      background: repeating-linear-gradient(180deg, rgba(167,139,250,0.5) 0, rgba(167,139,250,0.5) 10px, transparent 10px, transparent 20px);
+      border-radius: 4px; z-index: 0;
+    }
+    .island-row { display: flex; margin-bottom: 20px; position: relative; z-index: 1; }
+    .island-row.align-left { justify-content: flex-start; }
+    .island-row.align-right { justify-content: flex-end; }
+    .island-row.align-center { justify-content: center; }
+    .island {
+      width: 82%; max-width: 340px; background: rgba(255,255,255,0.1); backdrop-filter: blur(6px); border-radius: 26px; padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 22px rgba(0,0,0,0.3);
+      border: 2px solid rgba(167,139,250,0.4); cursor: pointer; transition: transform 0.15s ease;
+      animation: popIn 0.5s ease backwards;
+    }
+    .island:hover { transform: translateY(-4px) scale(1.02); border-color: var(--gold); }
+    .island.locked { cursor: not-allowed; opacity: 0.55; filter: grayscale(0.4); }
+    .island.locked:hover { transform: none; border-color: rgba(167,139,250,0.4); }
+    @keyframes popIn { 0% { opacity: 0; transform: scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+    .island-emoji { font-size: 2.4rem; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .island-info { flex: 1; min-width: 0; }
+    .island-name { font-size: 1.0rem; font-weight: bold; color: var(--text-light); }
+    .island-sub { font-size: 0.72rem; color: #c4b5fd; }
+    .island-stars { font-size: 0.95rem; letter-spacing: 2px; }
+    .island-lock { font-size: 1.5rem; flex-shrink: 0; }
+
+    .final-castle {
+      width: 88%; max-width: 360px; margin: 6px auto; background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(236,72,153,0.18));
+      border-radius: 28px; padding: 20px; text-align: center; border: 2px dashed var(--gold);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.3); cursor: pointer; position: relative; z-index: 1;
+    }
+    .final-castle.locked { opacity: 0.6; filter: grayscale(0.4); cursor: not-allowed; }
+    .final-castle .castle-emoji { font-size: 2.6rem; }
+    .final-castle h4 { color: #fef3c7; margin: 6px 0 4px; }
+    .final-castle p { font-size: 0.8rem; color: #fde68a; }
+
+    .badges-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .badge-pill { background: rgba(255,255,255,0.08); border: 1px solid rgba(167,139,250,0.3); border-radius: 16px; padding: 6px 12px; font-size: 0.78rem; color: var(--text-light); }
+    .badge-pill.locked { opacity: 0.35; filter: grayscale(1); }
+
+    .toast {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-120%);
+      background: #f5f3ff; color: #1e1b4b; border-radius: 18px; padding: 12px 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      font-weight: bold; z-index: 9999; transition: transform 0.4s ease;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9998; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #1e1b4b; border: 1px solid rgba(167,139,250,0.4); border-radius: 26px; padding: 26px 22px; max-width: 400px; width: 100%; max-height: 85vh; overflow-y: auto; color: var(--text-light); }
+    .modal-box h3 { color: #f0abfc; margin-bottom: 10px; }
+    .report-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 6px 0; border-bottom: 1px dashed rgba(167,139,250,0.25); }
+    .modal-box button { margin-top: 12px; font-family: var(--font-playful); background: linear-gradient(135deg, var(--gold), #f0abfc); color: #1e1b4b; border: none; border-radius: 50px; padding: 10px 24px; font-size: 0.95rem; font-weight: bold; cursor: pointer; width: 100%; }
+
+    @media (max-width: 420px) {
+      .island { width: 94%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="report-modal">
+    <div class="modal-box">
+      <h3>📄 รายงานผลการเรียน (Parent Dashboard)</h3>
+      <div id="report-name" style="font-weight:bold; margin-bottom:10px;"></div>
+      <div class="report-row"><span>เลเวลปัจจุบัน</span><span id="rep-level">1</span></div>
+      <div class="report-row"><span>คะแนนสะสม (XP)</span><span id="rep-xp">0</span></div>
+      <div class="report-row"><span>เหรียญสะสม</span><span id="rep-coins">0</span></div>
+      <div class="report-row"><span>บทเรียนที่ผ่านแล้ว</span><span id="rep-chapters">0 / 4</span></div>
+      <div class="report-row"><span>วันติดต่อกัน (Streak)</span><span id="rep-streak">0</span></div>
+      <h3 style="margin-top:14px;">📊 คะแนนสอบกลางภาคจำลอง (ล่าสุด)</h3>
+      <div id="rep-exam-history" class="recent-list"></div>
+      <h3 style="margin-top:14px;">🎯 จุดที่ควรทบทวนเพิ่ม</h3>
+      <div id="rep-weak" style="font-size:0.88rem; color:#e9d5ff;"></div>
+      <button onclick="window.print()">🖨️ พิมพ์รายงาน</button>
+      <button id="btn-close-report" style="background:rgba(255,255,255,0.1); color:var(--text-light); margin-top:8px;">ปิดหน้าต่างนี้</button>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+    <header class="app-header">
+      <button class="btn-back" id="btn-back">⬅️ ห้องน้ำตาล</button>
+      <span class="header-title">🎓 Midterm Prep Academy</span>
+      <span class="coin-chip">🪙 <span id="coin-count">0</span></span>
+    </header>
+
+    <section class="hero-card">
+      <div class="hero-mascot">🦉</div>
+      <h1 class="hero-title">✨ สวัสดี พี่น้ำตาล ✨</h1>
+      <p class="hero-subtitle" id="hero-subtitle">พร้อมลุยสอบกลางภาคหรือยังคะ?</p>
+      <div class="countdown-chip" id="countdown-chip">⏳ กำลังคำนวณวันสอบ...</div>
+      <br>
+      <button class="btn-cta" id="btn-cta" onclick="goToNext()">เริ่มทบทวนกันเลย 🚀</button>
+      <br>
+      <button class="btn-sound-hint" onclick="speakGreeting()">🔊 ฟังครูฮูกทักทาย</button>
+    </section>
+
+    <section class="stats-row">
+      <div class="stat-chip"><div class="stat-icon">📈</div><div class="stat-value" id="stat-level">1</div><div class="stat-label">เลเวล</div></div>
+      <div class="stat-chip"><div class="stat-icon">✨</div><div class="stat-value" id="stat-xp">0</div><div class="stat-label">XP</div></div>
+      <div class="stat-chip"><div class="stat-icon">🪙</div><div class="stat-value" id="stat-coins">0</div><div class="stat-label">เหรียญ</div></div>
+      <div class="stat-chip"><div class="stat-icon">🔥</div><div class="stat-value" id="stat-streak">0</div><div class="stat-label">วันติดต่อกัน</div></div>
+    </section>
+
+    <div class="badges-row" id="badges-row"></div>
+
+    <section class="card-panel">
+      <div class="card-panel-title">📅 ปฏิทินการเรียนสัปดาห์นี้</div>
+      <div class="calendar-strip" id="calendar-strip"></div>
+    </section>
+
+    <section class="mission-card">
+      <div class="mission-icon">🎯</div>
+      <div class="mission-text" id="mission-text">กำลังโหลดภารกิจวันนี้...</div>
+    </section>
+
+    <section class="card-panel" id="recent-panel" style="display:none;">
+      <div class="card-panel-title">🏆 คะแนนสอบกลางภาคจำลองล่าสุด</div>
+      <div class="recent-list" id="recent-scores"></div>
+    </section>
+
+    <div class="top-actions" style="margin-bottom: 12px;">
+      <button class="btn-back" id="btn-open-report" style="width:100%;">📄 ดูรายงานผลการเรียน (สำหรับผู้ปกครอง)</button>
+    </div>
+
+    <div class="map-path" id="map-path"></div>
+  </div>
+
+<script>
+  // Chapters mapped to tutor.html lesson topics (see tutor.html LESSONS object).
+  const CHAPTERS = [
+    { id: 'math6-factors-hcf-lcm', label: 'คณิต บทที่ 1', sub: 'ตัวประกอบ ห.ร.ม. ค.ร.น.', emoji: '🔢' },
+    { id: 'math6-fractions',       label: 'คณิต บทที่ 2', sub: 'เศษส่วน', emoji: '🍕' },
+    { id: 'eng6-grammar',          label: 'English', sub: 'Grammar & Tenses', emoji: '📘' },
+    { id: 'eng6-phonics-vocab',    label: 'English', sub: 'Phonics & Vocabulary', emoji: '🔤' }
+  ];
+  const ALIGN = ['align-left', 'align-right', 'align-left', 'align-right'];
+
+  // Edit this date if you know the real midterm exam date (format: YYYY-MM-DD).
+  const MIDTERM_EXAM_DATE = '2026-08-02';
+
+  const BADGES = [
+    { id: 'first_chapter', name: 'บทแรกสำเร็จ', icon: '🥉', check: p => Object.values(p).some(s => s.stars >= 1) },
+    { id: 'all_chapters', name: 'ผ่านครบ 4 บท', icon: '🥇', check: p => Object.values(p).filter(s => s.stars >= 1).length >= 4 },
+    { id: 'exam_taken', name: 'ลองสอบจำลองแล้ว', icon: '📝', check: (p, examHistory) => examHistory.length >= 1 },
+    { id: 'level5', name: 'เลเวล 5', icon: '⭐', check: p => {
+      const xp = Object.values(p).reduce((sum, s) => sum + ((s.stars || 0) * 20), 0);
+      return playerLevel(xp) >= 5;
+    } }
+  ];
+
+  function isUnlocked(index, progress) {
+    if (index === 0) return true;
+    const prevId = CHAPTERS[index - 1].id;
+    return !!(progress[prevId] && progress[prevId].stars >= 1);
+  }
+  function starsText(n) { return '⭐'.repeat(n) + '☆'.repeat(3 - n); }
+
+  function playerLevel(xp) { return 1 + Math.floor(xp / 100); }
+
+  function renderStats() {
+    const progress = NamtanExamProgress.loadProgress();
+    const coins = NamtanExamProgress.loadCoins();
+    const streak = NamtanExamProgress.computeStreak();
+    let xp = 0;
+    Object.values(progress).forEach(s => { xp += (s.stars || 0) * 20; });
+    const level = playerLevel(xp);
+    document.getElementById('stat-level').innerText = level;
+    document.getElementById('stat-xp').innerText = xp;
+    document.getElementById('stat-coins').innerText = coins;
+    document.getElementById('stat-streak').innerText = streak;
+    document.getElementById('coin-count').innerText = coins;
+    return { progress, coins, streak, xp, level };
+  }
+
+  function renderCountdown() {
+    const el = document.getElementById('countdown-chip');
+    const now = new Date();
+    const target = new Date(MIDTERM_EXAM_DATE + 'T00:00:00');
+    const diffDays = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      el.innerText = `⏳ อีก ${diffDays} วันจะถึงสอบกลางภาคแล้ว!`;
+    } else if (diffDays === 0) {
+      el.innerText = '🔥 วันนี้คือวันสอบกลางภาค! สู้ๆ นะคะ';
+    } else {
+      el.innerText = '✅ ผ่านช่วงสอบกลางภาคมาแล้ว ทบทวนเพื่อความมั่นใจต่อไปได้เลยค่ะ';
+    }
+  }
+
+  function renderCalendar() {
+    const DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+    const playDates = new Set(NamtanExamProgress.loadPlayDates());
+    const strip = document.getElementById('calendar-strip');
+    strip.innerHTML = '';
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const played = playDates.has(key);
+      const cell = document.createElement('div');
+      cell.className = 'cal-day' + (played ? ' played' : '') + (i === 0 ? ' today' : '');
+      cell.innerHTML = `<div class="cal-dow">${DOW[d.getDay()]}</div><div class="cal-dot">${played ? '✅' : ''}</div>`;
+      strip.appendChild(cell);
+    }
+  }
+
+  function renderMission(progress) {
+    const el = document.getElementById('mission-text');
+    const notMastered = CHAPTERS.find(c => !(progress[c.id] && progress[c.id].stars >= 3));
+    if (!notMastered) {
+      el.innerText = '🎉 เก่งมากค่ะ พี่น้ำตาล! ผ่านครบทุกบทแล้ว ลองสอบกลางภาคจำลองเพื่อเช็กความพร้อมได้เลยค่ะ!';
+    } else {
+      el.innerText = `ภารกิจวันนี้: พิชิต "${notMastered.label} — ${notMastered.sub}" ให้ได้ครบ 3 ดาว! ⭐⭐⭐`;
+    }
+  }
+
+  function renderRecentScores() {
+    const history = NamtanExamProgress.loadExamHistory();
+    const panel = document.getElementById('recent-panel');
+    const list = document.getElementById('recent-scores');
+    if (!history.length) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    list.innerHTML = history.slice(0, 5).map(h =>
+      `<div class="recent-row"><span>${h.date}</span><span>${h.totalMarks}/${h.maxMarks} คะแนน (${h.percent}%)</span></div>`
+    ).join('');
+  }
+
+  function renderBadges(progress) {
+    const examHistory = NamtanExamProgress.loadExamHistory();
+    const earned = JSON.parse(localStorage.getItem('namtanExamMapBadges') || '[]');
+    const nowEarned = [];
+    BADGES.forEach(b => { if (b.check(progress, examHistory)) nowEarned.push(b.id); });
+    localStorage.setItem('namtanExamMapBadges', JSON.stringify(nowEarned));
+    const row = document.getElementById('badges-row');
+    row.innerHTML = BADGES.map(b => {
+      const has = nowEarned.includes(b.id);
+      return `<span class="badge-pill${has ? '' : ' locked'}">${b.icon} ${b.name}</span>`;
+    }).join('');
+  }
+
+  function renderMap(progress) {
+    const path = document.getElementById('map-path');
+    path.innerHTML = '';
+    CHAPTERS.forEach((c, idx) => {
+      const unlocked = isUnlocked(idx, progress);
+      const stars = (progress[c.id] && progress[c.id].stars) || 0;
+      const row = document.createElement('div');
+      row.className = 'island-row ' + ALIGN[idx];
+      const card = document.createElement('div');
+      card.className = 'island' + (unlocked ? '' : ' locked');
+      card.style.animationDelay = (idx * 0.1) + 's';
+      card.innerHTML = `
+        <div class="island-emoji">${c.emoji}</div>
+        <div class="island-info">
+          <div class="island-name">${c.label}</div>
+          <div class="island-sub">${c.sub}</div>
+          <div class="island-stars">${starsText(stars)}</div>
+        </div>
+        <div class="island-lock">${unlocked ? '▶️' : '🔒'}</div>
+      `;
+      card.addEventListener('click', () => {
+        if (unlocked) { window.location.href = `tutor.html?topic=${c.id}`; }
+        else { showToast(`🔒 ผ่านบท "${CHAPTERS[idx - 1].label}" ให้ได้อย่างน้อย 1 ดาวก่อนนะคะ`); }
+      });
+      row.appendChild(card);
+      path.appendChild(row);
+    });
+
+    const mathReady = CHAPTERS.slice(0, 2).every(c => progress[c.id] && progress[c.id].stars >= 1);
+    const mathCastle = document.createElement('div');
+    mathCastle.className = 'final-castle' + (mathReady ? '' : ' locked');
+    mathCastle.innerHTML = `
+      <div class="castle-emoji">🏆</div>
+      <h4>สอบกลางภาคจำลอง: คณิตศาสตร์</h4>
+      <p>${mathReady ? '90 นาที · 25 ข้อปรนัย + 3 ข้อเขียน · กดเพื่อเริ่มสอบค่ะ' : 'ผ่านบทคณิตศาสตร์ทั้ง 2 บทก่อนเพื่อปลดล็อกค่ะ'}</p>
+    `;
+    mathCastle.addEventListener('click', () => {
+      if (mathReady) window.location.href = 'namtan-math-midterm-exam.html';
+      else showToast('🔒 ผ่านบทคณิตศาสตร์ทั้ง 2 บทก่อนนะคะ');
+    });
+    path.appendChild(mathCastle);
+
+    const engCastle = document.createElement('div');
+    engCastle.className = 'final-castle locked';
+    engCastle.innerHTML = `<div class="castle-emoji">📝</div><h4>สอบกลางภาคจำลอง: English</h4><p>เร็วๆ นี้ค่ะ — ครูฮูกกำลังเตรียมข้อสอบอยู่นะคะ</p>`;
+    engCastle.addEventListener('click', () => showToast('🚧 ข้อสอบ English กำลังจะมาเร็วๆ นี้ค่ะ'));
+    path.appendChild(engCastle);
+  }
+
+  function updateHeroCta(progress, stats) {
+    const btn = document.getElementById('btn-cta');
+    const subtitle = document.getElementById('hero-subtitle');
+    const hasProgress = Object.keys(progress).length > 0;
+    btn.innerText = hasProgress ? 'ทบทวนต่อกันเลย 🚀' : 'เริ่มทบทวนกันเลย 🚀';
+    const totalStars = CHAPTERS.reduce((s, c) => s + ((progress[c.id] && progress[c.id].stars) || 0), 0);
+    if (totalStars >= 12) subtitle.innerText = 'พี่น้ำตาลพิชิตครบทุกบทแล้ว พร้อมสอบเต็มที่เลยค่ะ! 🎉';
+    else if (hasProgress) subtitle.innerText = `เก็บดาวไปแล้ว ${totalStars}/12 ดวง สู้ต่ออีกนิดนะคะ!`;
+    else subtitle.innerText = 'พร้อมลุยสอบกลางภาคหรือยังคะ?';
+  }
+
+  function goToNext() {
+    const progress = NamtanExamProgress.loadProgress();
+    for (let i = 0; i < CHAPTERS.length; i++) {
+      const stars = (progress[CHAPTERS[i].id] && progress[CHAPTERS[i].id].stars) || 0;
+      if (isUnlocked(i, progress) && stars < 3) { window.location.href = `tutor.html?topic=${CHAPTERS[i].id}`; return; }
+    }
+    window.location.href = 'namtan-math-midterm-exam.html';
+  }
+
+  function showToast(text) {
+    const toast = document.getElementById('toast');
+    toast.innerText = text;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  function speakGreeting() {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('สวัสดีค่ะ พี่น้ำตาล พร้อมทบทวนเตรียมสอบกลางภาคหรือยังคะ มาเก็บดาวและเหรียญไปด้วยกันนะคะ');
+    u.lang = 'th-TH';
+    u.rate = 0.92;
+    window.speechSynthesis.speak(u);
+  }
+
+  function openReport() {
+    const stats = renderStats();
+    document.getElementById('report-name').innerText = `น้องน้ำตาล — ${new Date().toLocaleDateString('th-TH')}`;
+    document.getElementById('rep-level').innerText = stats.level;
+    document.getElementById('rep-xp').innerText = stats.xp;
+    document.getElementById('rep-coins').innerText = stats.coins;
+    const cleared = CHAPTERS.filter(c => stats.progress[c.id] && stats.progress[c.id].stars >= 1).length;
+    document.getElementById('rep-chapters').innerText = `${cleared} / ${CHAPTERS.length}`;
+    document.getElementById('rep-streak').innerText = stats.streak;
+    const history = NamtanExamProgress.loadExamHistory();
+    document.getElementById('rep-exam-history').innerHTML = history.length
+      ? history.slice(0, 5).map(h => `<div class="recent-row"><span>${h.date}</span><span>${h.totalMarks}/${h.maxMarks} (${h.percent}%)</span></div>`).join('')
+      : '<div>ยังไม่เคยลองสอบกลางภาคจำลองค่ะ</div>';
+    const weak = CHAPTERS.filter(c => !(stats.progress[c.id] && stats.progress[c.id].stars >= 2));
+    document.getElementById('rep-weak').innerHTML = weak.length
+      ? weak.map(c => `<div>• ${c.label} — ${c.sub}</div>`).join('')
+      : '<div>ทำได้ดีทุกบทแล้วค่ะ 🎉</div>';
+    document.getElementById('report-modal').classList.add('active');
+  }
+
+  function init() {
+    const reward = NamtanExamProgress.claimDailyReward();
+    if (reward) setTimeout(() => showToast(`รางวัลประจำวัน +${reward.coinsEarned} เหรียญ!`), 500);
+    const stats = renderStats();
+    renderCountdown();
+    renderCalendar();
+    renderMission(stats.progress);
+    renderRecentScores();
+    renderBadges(stats.progress);
+    renderMap(stats.progress);
+    updateHeroCta(stats.progress, stats);
+    document.getElementById('btn-back').addEventListener('click', () => window.location.href = 'index.html');
+    document.getElementById('btn-open-report').addEventListener('click', openReport);
+    document.getElementById('btn-close-report').addEventListener('click', () => document.getElementById('report-modal').classList.remove('active'));
+    if (typeof fbLogActivity === 'function') fbLogActivity('น้ำตาล', 'เปิด Midterm Prep Academy');
+  }
+
+  (function decorate() {
+    for (let i = 0; i < 3; i++) {
+      const orb = document.createElement('div');
+      orb.className = 'sparkle-orb';
+      const size = 180 + Math.random() * 140;
+      orb.style.width = size + 'px'; orb.style.height = size + 'px';
+      orb.style.background = i % 2 === 0 ? '#a78bfa' : '#ec4899';
+      orb.style.top = (Math.random() * 80) + '%';
+      orb.style.left = (Math.random() * 90) + '%';
+      document.body.appendChild(orb);
+    }
+    for (let i = 0; i < 18; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.innerText = ['✨', '⭐', '🌟'][i % 3];
+      star.style.left = Math.random() * 96 + '%';
+      star.style.top = Math.random() * 92 + '%';
+      star.style.fontSize = (0.6 + Math.random() * 0.8) + 'rem';
+      star.style.animationDelay = (-Math.random() * 2.6) + 's';
+      document.body.appendChild(star);
+    }
+  })();
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สอบกลางภาคจำลอง: คณิตศาสตร์ ป.6</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <script src="namtan-examprep-progress.js"></script>
+  <style>
+    :root {
+      --purple: #7c3aed; --purple-light: #ede9fe; --gold: #f59e0b;
+      --green: #16a34a; --red: #dc2626; --text-dark: #1e1b2e;
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-playful); background: #f5f3ff; color: var(--text-dark); min-height: 100vh; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: white; padding: 12px 18px; border-radius: 20px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); margin-bottom: 16px; }
+    .timer-chip { font-weight: bold; font-size: 1.1rem; padding: 6px 16px; border-radius: 20px; background: var(--purple-light); color: var(--purple); }
+    .timer-chip.warn { background: #fef2f2; color: var(--red); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .btn { font-family: var(--font-playful); font-weight: bold; border: none; border-radius: 50px; cursor: pointer; padding: 10px 22px; font-size: 0.95rem; }
+    .btn-primary { background: linear-gradient(135deg, var(--purple), #ec4899); color: white; }
+    .btn-secondary { background: white; color: var(--purple); border: 2px solid var(--purple-light); }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .intro-card { background: white; border-radius: 26px; padding: 30px 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.07); }
+    .intro-card h1 { color: var(--purple); margin-bottom: 10px; }
+    .structure-table { text-align: left; background: var(--purple-light); border-radius: 16px; padding: 14px 18px; margin: 18px 0; font-size: 0.92rem; }
+    .structure-table div { display: flex; justify-content: space-between; padding: 4px 0; }
+
+    .exam-layout { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+    .nav-panel { background: white; border-radius: 20px; padding: 14px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); width: 220px; flex-shrink: 0; }
+    .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .nav-btn { aspect-ratio: 1; border-radius: 8px; border: 2px solid #e2e8f0; background: white; font-size: 0.78rem; font-weight: bold; cursor: pointer; position: relative; }
+    .nav-btn.answered { background: #dcfce7; border-color: #86efac; }
+    .nav-btn.current { border-color: var(--purple); border-width: 3px; }
+    .nav-btn.flagged::after { content: '🚩'; position: absolute; top: -6px; right: -6px; font-size: 0.7rem; }
+    .nav-legend { font-size: 0.72rem; color: #64748b; margin-top: 10px; line-height: 1.6; }
+
+    .question-panel { background: white; border-radius: 24px; padding: 24px 22px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); flex: 1; min-width: 260px; }
+    .q-meta { font-size: 0.85rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .q-text { font-size: 1.15rem; font-weight: bold; margin-bottom: 18px; line-height: 1.6; }
+    .choice-list { display: flex; flex-direction: column; gap: 10px; }
+    .choice-item { border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px 16px; cursor: pointer; font-size: 1rem; }
+    .choice-item:hover { border-color: var(--purple-light); }
+    .choice-item.selected { border-color: var(--purple); background: var(--purple-light); font-weight: bold; }
+    .written-textarea { width: 100%; min-height: 140px; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px; font-family: var(--font-playful); font-size: 1rem; outline: none; resize: vertical; }
+    .btn-flag { background: #fff7e0; border: 2px solid #fde68a; color: #b45309; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold; }
+    .btn-flag.active { background: #fde68a; }
+    .q-controls { display: flex; justify-content: space-between; margin-top: 20px; flex-wrap: wrap; gap: 8px; }
+
+    .review-list { background: white; border-radius: 20px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); margin-bottom: 16px; }
+    .review-row { display: flex; justify-content: space-between; padding: 8px 4px; border-bottom: 1px dashed #e2e8f0; align-items: center; cursor: pointer; }
+    .review-status { font-size: 0.85rem; }
+    .review-status.answered { color: var(--green); }
+    .review-status.unanswered { color: var(--red); }
+
+    .model-answer-box { background: var(--purple-light); border-radius: 14px; padding: 14px 16px; margin: 12px 0; font-size: 0.92rem; line-height: 1.6; white-space: pre-line; }
+    .self-grade-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .self-grade-btn { border: 2px solid #e2e8f0; border-radius: 14px; padding: 8px 16px; cursor: pointer; background: white; font-family: var(--font-playful); font-weight: bold; font-size: 0.9rem; }
+    .self-grade-btn.selected { border-color: var(--purple); background: var(--purple-light); }
+
+    .result-card { background: white; border-radius: 26px; padding: 28px 22px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.07); margin-bottom: 16px; }
+    .score-big { font-size: 2.6rem; font-weight: bold; color: var(--purple); }
+    .topic-bar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; text-align: left; }
+    .topic-bar-label { width: 130px; font-size: 0.82rem; flex-shrink: 0; }
+    .topic-bar-track { flex: 1; height: 12px; background: #f1f5f9; border-radius: 8px; overflow: hidden; }
+    .topic-bar-fill { height: 100%; background: linear-gradient(90deg, var(--purple), #ec4899); }
+    .topic-bar-pct { width: 40px; font-size: 0.8rem; text-align: right; flex-shrink: 0; }
+
+    .explain-card { background: white; border-radius: 18px; padding: 16px 18px; margin-bottom: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); }
+    .explain-card .tag-correct { color: var(--green); font-weight: bold; }
+    .explain-card .tag-wrong { color: var(--red); font-weight: bold; }
+
+    @media print {
+      .app-header, .btn, .nav-panel { display: none !important; }
+    }
+    @media (max-width: 640px) {
+      .exam-layout { flex-direction: column; }
+      .nav-panel { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="app-header">
+      <button class="btn btn-secondary" id="btn-back">⬅️ กลับ Academy</button>
+      <span style="font-weight:bold; color: var(--purple);">🏆 สอบกลางภาคจำลอง: คณิตศาสตร์ ป.6</span>
+      <span class="timer-chip" id="timer-chip" style="display:none;">⏳ 90:00</span>
+    </header>
+
+    <!-- Screen 1: Intro -->
+    <section class="screen active" id="screen-intro">
+      <div class="intro-card">
+        <div style="font-size:3rem;">📝</div>
+        <h1>สอบกลางภาคจำลอง วิชาคณิตศาสตร์</h1>
+        <p style="color:#64748b;">จำลองโครงสร้างข้อสอบกลางภาคให้ใกล้เคียงของจริงที่สุด ตั้งใจทำเหมือนสอบจริงนะคะ</p>
+        <div class="structure-table">
+          <div><span>⏱️ เวลาทำข้อสอบ</span><strong>90 นาที</strong></div>
+          <div><span>ส่วนที่ 1: ปรนัย 4 ตัวเลือก</span><strong>25 ข้อ (25 คะแนน)</strong></div>
+          <div><span>ส่วนที่ 2: อัตนัย (แสดงวิธีทำ)</span><strong>3 ข้อ (15 คะแนน)</strong></div>
+          <div><span>คะแนนเต็ม</span><strong>40 คะแนน</strong></div>
+          <div><span>ขอบเขตเนื้อหา</span><strong>ตัวประกอบ, ห.ร.ม., ค.ร.น., เศษส่วน</strong></div>
+        </div>
+        <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:14px;">* ส่วนที่ 1 ตรวจให้อัตโนมัติ ส่วนที่ 2 หนูจะได้ดูเฉลยและประเมินคะแนนตัวเองหลังส่งข้อสอบค่ะ</p>
+        <button class="btn btn-primary" id="btn-start-exam" style="font-size:1.1rem; padding:14px 34px;">เริ่มทำข้อสอบ 🚀</button>
+      </div>
+    </section>
+
+    <!-- Screen 2: Exam -->
+    <section class="screen" id="screen-exam">
+      <div class="exam-layout">
+        <div class="nav-panel">
+          <div class="nav-grid" id="nav-grid"></div>
+          <div class="nav-legend">
+            🟩 ตอบแล้ว &nbsp; ⬜ ยังไม่ตอบ<br>🚩 ทำเครื่องหมายไว้ทบทวน
+          </div>
+          <button class="btn btn-primary" id="btn-goto-review" style="width:100%; margin-top:12px;">ไปหน้าทบทวน ✅</button>
+        </div>
+        <div class="question-panel">
+          <div class="q-meta">
+            <span id="q-index-label">ข้อที่ 1 / 28</span>
+            <button class="btn-flag" id="btn-flag">🚩 ทำเครื่องหมาย</button>
+          </div>
+          <div class="q-text" id="q-text">กำลังโหลด...</div>
+          <div id="q-body"></div>
+          <div class="q-controls">
+            <button class="btn btn-secondary" id="btn-prev">⬅️ ข้อก่อนหน้า</button>
+            <button class="btn btn-primary" id="btn-next">ข้อถัดไป ➡️</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 3: Review -->
+    <section class="screen" id="screen-review">
+      <div class="review-list">
+        <h3 style="color:var(--purple); margin-bottom:10px;">ทบทวนก่อนส่งข้อสอบ</h3>
+        <div id="review-rows"></div>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn btn-secondary" onclick="showScreen('screen-exam')">⬅️ กลับไปทำต่อ</button>
+        <button class="btn btn-primary" id="btn-submit-exam">📤 ส่งข้อสอบ</button>
+      </div>
+    </section>
+
+    <!-- Screen 4: Results -->
+    <section class="screen" id="screen-results">
+      <div class="result-card">
+        <div style="font-size:2.5rem;">🎉</div>
+        <h2>สอบเสร็จแล้วค่ะ พี่น้ำตาล!</h2>
+        <div class="score-big" id="result-score">0 / 40</div>
+        <p id="result-percent" style="color:#64748b;">0%</p>
+        <p id="result-estimate" style="font-weight:bold; color: var(--purple); margin-top:6px;"></p>
+      </div>
+      <div class="result-card" id="topic-analysis-card">
+        <h3 style="color:var(--purple); margin-bottom:12px;">📊 วิเคราะห์รายหัวข้อ (ส่วนที่ 1)</h3>
+        <div id="topic-bars"></div>
+      </div>
+      <div id="part2-review"></div>
+      <h3 style="color:var(--purple); margin: 18px 4px 10px;">📖 เฉลยละเอียด ส่วนที่ 1</h3>
+      <div id="explain-list"></div>
+      <div style="text-align:center; margin: 18px 0;">
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ พิมพ์ผลสอบ</button>
+        <button class="btn btn-primary" onclick="window.location.href='namtan-examprep-map.html'">🗺️ กลับ Academy</button>
+      </div>
+    </section>
+  </div>
+
+<script>
+  // ---------- Math helpers ----------
+  function shuffle(arr) { return [...arr].sort(() => 0.5 - Math.random()); }
+  function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function lcm(a, b) { return (a * b) / gcd(a, b); }
+  function isPrime(n) { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; }
+  function primeFactorize(n) {
+    const factors = []; let d = 2; let x = n;
+    while (d * d <= x) { while (x % d === 0) { factors.push(d); x /= d; } d++; }
+    if (x > 1) factors.push(x);
+    return factors;
+  }
+  function factorsOf(n) { const f = []; for (let i = 1; i <= n; i++) if (n % i === 0) f.push(i); return f; }
+  function fracStr(num, den) { return `${num}/${den}`; }
+  function reduceFrac(num, den) { const g = gcd(num, den); return [num / g, den / g]; }
+
+  // ---------- MC generators (Part 1) — each returns {q, a, choices, exp, topic} ----------
+  function genFactorsList() {
+    const n = randInt(3, 6) * randInt(2, 5) + randInt(10, 20);
+    const correct = factorsOf(n).join(', ');
+    const wrong1 = factorsOf(n).slice(0, -1).join(', ');
+    const wrong2 = factorsOf(n + 1).join(', ');
+    const wrong3 = factorsOf(n).filter(x => x % 2 === 0).join(', ') || factorsOf(n - 1).join(', ');
+    return { q: `ข้อใดคือตัวประกอบทั้งหมดของ ${n}?`, a: correct, choices: shuffle([...new Set([correct, wrong1, wrong2, wrong3])]),
+      exp: `ตัวประกอบของ ${n} คือจำนวนที่หาร ${n} ได้ลงตัวทั้งหมด ได้แก่ ${correct} ค่ะ`, topic: 'factors' };
+  }
+  function genPrimeIdentify() {
+    const primes = [11, 13, 17, 19, 23, 29, 31, 37, 41, 43];
+    const composites = [9, 15, 21, 25, 27, 33, 35, 39, 45, 49];
+    const correct = primes[randInt(0, primes.length - 1)];
+    const distractors = shuffle(composites).slice(0, 3);
+    return { q: 'ข้อใดเป็นจำนวนเฉพาะ?', a: String(correct), choices: shuffle([String(correct), ...distractors.map(String)]),
+      exp: `${correct} มีตัวประกอบเพียง 1 กับตัวมันเองเท่านั้น จึงเป็นจำนวนเฉพาะค่ะ`, topic: 'factors' };
+  }
+  function genPrimeFactorization() {
+    const bases = [24, 36, 40, 45, 48, 54, 60, 72, 84, 90];
+    const n = bases[randInt(0, bases.length - 1)];
+    const factors = primeFactorize(n);
+    const correct = factors.join(' × ');
+    const wrong1 = factors.slice(0, -1).join(' × ') + ' × ' + (factors[factors.length - 1] + 1);
+    const wrong2 = [...factors].reverse().slice(1).join(' × ');
+    const wrong3 = factors.map(f => f + 1).join(' × ');
+    return { q: `${n} แยกตัวประกอบเป็นจำนวนเฉพาะได้ตรงกับข้อใด?`, a: correct, choices: shuffle([...new Set([correct, wrong1, wrong2, wrong3])]),
+      exp: `${n} แยกตัวประกอบได้เป็น ${correct} ค่ะ`, topic: 'factors' };
+  }
+  function genHCF() {
+    const g = randInt(3, 9);
+    const a = g * randInt(2, 6), b = g * randInt(2, 6) + (Math.random() < 0.3 ? g : 0);
+    const ans = gcd(a, b);
+    const choices = new Set([ans]);
+    while (choices.size < 4) choices.add(Math.max(1, ans + randInt(-4, 5)));
+    return { q: `ห.ร.ม. ของ ${a} กับ ${b} คือเท่าไร?`, a: String(ans), choices: shuffle([...choices].map(String)),
+      exp: `ตัวประกอบร่วมที่มากที่สุดของ ${a} กับ ${b} คือ ${ans} ค่ะ`, topic: 'hcf' };
+  }
+  function genLCM() {
+    const a = randInt(3, 9), b = randInt(2, 8);
+    const ans = lcm(a, b);
+    const choices = new Set([ans]);
+    while (choices.size < 4) choices.add(Math.max(1, ans + randInt(-2, 3) * Math.min(a, b)));
+    return { q: `ค.ร.น. ของ ${a} กับ ${b} คือเท่าไร?`, a: String(ans), choices: shuffle([...choices].map(String)),
+      exp: `จำนวนน้อยที่สุดที่ทั้ง ${a} และ ${b} หารลงตัวคือ ${ans} ค่ะ`, topic: 'lcm' };
+  }
+  function genHCFWord() {
+    const g = randInt(4, 8);
+    const a = g * randInt(2, 5), b = g * randInt(2, 5) + g;
+    const ans = gcd(a, b);
+    const items = shuffle(['ลูกอม', 'สมุด', 'ดินสอ', 'คุกกี้'])[0];
+    const choices = new Set([ans]);
+    while (choices.size < 4) choices.add(Math.max(1, ans + randInt(-3, 4)));
+    return { q: `มี${items} ${a} ชิ้น กับของอีกชนิด ${b} ชิ้น ต้องการแบ่งใส่ถุงให้เท่ากันมากที่สุด แบ่งได้กี่ถุง?`, a: String(ans), choices: shuffle([...choices].map(String)),
+      exp: `โจทย์แบ่งกลุ่มเท่าๆ กันให้มากที่สุด ต้องใช้ ห.ร.ม. ของ ${a} กับ ${b} ซึ่งเท่ากับ ${ans} ค่ะ`, topic: 'hcf' };
+  }
+  function genLCMWord() {
+    const a = randInt(3, 8), b = randInt(4, 9);
+    const ans = lcm(a, b);
+    const choices = new Set([ans]);
+    while (choices.size < 4) choices.add(Math.max(1, ans + randInt(-2, 3) * Math.min(a, b)));
+    return { q: `รถเมล์สาย A ออกทุก ${a} นาที สาย B ออกทุก ${b} นาที ถ้าออกพร้อมกันครั้งแรก จะออกพร้อมกันอีกครั้งในอีกกี่นาที?`, a: String(ans), choices: shuffle([...choices].map(String)),
+      exp: `โจทย์เหตุการณ์เกิดพร้อมกันอีกครั้ง ต้องใช้ ค.ร.น. ของ ${a} กับ ${b} ซึ่งเท่ากับ ${ans} ค่ะ`, topic: 'lcm' };
+  }
+  function genCompareFractions() {
+    let d1, d2, n1, n2, val1, val2;
+    do {
+      d1 = randInt(2, 6); d2 = randInt(2, 6);
+      n1 = randInt(1, d1 - 1) || 1; n2 = randInt(1, d2 - 1) || 1;
+      val1 = n1 / d1; val2 = n2 / d2;
+    } while (val1 === val2 || fracStr(n1, d1) === fracStr(n2, d2));
+    const correctChoice = val1 > val2 ? fracStr(n1, d1) : fracStr(n2, d2);
+    const choices = [fracStr(n1, d1), fracStr(n2, d2), 'เท่ากัน', 'ไม่สามารถเปรียบเทียบได้'];
+    return { q: `ข้อใดมีค่ามากกว่ากัน ระหว่าง ${fracStr(n1, d1)} กับ ${fracStr(n2, d2)}?`, a: correctChoice, choices: shuffle(choices),
+      exp: `ทำส่วนร่วมแล้วเปรียบเทียบตัวเศษ จะได้ว่า ${correctChoice} มีค่ามากกว่าค่ะ`, topic: 'fractions' };
+  }
+  function genMixedNumberConvert() {
+    const whole = randInt(2, 6), den = randInt(3, 8), num = randInt(1, den - 1);
+    const improperNum = whole * den + num;
+    const wrong1 = improperNum - 1, wrong2 = improperNum + den, wrong3 = whole * den - num;
+    return { q: `จำนวนคละ ${whole} เศษ ${num}/${den} (เขียนว่า ${whole} ${num}/${den}) เปลี่ยนเป็นเศษเกินได้ตรงกับข้อใด?`,
+      a: fracStr(improperNum, den), choices: shuffle([fracStr(improperNum, den), fracStr(wrong1, den), fracStr(wrong2, den), fracStr(wrong3, den)]),
+      exp: `${whole} เศษ ${num}/${den} = (${whole}×${den}+${num})/${den} = ${improperNum}/${den} ค่ะ`, topic: 'fractions' };
+  }
+  function genFractionAddSub() {
+    const isAdd = Math.random() < 0.5;
+    const d1 = randInt(2, 6), d2 = randInt(2, 6);
+    const n1 = randInt(1, d1 - 1) || 1, n2 = randInt(1, d2 - 1) || 1;
+    const commonDen = lcm(d1, d2);
+    const cn1 = n1 * (commonDen / d1), cn2 = n2 * (commonDen / d2);
+    let resultNum = isAdd ? cn1 + cn2 : Math.abs(cn1 - cn2);
+    const [rNum, rDen] = reduceFrac(resultNum, commonDen);
+    const ansStr = fracStr(rNum, rDen);
+    const wrong1 = fracStr(rNum + 1, rDen), wrong2 = fracStr(n1 + n2, d1 + d2), wrong3 = fracStr(rNum, rDen + 1);
+    return { q: `${fracStr(n1, d1)} ${isAdd ? '+' : '-'} ${fracStr(n2, d2)} มีค่าเท่ากับเท่าไร?`, a: ansStr, choices: shuffle([...new Set([ansStr, wrong1, wrong2, wrong3])]),
+      exp: `ทำส่วนร่วมเป็น ${commonDen} ได้ ${fracStr(cn1, commonDen)} ${isAdd ? '+' : '-'} ${fracStr(cn2, commonDen)} = ${fracStr(resultNum, commonDen)} ทอนแล้วได้ ${ansStr} ค่ะ`, topic: 'fractions' };
+  }
+  function genFractionMulDiv() {
+    const isMul = Math.random() < 0.5;
+    const n1 = randInt(1, 5), d1 = randInt(n1 + 1, 8), n2 = randInt(1, 5), d2 = randInt(n2 + 1, 8);
+    let resultNum, resultDen;
+    if (isMul) { resultNum = n1 * n2; resultDen = d1 * d2; }
+    else { resultNum = n1 * d2; resultDen = d1 * n2; }
+    const [rNum, rDen] = reduceFrac(resultNum, resultDen);
+    const ansStr = fracStr(rNum, rDen);
+    const wrong1 = fracStr(rNum + 1, rDen), wrong2 = fracStr(resultNum, resultDen), wrong3 = fracStr(rNum, rDen + 2);
+    return { q: `${fracStr(n1, d1)} ${isMul ? '×' : '÷'} ${fracStr(n2, d2)} มีค่าเท่ากับเท่าไร?`, a: ansStr, choices: shuffle([...new Set([ansStr, wrong1, wrong2, wrong3])]),
+      exp: isMul ? `เอาเศษคูณเศษ ส่วนคูณส่วน แล้วทอนได้ ${ansStr} ค่ะ` : `กลับเศษส่วนตัวหลังแล้วคูณ ทอนแล้วได้ ${ansStr} ค่ะ`, topic: 'fractions' };
+  }
+  function genFractionWord() {
+    const total = randInt(4, 20) * 10;
+    const num = randInt(1, 4), den = randInt(num + 1, 6);
+    const used = total * num / den;
+    const remain = total - used;
+    const askUsed = Math.random() < 0.5;
+    const ans = askUsed ? used : remain;
+    const choices = new Set([ans]);
+    while (choices.size < 4) choices.add(Math.max(1, ans + randInt(-15, 15)));
+    return { q: `${['แม่มีเงิน', 'พี่มีริบบิ้นยาว', 'ครูมีดินสอ'][randInt(0,2)]} ${total} ${askUsed ? 'บาท' : 'บาท'} ใช้ไป ${fracStr(num, den)} ของทั้งหมด ${askUsed ? 'ใช้ไปกี่บาท' : 'เหลือกี่บาท'}?`,
+      a: String(ans), choices: shuffle([...choices].map(String)),
+      exp: `ใช้ไป ${total} × ${fracStr(num, den)} = ${used} บาท ${askUsed ? '' : `เหลือ ${total} - ${used} = ${remain} บาท`}ค่ะ`, topic: 'fractions' };
+  }
+  const GENERATORS = [genFactorsList, genPrimeIdentify, genPrimeFactorization, genHCF, genLCM, genHCFWord, genLCMWord, genCompareFractions, genMixedNumberConvert, genFractionAddSub, genFractionMulDiv, genFractionWord];
+
+  function buildMCQuestions(count) {
+    const out = [];
+    let i = 0;
+    while (out.length < count) {
+      const gen = GENERATORS[i % GENERATORS.length];
+      out.push(gen());
+      i++;
+    }
+    return shuffle(out).slice(0, count);
+  }
+
+  // ---------- Written questions (Part 2) ----------
+  function genWrittenHCFLCM() {
+    const a = randInt(20, 48), b = randInt(24, 60);
+    return {
+      q: `หา ห.ร.ม. และ ค.ร.น. ของ ${a} และ ${b} พร้อมแสดงวิธีทำโดยการแยกตัวประกอบ`,
+      modelAnswer: `1) แยกตัวประกอบ ${a} = ${primeFactorize(a).join(' × ')}\n2) แยกตัวประกอบ ${b} = ${primeFactorize(b).join(' × ')}\n3) ห.ร.ม. (เลือกตัวร่วมกำลังน้อยสุด) = ${gcd(a, b)}\n4) ค.ร.น. (เลือกตัวประกอบทุกตัวกำลังมากสุด) = ${lcm(a, b)}`
+    };
+  }
+  function genWrittenFractionMixed() {
+    const d1 = randInt(2, 5), d2 = randInt(2, 5), d3 = randInt(2, 4);
+    const n1 = randInt(1, d1 - 1) || 1, n2 = randInt(1, d2 - 1) || 1, n3 = randInt(1, d3 - 1) || 1;
+    return {
+      q: `จงหาคำตอบพร้อมแสดงวิธีทำ: ${fracStr(n1, d1)} + ${fracStr(n2, d2)} × ${fracStr(n3, d3)}`,
+      modelAnswer: `1) คูณก่อน: ${fracStr(n2, d2)} × ${fracStr(n3, d3)} = ${fracStr(n2 * n3, d2 * d3)}\n2) ทำส่วนร่วมกับ ${fracStr(n1, d1)} แล้วบวก\n3) ทอนคำตอบให้เป็นเศษส่วนอย่างต่ำ\n(หลักการ: คูณ/หารก่อน แล้วค่อยบวก/ลบทีหลังเสมอ)`
+    };
+  }
+  function genWrittenWordProblem() {
+    const total = randInt(6, 15) * 10;
+    const num = randInt(1, 3), den = randInt(num + 2, 6);
+    return {
+      q: `นักเรียนห้องหนึ่งมี ${total} คน เป็นนักเรียนชาย ${fracStr(num, den)} ของนักเรียนทั้งหมด ที่เหลือเป็นนักเรียนหญิง จงหาว่ามีนักเรียนหญิงกี่คน พร้อมแสดงวิธีทำ`,
+      modelAnswer: `1) นักเรียนชาย = ${total} × ${fracStr(num, den)} = ${total * num / den} คน\n2) นักเรียนหญิง = นักเรียนทั้งหมด - นักเรียนชาย\n= ${total} - ${total * num / den} = ${total - total * num / den} คน`
+    };
+  }
+
+  // ---------- Exam state ----------
+  const TOTAL_MINUTES = 90;
+  const MC_COUNT = 25;
+  const WRITTEN_COUNT = 3;
+  let mcQuestions = [];
+  let writtenQuestions = [];
+  let answers = {}; // index -> selected choice (MC) or text (written)
+  let flags = {};
+  let currentIndex = 0;
+  let timerInterval = null;
+  let secondsLeft = TOTAL_MINUTES * 60;
+  let selfGrades = {}; // written index -> 0/2.5/5
+
+  function totalQuestions() { return MC_COUNT + WRITTEN_COUNT; }
+  function isWrittenIndex(idx) { return idx >= MC_COUNT; }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  document.getElementById('btn-start-exam').addEventListener('click', startExam);
+  document.getElementById('btn-back').addEventListener('click', () => {
+    if (timerInterval && !confirm('ออกจากการสอบตอนนี้ คำตอบจะไม่ถูกบันทึกนะคะ ต้องการออกหรือไม่คะ?')) return;
+    window.location.href = 'namtan-examprep-map.html';
+  });
+
+  function startExam() {
+    mcQuestions = buildMCQuestions(MC_COUNT);
+    writtenQuestions = [genWrittenHCFLCM(), genWrittenFractionMixed(), genWrittenWordProblem()];
+    answers = {}; flags = {}; currentIndex = 0; secondsLeft = TOTAL_MINUTES * 60;
+    document.getElementById('timer-chip').style.display = 'inline-block';
+    renderNavGrid();
+    loadQuestion(0);
+    showScreen('screen-exam');
+    startTimer();
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      secondsLeft--;
+      updateTimerDisplay();
+      if (secondsLeft <= 0) { clearInterval(timerInterval); timerInterval = null; goToReview(true); }
+    }, 1000);
+    updateTimerDisplay();
+  }
+  function updateTimerDisplay() {
+    const m = Math.floor(secondsLeft / 60), s = secondsLeft % 60;
+    const chip = document.getElementById('timer-chip');
+    chip.innerText = `⏳ ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    chip.classList.toggle('warn', secondsLeft <= 300);
+  }
+
+  function renderNavGrid() {
+    const grid = document.getElementById('nav-grid');
+    grid.innerHTML = '';
+    for (let i = 0; i < totalQuestions(); i++) {
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn' + (answers[i] !== undefined && answers[i] !== '' ? ' answered' : '') + (flags[i] ? ' flagged' : '') + (i === currentIndex ? ' current' : '');
+      btn.innerText = i + 1;
+      btn.addEventListener('click', () => loadQuestion(i));
+      grid.appendChild(btn);
+    }
+  }
+
+  function loadQuestion(idx) {
+    currentIndex = idx;
+    renderNavGrid();
+    const total = totalQuestions();
+    document.getElementById('q-index-label').innerText = `ข้อที่ ${idx + 1} / ${total}` + (isWrittenIndex(idx) ? ' (ส่วนที่ 2: อัตนัย)' : ' (ส่วนที่ 1: ปรนัย)');
+    document.getElementById('btn-flag').classList.toggle('active', !!flags[idx]);
+    const qBody = document.getElementById('q-body');
+    if (isWrittenIndex(idx)) {
+      const w = writtenQuestions[idx - MC_COUNT];
+      document.getElementById('q-text').innerText = w.q;
+      qBody.innerHTML = `<textarea class="written-textarea" id="written-input" placeholder="แสดงวิธีทำและคำตอบของหนูตรงนี้ค่ะ...">${answers[idx] || ''}</textarea>`;
+      document.getElementById('written-input').addEventListener('input', e => { answers[idx] = e.target.value; renderNavGrid(); });
+    } else {
+      const q = mcQuestions[idx];
+      document.getElementById('q-text').innerText = q.q;
+      qBody.innerHTML = '<div class="choice-list" id="choice-list"></div>';
+      const list = document.getElementById('choice-list');
+      q.choices.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'choice-item' + (answers[idx] === c ? ' selected' : '');
+        item.innerText = c;
+        item.addEventListener('click', () => { answers[idx] = c; loadQuestion(idx); });
+        list.appendChild(item);
+      });
+    }
+    document.getElementById('btn-prev').disabled = idx === 0;
+    document.getElementById('btn-prev').style.opacity = idx === 0 ? 0.5 : 1;
+    document.getElementById('btn-next').innerText = idx === total - 1 ? 'ไปหน้าทบทวน ✅' : 'ข้อถัดไป ➡️';
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => { if (currentIndex > 0) loadQuestion(currentIndex - 1); });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    if (currentIndex < totalQuestions() - 1) loadQuestion(currentIndex + 1);
+    else goToReview(false);
+  });
+  document.getElementById('btn-flag').addEventListener('click', () => { flags[currentIndex] = !flags[currentIndex]; loadQuestion(currentIndex); });
+  document.getElementById('btn-goto-review').addEventListener('click', () => goToReview(false));
+
+  function goToReview(autoSubmitted) {
+    const rows = document.getElementById('review-rows');
+    rows.innerHTML = '';
+    for (let i = 0; i < totalQuestions(); i++) {
+      const answered = answers[i] !== undefined && answers[i] !== '';
+      const row = document.createElement('div');
+      row.className = 'review-row';
+      row.innerHTML = `<span>ข้อที่ ${i + 1} ${flags[i] ? '🚩' : ''} ${isWrittenIndex(i) ? '(อัตนัย)' : ''}</span><span class="review-status ${answered ? 'answered' : 'unanswered'}">${answered ? '✅ ตอบแล้ว' : '⭕ ยังไม่ตอบ'}</span>`;
+      row.addEventListener('click', () => { showScreen('screen-exam'); loadQuestion(i); });
+      rows.appendChild(row);
+    }
+    if (autoSubmitted) showToastLike('⏰ หมดเวลาแล้วค่ะ ระบบพาไปหน้าทบทวนอัตโนมัติ');
+    showScreen('screen-review');
+  }
+  function showToastLike(msg) { alert(msg); }
+
+  document.getElementById('btn-submit-exam').addEventListener('click', () => {
+    const unanswered = totalQuestions() - Object.keys(answers).filter(k => answers[k] !== '' && answers[k] !== undefined).length;
+    if (unanswered > 0 && !confirm(`ยังมีข้อที่ยังไม่ได้ตอบ ${unanswered} ข้อ ต้องการส่งข้อสอบเลยหรือไม่คะ?`)) return;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    submitExam();
+  });
+
+  function submitExam() {
+    let correctCount = 0;
+    const topicStats = {};
+    mcQuestions.forEach((q, i) => {
+      const isCorrect = answers[i] === q.a;
+      if (isCorrect) correctCount++;
+      topicStats[q.topic] = topicStats[q.topic] || { correct: 0, total: 0 };
+      topicStats[q.topic].total++;
+      if (isCorrect) topicStats[q.topic].correct++;
+    });
+    document.getElementById('result-score').innerText = `${correctCount} / 25 (ส่วนที่ 1)`;
+    const part1Pct = Math.round((correctCount / MC_COUNT) * 100);
+    document.getElementById('result-percent').innerText = `ส่วนที่ 1 ถูก ${part1Pct}% — ส่วนที่ 2 กรุณาประเมินคะแนนตัวเองด้านล่างค่ะ`;
+
+    const topicLabels = { factors: 'ตัวประกอบ/จำนวนเฉพาะ', hcf: 'ห.ร.ม.', lcm: 'ค.ร.น.', fractions: 'เศษส่วน' };
+    const barsEl = document.getElementById('topic-bars');
+    barsEl.innerHTML = Object.keys(topicStats).map(t => {
+      const s = topicStats[t];
+      const pct = Math.round((s.correct / s.total) * 100);
+      return `<div class="topic-bar-row"><div class="topic-bar-label">${topicLabels[t] || t}</div><div class="topic-bar-track"><div class="topic-bar-fill" style="width:${pct}%"></div></div><div class="topic-bar-pct">${pct}%</div></div>`;
+    }).join('');
+
+    const explainEl = document.getElementById('explain-list');
+    explainEl.innerHTML = mcQuestions.map((q, i) => {
+      const studentAns = answers[i] || '(ไม่ได้ตอบ)';
+      const isCorrect = answers[i] === q.a;
+      return `<div class="explain-card">
+        <div>${i + 1}. ${q.q}</div>
+        <div style="margin-top:6px;">คำตอบของหนู: <span class="${isCorrect ? 'tag-correct' : 'tag-wrong'}">${studentAns}</span> ${isCorrect ? '✅' : `(เฉลย: ${q.a})`}</div>
+        <div style="font-size:0.88rem; color:#64748b; margin-top:4px;">${q.exp}</div>
+      </div>`;
+    }).join('');
+
+    renderPart2Review(correctCount);
+  }
+
+  function renderPart2Review(part1Correct) {
+    const container = document.getElementById('part2-review');
+    container.innerHTML = `<h3 style="color:var(--purple); margin: 4px 4px 10px;">✍️ ส่วนที่ 2: ตรวจคำตอบด้วยตัวเอง</h3>`;
+    writtenQuestions.forEach((w, i) => {
+      const idx = MC_COUNT + i;
+      const box = document.createElement('div');
+      box.className = 'explain-card';
+      box.innerHTML = `
+        <div><strong>ข้อที่ ${idx + 1}:</strong> ${w.q}</div>
+        <div style="margin-top:8px; font-size:0.9rem; color:#64748b;">คำตอบของหนู:</div>
+        <div style="background:#f8fafc; border-radius:10px; padding:10px; margin-top:4px; white-space:pre-line; font-size:0.9rem;">${answers[idx] || '(ไม่ได้ตอบ)'}</div>
+        <div class="model-answer-box">📖 เฉลย/แนวทางการทำ:\n${w.modelAnswer}</div>
+        <div style="font-size:0.88rem; font-weight:bold;">หนูทำได้แค่ไหนคะ? (ประเมินตัวเอง 5 คะแนน)</div>
+        <div class="self-grade-options" data-idx="${idx}">
+          <button class="self-grade-btn" data-val="5">ถูกทั้งหมด (5)</button>
+          <button class="self-grade-btn" data-val="3">ถูกบางส่วน (3)</button>
+          <button class="self-grade-btn" data-val="0">ยังไม่ถูก (0)</button>
+        </div>`;
+      container.appendChild(box);
+    });
+    container.querySelectorAll('.self-grade-options').forEach(group => {
+      const idx = group.dataset.idx;
+      group.querySelectorAll('.self-grade-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          group.querySelectorAll('.self-grade-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selfGrades[idx] = Number(btn.dataset.val);
+          finalizeScore(part1Correct);
+        });
+      });
+    });
+    const btnWrap = document.createElement('div');
+    btnWrap.style.textAlign = 'center';
+    btnWrap.style.margin = '14px 0';
+    btnWrap.innerHTML = `<button class="btn btn-primary" id="btn-finalize">✅ สรุปคะแนนรวม & บันทึกผล</button>`;
+    container.appendChild(btnWrap);
+    document.getElementById('btn-finalize').addEventListener('click', () => finalizeScore(part1Correct, true));
+    showScreen('screen-results');
+  }
+
+  function finalizeScore(part1Correct, save) {
+    const part2Total = writtenQuestions.reduce((sum, _, i) => sum + (selfGrades[MC_COUNT + i] || 0), 0);
+    const totalMarks = part1Correct + part2Total;
+    const maxMarks = 40;
+    const percent = Math.round((totalMarks / maxMarks) * 100);
+    document.getElementById('result-score').innerText = `${totalMarks} / ${maxMarks}`;
+    document.getElementById('result-percent').innerText = `คิดเป็น ${percent}%`;
+    let estimate = 'ทำได้ดีมากค่ะ! เตรียมพร้อมสอบจริงได้เลย 🌟';
+    if (percent < 50) estimate = 'ลองทบทวนอีกนิดนะคะ โดยเฉพาะหัวข้อที่ยังไม่แม่น 💪';
+    else if (percent < 75) estimate = 'ทำได้ดีค่ะ ทบทวนอีกเล็กน้อยก็จะมั่นใจขึ้นมากค่ะ ✨';
+    document.getElementById('result-estimate').innerText = `คะแนนโดยประมาณ: ${estimate}`;
+    if (save && typeof NamtanExamProgress !== 'undefined') {
+      NamtanExamProgress.recordMockExam({ totalMarks, maxMarks, percent, part1Correct, part2Total });
+      if (typeof fbLogActivity === 'function') fbLogActivity('น้ำตาล', `สอบกลางภาคจำลอง คณิตศาสตร์ (${totalMarks}/${maxMarks})`);
+      document.getElementById('btn-finalize').innerText = '💾 บันทึกผลแล้วค่ะ!';
+      document.getElementById('btn-finalize').disabled = true;
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ห้องทดลองไอคิว-อีคิว | สำหรับ น้ำฟ้า 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <style>
+    :root {
+      --color-dark: #6d28d9;
+      --color-medium: #a78bfa;
+      --color-light: #ddd6fe;
+      --color-bg: #faf5ff;
+      --color-accent-orange: #f59e0b;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--color-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(167, 139, 250, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+    }
+    .app-header {
+      width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px;
+      backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(109, 40, 217, 0.08); border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.25rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(109, 40, 217, 0.06); border-bottom: 4px solid var(--color-light); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .round-tag { display: inline-block; font-size: 0.85rem; font-weight: bold; padding: 5px 16px; border-radius: 20px; margin-bottom: 10px; }
+    .round-tag.iq { background: #ede9fe; color: #6d28d9; }
+    .round-tag.eq { background: #fce7f3; color: #be185d; }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(109, 40, 217, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .puzzle-display { font-size: 2.4rem; letter-spacing: 6px; margin-bottom: 14px; }
+    .sentence-display { font-size: 1.2rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.15rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(109, 40, 217, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(109, 40, 217, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(167, 139, 250, 0.4); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(167, 139, 250, 0.5); }
+    .summary-screen, .transition-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(109, 40, 217, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .score-breakdown { display: flex; gap: 16px; justify-content: center; margin: 14px 0; flex-wrap: wrap; }
+    .score-pill { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 16px; padding: 10px 18px; font-weight: bold; }
+    .score-pill.eq { background: #fdf2f8; border-color: #fbcfe8; }
+    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
+    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.1rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.05rem; }
+      .choice-btn { font-size: 1rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+      .puzzle-display { font-size: 1.8rem; letter-spacing: 3px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🧠💖</span>
+      <h2>ห้องทดลองไอคิว-อีคิว</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🦉✨</div>
+      <h3 style="font-size: 1.5rem; color: var(--color-dark); margin-bottom: 10px;">ยินดีต้อนรับสู่ห้องทดลองไอคิว-อีคิว</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">มาฝึกสมองให้ฉลาด (IQ) และฝึกหัวใจให้เข้าใจความรู้สึก (EQ) ไปพร้อมกันกับครูฮูกกันเถอะค่ะ!</p>
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อนักคิดตัวน้อยตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      <button class="btn-action" onclick="registerAndStart()">เริ่มฝึกสมองและหัวใจ 🚀</button>
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 นักคิดหัวใจฉลาดประจำห้อง</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">นักคิด</span><span id="hud-name" class="hud-value">-</span></div>
+        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/20</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+      <div class="question-card">
+        <span class="round-tag" id="round-tag">🧠 ห้องมันสมอง (IQ)</span>
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🦉</div>
+        <p class="puzzle-display" id="question-puzzle" style="display:none;"></p>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <div id="transition-screen" class="transition-screen">
+      <div class="avatar-area">🦉💖</div>
+      <h2 style="font-size: 1.7rem; color: var(--color-dark);">เก่งมากค่ะ! ฝึกสมองครบแล้ว</h2>
+      <p style="color: #64748b; margin: 10px 0 20px;">ต่อไปเรามาฝึก "หัวใจฉลาด" กันบ้างนะคะ พร้อมไหมคะ?</p>
+      <button class="btn-action" onclick="startRound2()">ไปห้องหัวใจฉลาดกันเลย 💖</button>
+    </div>
+
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        <div class="explanation-box">
+          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">3. เกร็ดความรู้:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">🦉🌟</div>
+      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 6px;">ฝึกครบทั้งห้องมันสมองและห้องหัวใจฉลาดแล้ว</p>
+      <div class="score-breakdown">
+        <div class="score-pill">🧠 IQ: <span id="iq-score">0</span>/10</div>
+        <div class="score-pill eq">💖 EQ: <span id="eq-score">0</span>/10</div>
+      </div>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศนักคิดหัวใจฉลาด</div>
+        <div class="cert-subtitle">มอบให้เพื่อชื่นชมความเก่งทั้งสมองและหัวใจ</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
+        <p class="cert-desc">ได้ตั้งใจฝึกฝนทั้งไอคิว (IQ) และอีคิว (EQ) ที่ห้องทดลองไอคิว-อีคิว</p>
+        <p class="cert-score" id="cert-score-desc">คะแนนรวม 2000 คะแนนเต็ม!</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 ฝึกใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let iqCorrectCount = 0;
+    let eqCorrectCount = 0;
+    let questionsIQ = [];
+    let questionsEQ = [];
+    let currentRound = 1; // 1 = IQ, 2 = EQ
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      },
+      playFanfare() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [392, 523, 659, 784].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+          gain.gain.setValueAtTime(0.1, now + idx * 0.12);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.12 + 0.4);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.12); osc.stop(now + idx * 0.12 + 0.4);
+        });
+      }
+    };
+
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+    // ===================== IQ Bank (10 questions): patterns, classification, logic, sequence =====================
+    const iqBank = [
+      { puzzle: '🔴 🔵 🔴 🔵 🔴 ❓', avatar: '🧩', sentence: 'ดูแบบรูปสีให้ดีนะคะ ต่อไปควรเป็นสีอะไรคะ?', a: '🔵', c: ['🔵', '🔴', '🟢', '🟡'],
+        exp1: 'เฉลยคือ 🔵 ค่ะ', exp2: 'แบบรูปนี้สลับกันไปมาระหว่างสีแดงกับสีฟ้า จึงต้องต่อด้วยสีฟ้าค่ะ', exp3: 'เกร็ดความรู้: การสังเกตแบบรูปที่ซ้ำกันช่วยฝึกสมองให้คิดเป็นระบบมากขึ้นค่ะ' },
+      { puzzle: '', avatar: '🍎', sentence: 'ข้อใดไม่เข้าพวกกับข้ออื่น: 🍎 🍌 🍊 🚗', a: '🚗', c: ['🚗', '🍎', '🍌', '🍊'],
+        exp1: 'เฉลยคือ 🚗 ค่ะ', exp2: '🍎 🍌 🍊 เป็นผลไม้ทั้งหมด ส่วน 🚗 เป็นยานพาหนะ จึงไม่เข้าพวกค่ะ', exp3: 'เกร็ดความรู้: การจัดหมวดหมู่สิ่งของช่วยฝึกสมองให้จำแนกและจัดระเบียบความคิดค่ะ' },
+      { puzzle: '1  2  3  4  ❓', avatar: '🔢', sentence: 'ตัวเลขต่อไปในแบบรูปนี้คือเลขอะไรคะ?', a: '5', c: ['5', '6', '4', '3'],
+        exp1: 'เฉลยคือ 5 ค่ะ', exp2: 'ตัวเลขเรียงเพิ่มขึ้นทีละ 1 ดังนั้นหลังเลข 4 ต้องเป็นเลข 5 ค่ะ', exp3: 'เกร็ดความรู้: การนับเพิ่มทีละ 1 เป็นพื้นฐานสำคัญของการคิดเลขที่แม่นยำค่ะ' },
+      { puzzle: '', avatar: '🐶', sentence: 'ข้อใดไม่เข้าพวกกับข้ออื่น: 🐶 🐱 🐰 🪑', a: '🪑', c: ['🪑', '🐶', '🐱', '🐰'],
+        exp1: 'เฉลยคือ 🪑 ค่ะ', exp2: '🐶 🐱 🐰 เป็นสัตว์เลี้ยงทั้งหมด ส่วน 🪑 เป็นเฟอร์นิเจอร์ จึงไม่เข้าพวกค่ะ', exp3: 'เกร็ดความรู้: ลองสังเกตว่าสิ่งของแต่ละอย่างมีอะไรที่เหมือนกันก่อนตัดสินใจนะคะ' },
+      { puzzle: '⚫ ⚫⚫ ⚫⚫⚫ ❓', avatar: '⚫', sentence: 'กลุ่มจุดสีดำต่อไปควรมีกี่จุดคะ?', a: '4 จุด', c: ['4 จุด', '3 จุด', '2 จุด', '5 จุด'],
+        exp1: 'เฉลยคือ 4 จุด ค่ะ', exp2: 'จำนวนจุดเพิ่มขึ้นทีละ 1 จุดในแต่ละกลุ่ม (1, 2, 3, ...) ดังนั้นกลุ่มต่อไปต้องมี 4 จุดค่ะ', exp3: 'เกร็ดความรู้: การสังเกตแบบรูปที่ซับซ้อนขึ้นช่วยฝึกความละเอียดในการคิดค่ะ' },
+      { puzzle: '', avatar: '🥕', sentence: '"แครอท" จัดอยู่ในหมวดหมู่ใดคะ?', a: 'ผัก', c: ['ผัก', 'ผลไม้', 'เนื้อสัตว์', 'ขนม'],
+        exp1: 'เฉลยคือ ผัก ค่ะ', exp2: 'แครอทเป็นพืชที่เรากินส่วนราก จัดอยู่ในหมวดหมู่ผักค่ะ', exp3: 'เกร็ดความรู้: การรู้จักจัดหมวดหมู่อาหารช่วยให้เราเลือกกินอาหารที่มีประโยชน์ได้ดีขึ้นค่ะ' },
+      { puzzle: '', avatar: '🌧️', sentence: 'ถ้าฝนกำลังจะตก น้ำฟ้าควรพกอะไรไปโรงเรียนคะ?', a: 'ร่ม', c: ['ร่ม', 'แว่นกันแดด', 'พัดลม', 'หมวกกันน็อค'],
+        exp1: 'เฉลยคือ ร่ม ค่ะ', exp2: 'เมื่อฝนจะตก การพกร่มช่วยป้องกันไม่ให้เปียกฝนได้ค่ะ', exp3: 'เกร็ดความรู้: การคิดล่วงหน้าว่าจะเกิดอะไรขึ้นแล้วเตรียมตัวไว้ก่อน เรียกว่าการคิดแบบมีเหตุผลค่ะ' },
+      { puzzle: '5   2   8', avatar: '📊', sentence: 'ถ้าเรียงตัวเลขนี้จากน้อยไปมาก จะได้ลำดับใดคะ?', a: '2, 5, 8', c: ['2, 5, 8', '5, 2, 8', '8, 5, 2', '2, 8, 5'],
+        exp1: 'เฉลยคือ 2, 5, 8 ค่ะ', exp2: '2 น้อยที่สุด รองลงมาคือ 5 และ 8 มากที่สุด จึงเรียงเป็น 2, 5, 8 ค่ะ', exp3: 'เกร็ดความรู้: การเรียงลำดับตัวเลขช่วยฝึกทักษะการเปรียบเทียบค่ะ' },
+      { puzzle: '', avatar: '🔷', sentence: 'รูปสามเหลี่ยม 🔺 กลับหัวจะมีลักษณะอย่างไรคะ?', a: '🔻', c: ['🔻', '🔺', '⬛', '⭐'],
+        exp1: 'เฉลยคือ 🔻 ค่ะ', exp2: 'เมื่อกลับหัวสามเหลี่ยม ยอดแหลมที่เคยอยู่ด้านบนจะไปอยู่ด้านล่างแทนค่ะ', exp3: 'เกร็ดความรู้: การจินตนาการว่ารูปทรงหมุนหรือกลับด้านอย่างไร ช่วยฝึกสมองด้านมิติสัมพันธ์ค่ะ' },
+      { puzzle: '2   4   6   7   8', avatar: '🔍', sentence: 'ตัวเลขใดไม่เข้าพวกในกลุ่มนี้คะ?', a: '7', c: ['7', '2', '4', '8'],
+        exp1: 'เฉลยคือ 7 ค่ะ', exp2: '2, 4, 6, 8 เป็นเลขคู่ทั้งหมด ส่วน 7 เป็นเลขคี่ จึงไม่เข้าพวกค่ะ', exp3: 'เกร็ดความรู้: เลขคู่คือเลขที่หาร 2 ลงตัว เลขคี่คือเลขที่หาร 2 ไม่ลงตัวค่ะ' }
+    ];
+
+    // ===================== EQ Bank (10 questions): emotion recognition, empathy, self-regulation, social skills =====================
+    const eqBank = [
+      { avatar: '😊', sentence: 'เพื่อนคนนี้กำลังยิ้มแบบนี้ เขารู้สึกอย่างไรคะ?', a: 'มีความสุข', c: ['มีความสุข', 'เสียใจ', 'โกรธ', 'กลัว'],
+        exp1: 'เฉลยคือ มีความสุข ค่ะ', exp2: 'ใบหน้ายิ้มแสดงว่ากำลังรู้สึกดีและมีความสุขค่ะ', exp3: 'เกร็ดความรู้: การสังเกตสีหน้าของเพื่อนช่วยให้เรารู้ว่าเขากำลังรู้สึกอย่างไรค่ะ' },
+      { avatar: '😢', sentence: 'เพื่อนคนนี้หน้าตาแบบนี้ เขารู้สึกอย่างไรคะ?', a: 'เสียใจ', c: ['เสียใจ', 'มีความสุข', 'ตื่นเต้น', 'สงบ'],
+        exp1: 'เฉลยคือ เสียใจ ค่ะ', exp2: 'น้ำตาไหลและหน้าเศร้าแสดงว่ากำลังรู้สึกเสียใจค่ะ', exp3: 'เกร็ดความรู้: เมื่อเห็นเพื่อนเสียใจ การเข้าไปถามไถ่หรือปลอบใจเป็นสิ่งที่ดีมากค่ะ' },
+      { avatar: '😠', sentence: 'เพื่อนคนนี้หน้าตาแบบนี้ เขารู้สึกอย่างไรคะ?', a: 'โกรธ', c: ['โกรธ', 'ดีใจ', 'ง่วงนอน', 'หิว'],
+        exp1: 'เฉลยคือ โกรธ ค่ะ', exp2: 'คิ้วขมวดและหน้าบึ้งแสดงว่ากำลังรู้สึกโกรธค่ะ', exp3: 'เกร็ดความรู้: ทุกคนมีสิทธิ์โกรธได้ แต่ควรแสดงออกอย่างเหมาะสมไม่ทำร้ายใครค่ะ' },
+      { avatar: '🧸', sentence: 'ถ้าเพื่อนทำของเล่นตกแตกแล้วร้องไห้ เราควรทำอย่างไรคะ?', a: 'ปลอบใจและช่วยเก็บของให้เพื่อน', c: ['ปลอบใจและช่วยเก็บของให้เพื่อน', 'หัวเราะเยาะเพื่อน', 'เดินหนีไปเฉยๆ', 'บอกว่าเพื่อนซุ่มซ่าม'],
+        exp1: 'เฉลยคือ ปลอบใจและช่วยเก็บของให้เพื่อน ค่ะ', exp2: 'การเข้าใจความรู้สึกของเพื่อนและช่วยเหลือ แสดงถึงความเห็นอกเห็นใจค่ะ', exp3: 'เกร็ดความรู้: การเอาใจเขามาใส่ใจเรา เรียกว่า "ความเห็นอกเห็นใจ" ซึ่งเป็นหัวใจสำคัญของ EQ ค่ะ' },
+      { avatar: '😤', sentence: 'เมื่อรู้สึกโกรธมากๆ เราควรทำอย่างไรก่อนเป็นอันดับแรกคะ?', a: 'หายใจลึกๆ นับ 1 ถึง 10 ให้ใจเย็นลง', c: ['หายใจลึกๆ นับ 1 ถึง 10 ให้ใจเย็นลง', 'ตะโกนใส่คนอื่นทันที', 'ขว้างปาข้าวของ', 'ทำร้ายคนอื่น'],
+        exp1: 'เฉลยคือ หายใจลึกๆ นับ 1 ถึง 10 ให้ใจเย็นลง ค่ะ', exp2: 'การหายใจลึกๆ ช่วยให้เราสงบสติอารมณ์ก่อนตัดสินใจทำอะไรค่ะ', exp3: 'เกร็ดความรู้: การควบคุมอารมณ์ตัวเองได้ เรียกว่า "การควบคุมตนเอง" เป็นทักษะ EQ ที่สำคัญมากค่ะ' },
+      { avatar: '🙏', sentence: 'ถ้าเราทำผิดกับเพื่อนโดยไม่ตั้งใจ ควรพูดคำว่าอะไรคะ?', a: 'ขอโทษ', c: ['ขอโทษ', 'ไม่สนใจ', 'แกล้งทำเป็นไม่รู้', 'โทษเพื่อนแทน'],
+        exp1: 'เฉลยคือ ขอโทษ ค่ะ', exp2: 'การกล่าวคำขอโทษแสดงความรับผิดชอบและให้เกียรติความรู้สึกของผู้อื่นค่ะ', exp3: 'เกร็ดความรู้: การกล้ายอมรับผิดและขอโทษ ทำให้เพื่อนยังรักและไว้ใจเราเหมือนเดิมค่ะ' },
+      { avatar: '💐', sentence: 'เมื่อเพื่อนช่วยเหลือเรา เราควรพูดว่าอะไรคะ?', a: 'ขอบคุณ', c: ['ขอบคุณ', 'เฉยๆ ไม่พูดอะไร', 'บ่นว่าช่วยช้า', 'เดินหนีไป'],
+        exp1: 'เฉลยคือ ขอบคุณ ค่ะ', exp2: 'การกล่าวขอบคุณแสดงถึงความรู้จักบุญคุณและทำให้ความสัมพันธ์ดีขึ้นค่ะ', exp3: 'เกร็ดความรู้: คำขอบคุณเล็กๆ สามารถทำให้คนที่ช่วยเรารู้สึกอบอุ่นใจได้มากเลยค่ะ' },
+      { avatar: '🤝', sentence: 'การแบ่งปันของเล่นให้เพื่อนเล่นด้วยกัน แสดงถึงอะไรคะ?', a: 'ความมีน้ำใจ', c: ['ความมีน้ำใจ', 'ความเห็นแก่ตัว', 'ความขี้เกียจ', 'ความไม่สนใจใคร'],
+        exp1: 'เฉลยคือ ความมีน้ำใจ ค่ะ', exp2: 'การแบ่งปันสิ่งของให้ผู้อื่นแสดงถึงความมีน้ำใจและเห็นแก่ผู้อื่นค่ะ', exp3: 'เกร็ดความรู้: เพื่อนที่มีน้ำใจแบ่งปันกัน มักจะมีเพื่อนเยอะและมีความสุขค่ะ' },
+      { avatar: '🎲', sentence: 'ถ้าเพื่อนอยากเล่นเกมคนละแบบกับเรา ควรทำอย่างไรคะ?', a: 'พูดคุยกันดีๆ และผลัดกันเล่นเกมที่ชอบ', c: ['พูดคุยกันดีๆ และผลัดกันเล่นเกมที่ชอบ', 'ทะเลาะกันจนกว่าจะได้เล่นเกมของตัวเอง', 'แย่งของเล่นจากเพื่อน', 'ไม่เล่นด้วยกันอีกเลย'],
+        exp1: 'เฉลยคือ พูดคุยกันดีๆ และผลัดกันเล่นเกมที่ชอบ ค่ะ', exp2: 'การพูดคุยและผลัดกันเล่น ช่วยให้ทั้งสองฝ่ายพอใจและยังเป็นเพื่อนกันได้ค่ะ', exp3: 'เกร็ดความรู้: การรู้จักประนีประนอมและฟังความเห็นของเพื่อน เป็นทักษะสังคมที่ดีมากค่ะ' },
+      { avatar: '💭', sentence: 'ก่อนพูดอะไรที่อาจทำให้เพื่อนเสียใจ เราควรทำอย่างไรก่อนคะ?', a: 'คิดก่อนพูด และใส่ใจความรู้สึกของเพื่อน', c: ['คิดก่อนพูด และใส่ใจความรู้สึกของเพื่อน', 'พูดออกไปทันทีโดยไม่คิด', 'พูดแรงๆ ให้เพื่อนกลัว', 'ไม่สนใจว่าเพื่อนจะรู้สึกอย่างไร'],
+        exp1: 'เฉลยคือ คิดก่อนพูด และใส่ใจความรู้สึกของเพื่อน ค่ะ', exp2: 'การคิดก่อนพูดช่วยป้องกันไม่ให้คำพูดของเราทำร้ายความรู้สึกผู้อื่นโดยไม่ตั้งใจค่ะ', exp3: 'เกร็ดความรู้: คำพูดที่ดีสร้างมิตรภาพที่ดี ลองนึกถึงใจเขาใจเราก่อนพูดเสมอนะคะ' }
+    ];
+
+    function navigateBack() {
+      window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇";
+    }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อนักคิดตัวน้อยก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ห้องทดลองไอคิว-อีคิว (ป.2)');
+      document.getElementById('hud-name').innerText = playerName;
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      synth.init();
+      const welcomeMsg = `ยินดีต้อนรับ ${playerName} เข้าสู่ห้องทดลองไอคิวอีคิวค่ะ เรามาเริ่มจากห้องมันสมองกันก่อนนะคะ`;
+      if (speechEnabled && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      score = 0; currentIdx = 0; iqCorrectCount = 0; eqCorrectCount = 0; currentRound = 1;
+      questionsIQ = shuffle([...iqBank]);
+      questionsEQ = shuffle([...eqBank]);
+      loadQuestion();
+    }
+
+    function currentBank() { return currentRound === 1 ? questionsIQ : questionsEQ; }
+    function totalQuestions() { return questionsIQ.length + questionsEQ.length; }
+    function overallIndex() { return currentRound === 1 ? currentIdx : questionsIQ.length + currentIdx; }
+
+    function loadQuestion() {
+      const bank = currentBank();
+      if (currentIdx >= bank.length) {
+        if (currentRound === 1) { showTransition(); return; }
+        finishGame();
+        return;
+      }
+      document.getElementById('hud-progress').innerText = `${overallIndex() + 1}/${totalQuestions()}`;
+      document.getElementById('hud-score').innerText = score;
+      const q = bank[currentIdx];
+      const roundTag = document.getElementById('round-tag');
+      if (currentRound === 1) { roundTag.innerText = '🧠 ห้องมันสมอง (IQ)'; roundTag.className = 'round-tag iq'; }
+      else { roundTag.innerText = '💖 ห้องหัวใจฉลาด (EQ)'; roundTag.className = 'round-tag eq'; }
+      document.getElementById('question-avatar').innerText = q.avatar;
+      const puzzleEl = document.getElementById('question-puzzle');
+      if (q.puzzle) { puzzleEl.style.display = 'block'; puzzleEl.innerText = q.puzzle; }
+      else { puzzleEl.style.display = 'none'; puzzleEl.innerText = ''; }
+      document.getElementById('question-sentence').innerText = q.sentence;
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const choices = shuffle([...q.c]);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window) || !speechEnabled) return;
+      window.speechSynthesis.cancel();
+      const q = currentBank()[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(`ข้อที่ ${overallIndex() + 1}. ${q.sentence}`);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = currentBank()[currentIdx];
+      const isCorrect = (value === q.a);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        if (currentRound === 1) iqCorrectCount++; else eqCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะคะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "🌱";
+        document.getElementById('result-title').innerText = "ยังไม่ถูกนะคะ ลองใหม่ได้เลย!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.exp1;
+      document.getElementById('exp-incorrect').innerText = q.exp2;
+      document.getElementById('exp-summary').innerText = q.exp3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
+          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
+          utterance.lang = 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function showTransition() {
+      window.speechSynthesis.cancel();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('transition-screen').style.display = 'flex';
+      if (speechEnabled) {
+        const u = new SpeechSynthesisUtterance(`เก่งมากค่ะ ${playerName} ฝึกห้องมันสมองครบแล้ว ต่อไปเรามาฝึกห้องหัวใจฉลาดกันบ้างนะคะ`);
+        u.lang = 'th-TH';
+        window.speechSynthesis.speak(u);
+      }
+    }
+    function startRound2() {
+      window.speechSynthesis.cancel();
+      document.getElementById('transition-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      currentRound = 2;
+      currentIdx = 0;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      synth.playFanfare();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      document.getElementById('iq-score').innerText = iqCorrectCount;
+      document.getElementById('eq-score').innerText = eqCorrectCount;
+      const totalCorrect = iqCorrectCount + eqCorrectCount;
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (totalCorrect >= 18) starStr = "⭐⭐⭐";
+      else if (totalCorrect >= 12) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      document.getElementById('cert-name').value = playerName;
+      document.getElementById('cert-score-desc').innerText = `IQ ถูก ${iqCorrectCount}/10 ข้อ · EQ ถูก ${eqCorrectCount}/10 ข้อ (คะแนนสะสม: ${score} คะแนน)`;
+      if (speechEnabled) {
+        const speakFinish = `เก่งมากๆ เลยค่ะ ${playerName} ฝึกครบทั้งห้องมันสมองและห้องหัวใจฉลาดแล้ว ด้วยคะแนนสะสม ${score} คะแนน เก่งทั้งสมองและหัวใจเลยนะคะ`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('iqeq_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
+      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
+      else { leaderboard.push({ name: playerName, score: score }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('iqeq_leaderboard', JSON.stringify(leaderboard));
+      if (typeof fbSaveScore === 'function') fbSaveScore('iqeq_leaderboard', { name: playerName, score: score });
+    }
+
+    function renderLeaderboardBox(leaderboard) {
+      const box = document.getElementById('leaderboard-box');
+      if (!leaderboard || leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีนักคิดหัวใจฉลาดประจำห้องค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} 🦉 ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      renderLeaderboardBox(JSON.parse(localStorage.getItem('iqeq_leaderboard')) || []);
+      if (typeof fbLoadTopScores === 'function') {
+        fbLoadTopScores('iqeq_leaderboard', cloudList => {
+          if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
+        });
+      }
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

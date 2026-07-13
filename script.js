@@ -1278,6 +1278,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const iqeqBtn = document.getElementById('btn-select-iqeq');
+  if (iqeqBtn) {
+    iqeqBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปที่ห้องทดลองไอคิวอีคิวกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'iqeq.html';
+      }, 1000);
+    });
+  }
+
   const doctorBtn = document.getElementById('btn-select-doctor');
   if (doctorBtn) {
     doctorBtn.addEventListener('click', () => {

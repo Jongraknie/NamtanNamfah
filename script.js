@@ -1300,6 +1300,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const newGameLinks = [
+    ['btn-select-aqmq', 'aqmq.html', 'ไปที่ห้องทดลองเอคิวเอ็มคิวกันเลยค่ะน้ำฟ้า!'],
+    ['btn-select-artmusic', 'art-music.html', 'ไปที่ห้องศิลปะและดนตรีกันเลยค่ะน้ำฟ้า!'],
+    ['btn-select-pe', 'pe.html', 'ไปที่สนามกีฬาน้อยกันเลยค่ะน้ำฟ้า!'],
+    ['btn-select-safety', 'safety.html', 'ไปทำภารกิจนักสืบความปลอดภัยกันเลยค่ะน้ำฟ้า!'],
+    ['btn-select-nature', 'nature.html', 'ไปสำรวจธรรมชาติกันเลยค่ะน้ำฟ้า!'],
+    ['btn-select-coding', 'coding.html', 'ไปฝึกคิดแบบโค้ดดิ้งกันเลยค่ะน้ำฟ้า!'],
+    ['btn-select-reading', 'reading.html', 'ไปอ่านนิทานจับใจความกันเลยค่ะน้ำฟ้า!']
+  ];
+  newGameLinks.forEach(([id, url, msg]) => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        sounds.init();
+        speakText(msg, 'th-TH');
+        setTimeout(() => {
+          window.location.href = url;
+        }, 1000);
+      });
+    }
+  });
+
   const tutorBtn = document.getElementById('btn-select-tutor');
   if (tutorBtn) {
     tutorBtn.addEventListener('click', () => {

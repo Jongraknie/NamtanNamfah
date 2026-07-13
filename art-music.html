@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ห้องศิลปะและดนตรีน้อย | สำหรับ น้ำฟ้า 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <style>
+    :root {
+      --color-dark: #c2410c; --color-medium: #fb923c; --color-light: #fed7aa; --color-bg: #fff7ed;
+      --color-accent-orange: #f59e0b; --color-accent-pink: #ec4899; --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #fb923c 0%, #ec4899 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--color-bg); background-image: radial-gradient(circle at 15% 20%, rgba(251, 146, 60, 0.15) 0%, transparent 40%), radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%); color: var(--color-text-dark); font-family: var(--font-playful); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
+    .app-header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px; backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(194, 65, 12, 0.08); border: 2px solid rgba(255, 255, 255, 0.5); }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.3rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(194, 65, 12, 0.06); border-bottom: 4px solid var(--color-light); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(194, 65, 12, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .sentence-display { font-size: 1.25rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.05rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(194, 65, 12, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(194, 65, 12, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 146, 60, 0.35); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(251, 146, 60, 0.45); }
+    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(194, 65, 12, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
+    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.2rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.05rem; }
+      .choice-btn { font-size: 1rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">🎨🎵</span>
+      <h2>ห้องศิลปะและดนตรีน้อย</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🎨🎹</div>
+      <h3 style="font-size: 1.5rem; color: var(--color-dark); margin-bottom: 10px;">ยินดีต้อนรับสู่ห้องศิลปะและดนตรี</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">มาเรียนรู้เรื่องสี การวาดภาพ และเครื่องดนตรีสนุกๆ กันเถอะค่ะ!</p>
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อศิลปินตัวน้อยตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      <button class="btn-action" onclick="registerAndStart()">เริ่มสร้างสรรค์ 🚀</button>
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 ศิลปินเก่งประจำห้อง</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">ศิลปิน</span><span id="hud-name" class="hud-value">-</span></div>
+        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/15</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+      <div class="question-card">
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🎨</div>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        <div class="explanation-box">
+          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">3. เกร็ดความรู้:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">🎨🏆</div>
+      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 10px;">เรียนรู้ศิลปะและดนตรีครบทุกข้อแล้ว</p>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศศิลปินตัวน้อย</div>
+        <div class="cert-subtitle">มอบให้เพื่อชื่นชมความคิดสร้างสรรค์</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
+        <p class="cert-desc">ได้ตั้งใจเรียนรู้เรื่องสี ศิลปะ และดนตรีที่ห้องศิลปะและดนตรีน้อย</p>
+        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 1500 คะแนนเต็ม!</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 เล่นใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let answersCorrectCount = 0;
+    let questions = [];
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+    };
+
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+    const questionBank = [
+      { avatar: '🔴🟡', sentence: 'ผสมสีแดงกับสีเหลืองเข้าด้วยกัน จะได้สีอะไรคะ?', a: 'สีส้ม', c: ['สีส้ม', 'สีเขียว', 'สีม่วง', 'สีน้ำเงิน'],
+        exp1: 'เฉลยคือ สีส้ม ค่ะ', exp2: 'สีแดงผสมกับสีเหลืองจะได้สีส้มเสมอค่ะ', exp3: 'เกร็ดความรู้: สีแดง เหลือง และน้ำเงิน เรียกว่า "แม่สี" ใช้ผสมสีอื่นๆ ได้อีกมากมายค่ะ' },
+      { avatar: '🔵🟡', sentence: 'ผสมสีฟ้ากับสีเหลืองเข้าด้วยกัน จะได้สีอะไรคะ?', a: 'สีเขียว', c: ['สีเขียว', 'สีส้ม', 'สีม่วง', 'สีชมพู'],
+        exp1: 'เฉลยคือ สีเขียว ค่ะ', exp2: 'สีฟ้าผสมกับสีเหลืองจะได้สีเขียวเสมอค่ะ', exp3: 'เกร็ดความรู้: ต้นไม้และใบไม้ส่วนใหญ่เป็นสีเขียวเพราะมีสารคลอโรฟิลล์ค่ะ' },
+      { avatar: '🔴🔵', sentence: 'ผสมสีแดงกับสีน้ำเงินเข้าด้วยกัน จะได้สีอะไรคะ?', a: 'สีม่วง', c: ['สีม่วง', 'สีเขียว', 'สีส้ม', 'สีเทา'],
+        exp1: 'เฉลยคือ สีม่วง ค่ะ', exp2: 'สีแดงผสมกับสีน้ำเงินจะได้สีม่วงเสมอค่ะ', exp3: 'เกร็ดความรู้: ดอกไม้หลายชนิด เช่น ดอกลาเวนเดอร์ มีสีม่วงสวยงามค่ะ' },
+      { avatar: '🖌️', sentence: 'อุปกรณ์ที่ใช้จุ่มสีน้ำมาระบายภาพเรียกว่าอะไรคะ?', a: 'พู่กัน', c: ['พู่กัน', 'ไม้บรรทัด', 'กรรไกร', 'ยางลบ'],
+        exp1: 'เฉลยคือ พู่กัน ค่ะ', exp2: 'พู่กันใช้จุ่มสีแล้วระบายลงบนกระดาษหรือผ้าใบค่ะ', exp3: 'เกร็ดความรู้: พู่กันมีหลายขนาด บางอันเล็กสำหรับวาดรายละเอียด บางอันใหญ่สำหรับระบายพื้นที่กว้างค่ะ' },
+      { avatar: '🥁', sentence: 'กลองเป็นเครื่องดนตรีประเภทใดคะ?', a: 'เครื่องตี', c: ['เครื่องตี', 'เครื่องเป่า', 'เครื่องสี', 'เครื่องดีด'],
+        exp1: 'เฉลยคือ เครื่องตี ค่ะ', exp2: 'กลองต้องใช้มือหรือไม้ตีลงบนหน้ากลองเพื่อให้เกิดเสียง จึงเป็นเครื่องตีค่ะ', exp3: 'เกร็ดความรู้: เครื่องดนตรีประเภทเครื่องตี ได้แก่ กลอง ฉิ่ง ฉาบ ระนาดค่ะ' },
+      { avatar: '🎺', sentence: 'ทรัมเป็ตเป็นเครื่องดนตรีประเภทใดคะ?', a: 'เครื่องเป่า', c: ['เครื่องเป่า', 'เครื่องตี', 'เครื่องสี', 'เครื่องดีด'],
+        exp1: 'เฉลยคือ เครื่องเป่า ค่ะ', exp2: 'ทรัมเป็ตต้องใช้ลมเป่าเข้าไปเพื่อให้เกิดเสียง จึงเป็นเครื่องเป่าค่ะ', exp3: 'เกร็ดความรู้: เครื่องดนตรีประเภทเครื่องเป่า ได้แก่ ขลุ่ย ทรัมเป็ต แซกโซโฟนค่ะ' },
+      { avatar: '🎹', sentence: 'เปียโนเป็นเครื่องดนตรีประเภทใดคะ?', a: 'เครื่องดีด (คีย์บอร์ด)', c: ['เครื่องดีด (คีย์บอร์ด)', 'เครื่องเป่า', 'เครื่องตี', 'เครื่องสี'],
+        exp1: 'เฉลยคือ เครื่องดีด (คีย์บอร์ด) ค่ะ', exp2: 'เปียโนใช้นิ้วกดลิ่มคีย์เพื่อเคาะสายในตัวเครื่องให้เกิดเสียงค่ะ', exp3: 'เกร็ดความรู้: เปียโนมีทั้งหมด 88 คีย์ค่ะ' },
+      { avatar: '🌡️', sentence: 'สีแดง สีส้ม สีเหลือง เรียกว่าสีโทนใด และให้ความรู้สึกอย่างไรคะ?', a: 'โทนร้อน ให้ความรู้สึกอบอุ่นตื่นเต้น', c: ['โทนร้อน ให้ความรู้สึกอบอุ่นตื่นเต้น', 'โทนเย็น ให้ความรู้สึกสงบ', 'ไม่มีความรู้สึกใดๆ', 'โทนร้อน ให้ความรู้สึกง่วงนอน'],
+        exp1: 'เฉลยคือ โทนร้อน ให้ความรู้สึกอบอุ่นตื่นเต้น ค่ะ', exp2: 'สีแดง ส้ม เหลือง เป็นสีโทนร้อนที่ให้ความรู้สึกมีพลังและอบอุ่นค่ะ', exp3: 'เกร็ดความรู้: ศิลปินมักใช้สีโทนร้อนในภาพที่ต้องการความรู้สึกตื่นเต้นมีชีวิตชีวาค่ะ' },
+      { avatar: '❄️', sentence: 'สีฟ้า สีเขียว สีน้ำเงิน เรียกว่าสีโทนใด และให้ความรู้สึกอย่างไรคะ?', a: 'โทนเย็น ให้ความรู้สึกสงบเย็นสบาย', c: ['โทนเย็น ให้ความรู้สึกสงบเย็นสบาย', 'โทนร้อน ให้ความรู้สึกตื่นเต้น', 'ไม่มีความรู้สึกใดๆ', 'โทนเย็น ให้ความรู้สึกร้อนแรง'],
+        exp1: 'เฉลยคือ โทนเย็น ให้ความรู้สึกสงบเย็นสบาย ค่ะ', exp2: 'สีฟ้า เขียว น้ำเงิน เป็นสีโทนเย็นที่ให้ความรู้สึกสงบและผ่อนคลายค่ะ', exp3: 'เกร็ดความรู้: ท้องฟ้าและทะเลเป็นสีโทนเย็น ทำให้เรารู้สึกสงบเวลามองค่ะ' },
+      { avatar: '⚫⚪', sentence: 'ผสมสีขาวกับสีดำเข้าด้วยกัน จะได้สีอะไรคะ?', a: 'สีเทา', c: ['สีเทา', 'สีน้ำตาล', 'สีชมพู', 'สีเขียว'],
+        exp1: 'เฉลยคือ สีเทา ค่ะ', exp2: 'สีขาวผสมกับสีดำจะได้สีเทาเสมอค่ะ', exp3: 'เกร็ดความรู้: ยิ่งใส่สีดำเยอะ สีเทาก็จะยิ่งเข้มขึ้นค่ะ' },
+      { avatar: '🖍️', sentence: 'การวาดภาพให้มีมิติ ดูนูนหรือลึก ควรใช้เทคนิคใดคะ?', a: 'การแรเงา', c: ['การแรเงา', 'การลบภาพ', 'การพับกระดาษ', 'การตัดกระดาษ'],
+        exp1: 'เฉลยคือ การแรเงา ค่ะ', exp2: 'การแรเงาให้มีส่วนเข้มและอ่อนช่วยให้ภาพดูมีมิติเหมือนจริงมากขึ้นค่ะ', exp3: 'เกร็ดความรู้: จุดที่แสงส่องไม่ถึงจะมืดกว่า ส่วนจุดที่แสงส่องถึงจะสว่างกว่าค่ะ' },
+      { avatar: '🎻', sentence: 'ไวโอลินเล่นเสียงออกมาได้อย่างไรคะ?', a: 'ใช้คันชักสีบนสาย', c: ['ใช้คันชักสีบนสาย', 'เป่าลมเข้าไป', 'ใช้ไม้ตี', 'กดปุ่มไฟฟ้า'],
+        exp1: 'เฉลยคือ ใช้คันชักสีบนสาย ค่ะ', exp2: 'ไวโอลินเป็นเครื่องดนตรีประเภทเครื่องสี ใช้คันชักถูกับสายให้เกิดเสียงค่ะ', exp3: 'เกร็ดความรู้: เครื่องดนตรีตระกูลไวโอลิน ได้แก่ ไวโอลิน วิโอลา เชลโลค่ะ' },
+      { avatar: '🎼', sentence: 'จังหวะเพลงที่ช้าและเรียบ มักทำให้เรารู้สึกอย่างไรคะ?', a: 'ผ่อนคลายสงบ', c: ['ผ่อนคลายสงบ', 'อยากวิ่งเร็วๆ', 'ตื่นเต้นสุดๆ', 'โกรธมาก'],
+        exp1: 'เฉลยคือ ผ่อนคลายสงบ ค่ะ', exp2: 'เพลงจังหวะช้ามักใช้กล่อมหรือทำให้รู้สึกสงบผ่อนคลายค่ะ', exp3: 'เกร็ดความรู้: เพลงกล่อมเด็กส่วนใหญ่มีจังหวะช้าเพื่อให้เด็กหลับสบายค่ะ' },
+      { avatar: '🌈', sentence: 'สีที่อยู่ในสายรุ้งมีทั้งหมดกี่สีคะ?', a: '7 สี', c: ['7 สี', '3 สี', '5 สี', '10 สี'],
+        exp1: 'เฉลยคือ 7 สี ค่ะ', exp2: 'สายรุ้งมี 7 สี ได้แก่ แดง ส้ม เหลือง เขียว ฟ้า คราม ม่วงค่ะ', exp3: 'เกร็ดความรู้: เราจำสีรุ้งได้ง่ายๆ ด้วยคำว่า "แสงจันทร์ส่องสระ" หรือลำดับ ม่วง คราม น้ำเงิน เขียว เหลือง แสด แดงค่ะ' },
+      { avatar: '✏️', sentence: 'ก่อนจะระบายสีภาพวาด ควรทำอะไรก่อนเป็นอันดับแรกคะ?', a: 'ร่างภาพด้วยดินสอก่อน', c: ['ร่างภาพด้วยดินสอก่อน', 'ระบายสีทันทีโดยไม่ร่าง', 'ฉีกกระดาษทิ้ง', 'ปิดตาแล้ววาด'],
+        exp1: 'เฉลยคือ ร่างภาพด้วยดินสอก่อน ค่ะ', exp2: 'การร่างภาพก่อนช่วยให้วางตำแหน่งและสัดส่วนได้ถูกต้องก่อนลงสีจริงค่ะ', exp3: 'เกร็ดความรู้: ถ้าร่างผิดสามารถลบและแก้ไขได้ง่ายกว่าการระบายสีผิดค่ะ' }
+    ];
+
+    function navigateBack() { window.speechSynthesis.cancel(); window.location.href = "index.html"; }
+    function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇"; }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อศิลปินตัวน้อยก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ห้องศิลปะและดนตรีน้อย (ป.2)');
+      document.getElementById('hud-name').innerText = playerName;
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      synth.init();
+      const welcomeMsg = `ยินดีต้อนรับศิลปินตัวน้อย ${playerName} เข้าสู่ห้องศิลปะและดนตรีค่ะ`;
+      if (speechEnabled && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      score = 0; currentIdx = 0; answersCorrectCount = 0;
+      questions = shuffle([...questionBank]);
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      if (currentIdx >= questions.length) { finishGame(); return; }
+      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
+      document.getElementById('hud-score').innerText = score;
+      const q = questions[currentIdx];
+      document.getElementById('question-avatar').innerText = q.avatar;
+      document.getElementById('question-sentence').innerText = q.sentence;
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const choices = shuffle([...q.c]);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window) || !speechEnabled) return;
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(`ข้อที่ ${currentIdx + 1}. ${q.sentence}`);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = questions[currentIdx];
+      const isCorrect = (value === q.a);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        answersCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะคะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "🎨";
+        document.getElementById('result-title').innerText = "ยังไม่ถูกนะคะ ลองใหม่ได้เลย!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.exp1;
+      document.getElementById('exp-incorrect').innerText = q.exp2;
+      document.getElementById('exp-summary').innerText = q.exp3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
+          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
+          utterance.lang = 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (answersCorrectCount >= 13) starStr = "⭐⭐⭐";
+      else if (answersCorrectCount >= 8) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      document.getElementById('cert-name').value = playerName;
+      document.getElementById('cert-score-desc').innerText = `ตอบถูกต้องทั้งหมด ${answersCorrectCount} จาก ${questions.length} ข้อ (คะแนนสะสม: ${score} คะแนน)`;
+      if (speechEnabled) {
+        const speakFinish = `เก่งมากๆ เลยค่ะ ${playerName} เรียนรู้ศิลปะและดนตรีครบทุกข้อแล้ว ด้วยคะแนนสะสม ${score} คะแนนค่ะ`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('artmusic_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
+      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
+      else { leaderboard.push({ name: playerName, score: score }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('artmusic_leaderboard', JSON.stringify(leaderboard));
+      if (typeof fbSaveScore === 'function') fbSaveScore('artmusic_leaderboard', { name: playerName, score: score });
+    }
+
+    function renderLeaderboardBox(leaderboard) {
+      const box = document.getElementById('leaderboard-box');
+      if (!leaderboard || leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีศิลปินเก่งประจำห้องค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} 🎨 ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      renderLeaderboardBox(JSON.parse(localStorage.getItem('artmusic_leaderboard')) || []);
+      if (typeof fbLoadTopScores === 'function') {
+        fbLoadTopScores('artmusic_leaderboard', cloudList => {
+          if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
+        });
+      }
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

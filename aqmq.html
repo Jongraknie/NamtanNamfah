@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ห้องทดลองเอคิว-เอ็มคิว | สำหรับ น้ำฟ้า 💖</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-gate.js"></script>
+  <script src="firebase-helpers.js"></script>
+  <style>
+    :root {
+      --color-dark: #b45309;
+      --color-medium: #f59e0b;
+      --color-light: #fde68a;
+      --color-bg: #fffbeb;
+      --color-accent-orange: #f59e0b;
+      --color-accent-pink: #ec4899;
+      --color-text-dark: #1f2937;
+      --grad-main: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      --font-playful: 'Itim', 'Prompt', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--color-bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 45%);
+      color: var(--color-text-dark);
+      font-family: var(--font-playful);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px; overflow-x: hidden;
+    }
+    .app-header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px; backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(180, 83, 9, 0.08); border: 2px solid rgba(255, 255, 255, 0.5); }
+    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
+    .logo-header { display: flex; align-items: center; gap: 10px; }
+    .logo-header h2 { font-size: 1.2rem; color: var(--color-dark); }
+    .header-controls { display: flex; gap: 10px; }
+    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
+    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
+    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(180, 83, 9, 0.06); border-bottom: 4px solid var(--color-light); }
+    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
+    .round-tag { display: inline-block; font-size: 0.85rem; font-weight: bold; padding: 5px 16px; border-radius: 20px; margin-bottom: 10px; }
+    .round-tag.aq { background: #fef3c7; color: #b45309; }
+    .round-tag.mq { background: #fce7f3; color: #be185d; }
+    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(180, 83, 9, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
+    .avatar-area { font-size: 3.5rem; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    .sentence-display { font-size: 1.2rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
+    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
+    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
+    .choice-btn { font-family: var(--font-playful); font-size: 1.05rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
+    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(180, 83, 9, 0.08); }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 83, 9, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .overlay.active .modal-card { transform: scale(1); }
+    .result-icon { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
+    .result-title.correct { color: #10b981; }
+    .result-title.incorrect { color: #ef4444; }
+    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
+    .exp-step { margin-bottom: 12px; }
+    .exp-step:last-child { margin-bottom: 0; }
+    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35); transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.45); }
+    .summary-screen, .transition-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(180, 83, 9, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
+    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
+    .score-breakdown { display: flex; gap: 16px; justify-content: center; margin: 14px 0; flex-wrap: wrap; }
+    .score-pill { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 16px; padding: 10px 18px; font-weight: bold; }
+    .score-pill.mq { background: #fdf2f8; border-color: #fbcfe8; }
+    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
+    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
+    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
+    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
+    .cert-score { font-size: 1.1rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
+    @media print {
+      body * { visibility: hidden; }
+      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
+      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
+      .cert-name-input { border: none; font-size: 2.2rem; }
+      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
+    }
+    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
+    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
+    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
+    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
+    @media (max-width: 500px) {
+      .choices-grid { grid-template-columns: 1fr; }
+      .sentence-display { font-size: 1.05rem; }
+      .choice-btn { font-size: 1rem; padding: 14px 10px; }
+      .hud-value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
+    <div class="logo-header">
+      <span style="font-size: 1.8rem;">💪🕊️</span>
+      <h2>ห้องทดลองเอคิว-เอ็มคิว</h2>
+    </div>
+    <div class="header-controls">
+      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
+      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
+      <div class="avatar-area">🦁✨</div>
+      <h3 style="font-size: 1.4rem; color: var(--color-dark); margin-bottom: 10px;">ยินดีต้อนรับสู่ห้องทดลองเอคิว-เอ็มคิว</h3>
+      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">มาฝึกความอึดสู้ไม่ถอย (AQ) และฝึกหัวใจที่มีคุณธรรม (MQ) ไปพร้อมกันกับสิงโตน้อยใจสู้กันเถอะค่ะ!</p>
+      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อนักสู้ตัวน้อยตรงนี้ค่ะ..." maxlength="12" class="register-input">
+      <button class="btn-action" onclick="registerAndStart()">เริ่มฝึกใจสู้และคุณธรรม 🚀</button>
+      <div class="leaderboard-container">
+        <div class="leaderboard-title">🏆 นักสู้ใจดีประจำห้อง</div>
+        <div id="leaderboard-box" class="leaderboard-box"></div>
+      </div>
+    </div>
+
+    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="hud-bar">
+        <div class="hud-card"><span class="hud-label">นักสู้</span><span id="hud-name" class="hud-value">-</span></div>
+        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/20</span></div>
+        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
+      </div>
+      <div class="question-card">
+        <span class="round-tag" id="round-tag">💪 ห้องใจสู้ (AQ)</span>
+        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
+        <div class="avatar-area" id="question-avatar">🦁</div>
+        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
+        <div class="choices-grid" id="choices-grid"></div>
+      </div>
+    </div>
+
+    <div id="transition-screen" class="transition-screen">
+      <div class="avatar-area">🦁🕊️</div>
+      <h2 style="font-size: 1.6rem; color: var(--color-dark);">เก่งมากค่ะ! ฝึกใจสู้ครบแล้ว</h2>
+      <p style="color: #64748b; margin: 10px 0 20px;">ต่อไปเรามาฝึก "หัวใจคุณธรรม" กันบ้างนะคะ พร้อมไหมคะ?</p>
+      <button class="btn-action" onclick="startRound2()">ไปห้องคุณธรรมกันเลย 🕊️</button>
+    </div>
+
+    <div id="explanation-overlay" class="overlay">
+      <div class="modal-card">
+        <div id="result-icon" class="result-icon">🎉</div>
+        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
+        <div class="explanation-box">
+          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
+          <div class="exp-step"><span class="exp-step-title">3. เกร็ดความรู้:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+        </div>
+        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+      </div>
+    </div>
+
+    <div id="summary-screen" class="summary-screen">
+      <div class="avatar-area">🦁🌟</div>
+      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
+      <p style="color: #64748b; margin-bottom: 6px;">ฝึกครบทั้งห้องใจสู้และห้องคุณธรรมแล้ว</p>
+      <div class="score-breakdown">
+        <div class="score-pill">💪 AQ: <span id="aq-score">0</span>/10</div>
+        <div class="score-pill mq">🕊️ MQ: <span id="mq-score">0</span>/10</div>
+      </div>
+      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
+      <div class="certificate-card" id="print-area">
+        <div class="cert-title">ใบประกาศนักสู้ใจดี</div>
+        <div class="cert-subtitle">มอบให้เพื่อชื่นชมความอึดสู้ไม่ถอยและคุณธรรม</div>
+        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
+        <p class="cert-desc">ได้ตั้งใจฝึกฝนทั้งความอึด (AQ) และคุณธรรม (MQ) ที่ห้องทดลองเอคิว-เอ็มคิว</p>
+        <p class="cert-score" id="cert-score-desc">คะแนนรวม 2000 คะแนนเต็ม!</p>
+      </div>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
+        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
+        <button class="btn-action" onclick="resetToHome()">🔄 ฝึกใหม่อีกครั้ง</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let playerName = "";
+    let score = 0;
+    let currentIdx = 0;
+    let soundEnabled = true;
+    let speechEnabled = true;
+    let aqCorrectCount = 0;
+    let mqCorrectCount = 0;
+    let questionsAQ = [];
+    let questionsMQ = [];
+    let currentRound = 1; // 1 = AQ, 2 = MQ
+
+    const synth = {
+      ctx: null,
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
+      playCorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
+        });
+      },
+      playIncorrect() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      },
+      playFanfare() {
+        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [392, 523, 659, 784].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+          gain.gain.setValueAtTime(0.1, now + idx * 0.12);
+          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.12 + 0.4);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.12); osc.stop(now + idx * 0.12 + 0.4);
+        });
+      }
+    };
+
+    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+    // ===================== AQ Bank (10): perseverance, growth mindset, resilience =====================
+    const aqBank = [
+      { avatar: '➗', sentence: 'ถ้าทำโจทย์คณิตศาสตร์ผิดหลายครั้ง ควรทำอย่างไรคะ?', a: 'ลองคิดใหม่อีกครั้งอย่างตั้งใจ ไม่ยอมแพ้', c: ['ลองคิดใหม่อีกครั้งอย่างตั้งใจ ไม่ยอมแพ้', 'เลิกทำไปเลย', 'โยนสมุดทิ้ง', 'ร้องไห้แล้วไม่ทำต่อ'],
+        exp1: 'เฉลยคือ ลองคิดใหม่อีกครั้งอย่างตั้งใจ ไม่ยอมแพ้ ค่ะ', exp2: 'การลองใหม่หลังทำผิดพลาดช่วยให้เราเก่งขึ้นเรื่อยๆ ค่ะ', exp3: 'เกร็ดความรู้: คนที่ประสบความสำเร็จส่วนใหญ่เคยทำผิดพลาดมาก่อนทั้งนั้นค่ะ' },
+      { avatar: '🧱', sentence: 'ถ้าต่อเลโก้แล้วมันพังลงมา ควรทำอย่างไรคะ?', a: 'ต่อใหม่อีกครั้งด้วยความอดทน', c: ['ต่อใหม่อีกครั้งด้วยความอดทน', 'ไม่เล่นเลโก้อีกเลย', 'โกรธแล้วเตะกล่องเลโก้', 'ให้คนอื่นต่อให้'],
+        exp1: 'เฉลยคือ ต่อใหม่อีกครั้งด้วยความอดทน ค่ะ', exp2: 'ความอดทนและความพยายามช่วยให้เราทำสิ่งที่ยากสำเร็จได้ค่ะ', exp3: 'เกร็ดความรู้: ทุกครั้งที่ลองใหม่ เราจะได้เรียนรู้วิธีที่ดีขึ้นค่ะ' },
+      { avatar: '🚲', sentence: 'ถ้าล้มจากจักรยานตอนกำลังหัดขี่ ควรทำอย่างไรคะ?', a: 'ลุกขึ้นแล้วลองขี่ใหม่', c: ['ลุกขึ้นแล้วลองขี่ใหม่', 'ไม่ขี่จักรยานอีกเลย', 'โทษว่าจักรยานไม่ดี', 'นั่งร้องไห้อยู่กับที่'],
+        exp1: 'เฉลยคือ ลุกขึ้นแล้วลองขี่ใหม่ ค่ะ', exp2: 'การลุกขึ้นสู้ใหม่หลังล้มเป็นหัวใจสำคัญของความอึดค่ะ', exp3: 'เกร็ดความรู้: แทบทุกคนที่ขี่จักรยานเป็น เคยล้มมาก่อนทั้งนั้นเลยค่ะ' },
+      { avatar: '💬', sentence: '"ความพยายามอยู่ที่ไหน ความสำเร็จอยู่ที่นั่น" หมายความว่าอย่างไรคะ?', a: 'ถ้าตั้งใจพยายามไม่ย่อท้อ จะประสบความสำเร็จได้', c: ['ถ้าตั้งใจพยายามไม่ย่อท้อ จะประสบความสำเร็จได้', 'ไม่ต้องพยายามอะไรเลยก็สำเร็จได้', 'ความสำเร็จเกิดจากโชคเท่านั้น', 'พยายามไปก็ไม่มีประโยชน์'],
+        exp1: 'เฉลยคือ ถ้าตั้งใจพยายามไม่ย่อท้อ จะประสบความสำเร็จได้ ค่ะ', exp2: 'คำพังเพยนี้สอนให้เราไม่ย่อท้อต่ออุปสรรคค่ะ', exp3: 'เกร็ดความรู้: ความพยายามสม่ำเสมอสำคัญกว่าความเก่งตั้งแต่แรกเกิดค่ะ' },
+      { avatar: '🧩', sentence: 'เมื่อเจองานยากที่ไม่เคยทำมาก่อน ควรมีทัศนคติอย่างไรคะ?', a: 'ลองดูก่อน ค่อยๆ เรียนรู้ทีละขั้น', c: ['ลองดูก่อน ค่อยๆ เรียนรู้ทีละขั้น', 'บอกว่าทำไม่ได้แน่นอนแล้วเลิกทำ', 'ให้คนอื่นทำแทนทั้งหมด', 'โกรธที่มีงานยากมาให้ทำ'],
+        exp1: 'เฉลยคือ ลองดูก่อน ค่อยๆ เรียนรู้ทีละขั้น ค่ะ', exp2: 'การมีทัศนคติที่ดีต่อความท้าทายช่วยให้เราเรียนรู้สิ่งใหม่ได้เสมอค่ะ', exp3: 'เกร็ดความรู้: ทัศนคติแบบนี้เรียกว่า "Growth Mindset" หรือกรอบความคิดแบบเติบโตค่ะ' },
+      { avatar: '🗣️', sentence: 'ถ้าเพื่อนบอกว่า "เธอทำไม่ได้หรอก" ควรคิดอย่างไรคะ?', a: 'เชื่อมั่นในตัวเองและลองพิสูจน์ให้ดู', c: ['เชื่อมั่นในตัวเองและลองพิสูจน์ให้ดู', 'เชื่อตามเพื่อนแล้วเลิกทำทันที', 'โกรธและทะเลาะกับเพื่อน', 'ร้องไห้และไม่ลองอีกเลย'],
+        exp1: 'เฉลยคือ เชื่อมั่นในตัวเองและลองพิสูจน์ให้ดู ค่ะ', exp2: 'การเชื่อมั่นในตัวเองช่วยให้เรามีกำลังใจสู้ต่อไปค่ะ', exp3: 'เกร็ดความรู้: บางครั้งการพิสูจน์ตัวเองเงียบๆ ด้วยผลงาน ดีกว่าการเถียงกันค่ะ' },
+      { avatar: '❌', sentence: 'การทำผิดพลาดมีประโยชน์อย่างไรคะ?', a: 'ทำให้เราได้เรียนรู้และพัฒนาตัวเองให้ดีขึ้น', c: ['ทำให้เราได้เรียนรู้และพัฒนาตัวเองให้ดีขึ้น', 'ไม่มีประโยชน์เลย', 'ทำให้เราแย่ลงเรื่อยๆ', 'ควรโทษคนอื่นทุกครั้งที่ผิดพลาด'],
+        exp1: 'เฉลยคือ ทำให้เราได้เรียนรู้และพัฒนาตัวเองให้ดีขึ้น ค่ะ', exp2: 'ความผิดพลาดคือครูที่ดีที่สุดที่สอนให้เราเก่งขึ้นค่ะ', exp3: 'เกร็ดความรู้: นักวิทยาศาสตร์และนักประดิษฐ์ที่ยิ่งใหญ่ล้วนเคยล้มเหลวมาก่อนสำเร็จค่ะ' },
+      { avatar: '📝', sentence: 'ถ้าสอบได้คะแนนไม่ดีในครั้งนี้ ควรทำอย่างไรต่อคะ?', a: 'ทบทวนจุดที่ผิดพลาดแล้วตั้งใจมากขึ้นในครั้งหน้า', c: ['ทบทวนจุดที่ผิดพลาดแล้วตั้งใจมากขึ้นในครั้งหน้า', 'เลิกเรียนวิชานั้นไปเลย', 'โทษว่าข้อสอบยากเกินไป', 'ไม่สนใจคะแนนสอบอีกต่อไป'],
+        exp1: 'เฉลยคือ ทบทวนจุดที่ผิดพลาดแล้วตั้งใจมากขึ้นในครั้งหน้า ค่ะ', exp2: 'การทบทวนข้อผิดพลาดช่วยให้เราทำได้ดีขึ้นในครั้งต่อไปค่ะ', exp3: 'เกร็ดความรู้: คะแนนสอบครั้งเดียวไม่ได้บอกว่าเราเก่งหรือไม่เก่งตลอดไปค่ะ' },
+      { avatar: '😔', sentence: 'เมื่อรู้สึกท้อแท้กับงานที่ทำอยู่ ควรทำอย่างไรคะ?', a: 'พักสักครู่ ให้กำลังใจตัวเอง แล้วลองใหม่', c: ['พักสักครู่ ให้กำลังใจตัวเอง แล้วลองใหม่', 'เลิกทำไปเลยตลอดกาล', 'โทษตัวเองว่าโง่', 'ทำลายสิ่งที่ทำอยู่ทิ้ง'],
+        exp1: 'เฉลยคือ พักสักครู่ ให้กำลังใจตัวเอง แล้วลองใหม่ ค่ะ', exp2: 'การพักและให้กำลังใจตัวเองช่วยให้เรามีแรงสู้ต่อได้ค่ะ', exp3: 'เกร็ดความรู้: การพักผ่อนไม่ใช่การยอมแพ้ แต่เป็นการเตรียมพร้อมสู้ต่อค่ะ' },
+      { avatar: '🏃', sentence: 'นักกีฬาที่เก่งต้องฝึกซ้อมแบบใดถึงจะเก่งขึ้นเรื่อยๆ คะ?', a: 'ฝึกซ้อมอย่างสม่ำเสมอและไม่ย่อท้อ', c: ['ฝึกซ้อมอย่างสม่ำเสมอและไม่ย่อท้อ', 'ฝึกแค่วันเดียวก็พอ', 'ไม่ต้องฝึกเลยก็เก่งได้', 'ฝึกแล้วเลิกทันทีที่เหนื่อย'],
+        exp1: 'เฉลยคือ ฝึกซ้อมอย่างสม่ำเสมอและไม่ย่อท้อ ค่ะ', exp2: 'ความสม่ำเสมอในการฝึกฝนคือกุญแจสำคัญของความเก่งค่ะ', exp3: 'เกร็ดความรู้: นักกีฬาระดับโลกฝึกซ้อมทุกวันแม้ในวันที่เหนื่อยล้าค่ะ' }
+    ];
+
+    // ===================== MQ Bank (10): honesty, responsibility, respect, kindness =====================
+    const mqBank = [
+      { avatar: '💰', sentence: 'ถ้าเจอเงินตกอยู่ที่พื้นในโรงเรียน ควรทำอย่างไรคะ?', a: 'นำไปแจ้งคุณครูหรือหาเจ้าของ', c: ['นำไปแจ้งคุณครูหรือหาเจ้าของ', 'เก็บไว้เป็นของตัวเอง', 'ซื้อขนมกินทันที', 'ทิ้งไว้ที่เดิมไม่สนใจ'],
+        exp1: 'เฉลยคือ นำไปแจ้งคุณครูหรือหาเจ้าของ ค่ะ', exp2: 'การคืนของที่ไม่ใช่ของเราแสดงถึงความซื่อสัตย์ค่ะ', exp3: 'เกร็ดความรู้: ความซื่อสัตย์เป็นคุณธรรมที่ทำให้คนอื่นไว้ใจเราค่ะ' },
+      { avatar: '📚', sentence: 'ถ้ายืมหนังสือเพื่อนแล้วทำหาย ควรทำอย่างไรคะ?', a: 'บอกความจริงและขอโทษเพื่อน', c: ['บอกความจริงและขอโทษเพื่อน', 'แกล้งทำเป็นไม่รู้เรื่อง', 'โทษว่าเพื่อนทำหายเอง', 'ไม่บอกใครเลย'],
+        exp1: 'เฉลยคือ บอกความจริงและขอโทษเพื่อน ค่ะ', exp2: 'การยอมรับความจริงและขอโทษแสดงถึงความรับผิดชอบและความซื่อสัตย์ค่ะ', exp3: 'เกร็ดความรู้: การพูดความจริงแม้จะยาก แต่ทำให้เราเป็นคนที่น่าเชื่อถือค่ะ' },
+      { avatar: '🙊', sentence: 'การพูดความจริงแม้จะทำผิดพลาด แสดงถึงคุณธรรมข้อใดคะ?', a: 'ความซื่อสัตย์', c: ['ความซื่อสัตย์', 'ความขี้อาย', 'ความเกียจคร้าน', 'ความเห็นแก่ตัว'],
+        exp1: 'เฉลยคือ ความซื่อสัตย์ ค่ะ', exp2: 'การพูดความจริงเสมอไม่ว่าจะดีหรือไม่ดี คือความซื่อสัตย์ค่ะ', exp3: 'เกร็ดความรู้: คนซื่อสัตย์มักมีเพื่อนที่ไว้ใจได้เยอะค่ะ' },
+      { avatar: '😢', sentence: 'ถ้าเห็นเพื่อนถูกเพื่อนคนอื่นแกล้ง ควรทำอย่างไรคะ?', a: 'ช่วยเหลือเพื่อนหรือบอกผู้ใหญ่', c: ['ช่วยเหลือเพื่อนหรือบอกผู้ใหญ่', 'หัวเราะไปด้วยกัน', 'เดินหนีไปเฉยๆ', 'ร่วมแกล้งเพื่อนด้วย'],
+        exp1: 'เฉลยคือ ช่วยเหลือเพื่อนหรือบอกผู้ใหญ่ ค่ะ', exp2: 'การช่วยเหลือผู้ที่กำลังเดือดร้อนแสดงถึงความกล้าหาญและมีน้ำใจค่ะ', exp3: 'เกร็ดความรู้: การบอกผู้ใหญ่เมื่อเห็นเหตุการณ์ไม่ดี ไม่ใช่การฟ้อง แต่เป็นการช่วยเหลือค่ะ' },
+      { avatar: '🧍', sentence: 'การเข้าแถวรอซื้อของอย่างเป็นระเบียบ แสดงถึงอะไรคะ?', a: 'การมีระเบียบวินัยและเคารพสิทธิผู้อื่น', c: ['การมีระเบียบวินัยและเคารพสิทธิผู้อื่น', 'ความขี้เกียจ', 'ความเห็นแก่ตัว', 'การเสียเวลาโดยเปล่าประโยชน์'],
+        exp1: 'เฉลยคือ การมีระเบียบวินัยและเคารพสิทธิผู้อื่น ค่ะ', exp2: 'การเข้าแถวตามลำดับก่อนหลังแสดงถึงความยุติธรรมและมีวินัยค่ะ', exp3: 'เกร็ดความรู้: สังคมที่มีระเบียบวินัยจะน่าอยู่และเป็นธรรมกับทุกคนค่ะ' },
+      { avatar: '📝', sentence: 'ถ้าสอบแล้วอยากลอกคำตอบเพื่อน ควรทำอย่างไรคะ?', a: 'ไม่ลอก ตั้งใจทำด้วยตัวเอง', c: ['ไม่ลอก ตั้งใจทำด้วยตัวเอง', 'แอบลอกให้เนียนที่สุด', 'ขอลอกเพื่อนตรงๆ', 'บังคับให้เพื่อนเปิดให้ดู'],
+        exp1: 'เฉลยคือ ไม่ลอก ตั้งใจทำด้วยตัวเอง ค่ะ', exp2: 'การทำข้อสอบด้วยตัวเองแสดงถึงความซื่อสัตย์ต่อตนเองค่ะ', exp3: 'เกร็ดความรู้: การลอกข้อสอบทำให้เราไม่ได้พัฒนาความรู้ที่แท้จริงของตัวเองค่ะ' },
+      { avatar: '🤝', sentence: 'การรักษาสัญญาที่ให้ไว้กับเพื่อน แสดงถึงคุณธรรมข้อใดคะ?', a: 'ความรับผิดชอบ', c: ['ความรับผิดชอบ', 'ความขี้ลืม', 'ความเกียจคร้าน', 'ความเห็นแก่ตัว'],
+        exp1: 'เฉลยคือ ความรับผิดชอบ ค่ะ', exp2: 'การทำตามสัญญาที่ให้ไว้แสดงถึงความรับผิดชอบต่อคำพูดของตัวเองค่ะ', exp3: 'เกร็ดความรู้: คนที่รักษาสัญญาเสมอ จะเป็นคนที่คนอื่นไว้วางใจค่ะ' },
+      { avatar: '🗑️', sentence: 'เห็นขยะตกอยู่บนพื้นสนามโรงเรียน ควรทำอย่างไรคะ?', a: 'เก็บทิ้งลงถังขยะให้ถูกที่', c: ['เก็บทิ้งลงถังขยะให้ถูกที่', 'เดินข้ามไปเฉยๆ', 'เตะขยะไปที่อื่น', 'บอกให้คนอื่นเก็บแทน'],
+        exp1: 'เฉลยคือ เก็บทิ้งลงถังขยะให้ถูกที่ ค่ะ', exp2: 'การช่วยดูแลความสะอาดของส่วนรวมแสดงถึงความรับผิดชอบต่อสังคมค่ะ', exp3: 'เกร็ดความรู้: ถ้าทุกคนช่วยกันคนละนิด โรงเรียนจะสะอาดน่าอยู่มากขึ้นค่ะ' },
+      { avatar: '🙏', sentence: 'ถ้าทำผิดกับเพื่อนโดยไม่ได้ตั้งใจ ควรทำอย่างไรคะ?', a: 'ยอมรับผิดและขอโทษ', c: ['ยอมรับผิดและขอโทษ', 'แกล้งทำเป็นไม่รู้เรื่อง', 'โทษเพื่อนว่าเป็นฝ่ายผิด', 'เดินหนีไปทันที'],
+        exp1: 'เฉลยคือ ยอมรับผิดและขอโทษ ค่ะ', exp2: 'การกล้ายอมรับผิดแสดงถึงความกล้าหาญทางคุณธรรมค่ะ', exp3: 'เกร็ดความรู้: การขอโทษอย่างจริงใจช่วยรักษามิตรภาพไว้ได้ค่ะ' },
+      { avatar: '💬', sentence: 'การให้เกียรติและเคารพความคิดเห็นของผู้อื่น แสดงถึงอะไรคะ?', a: 'ความมีคุณธรรมและมารยาทที่ดี', c: ['ความมีคุณธรรมและมารยาทที่ดี', 'ความอ่อนแอ', 'ความขี้กลัว', 'การยอมแพ้'],
+        exp1: 'เฉลยคือ ความมีคุณธรรมและมารยาทที่ดี ค่ะ', exp2: 'การรับฟังและเคารพความเห็นผู้อื่นแม้จะไม่เหมือนเรา แสดงถึงวุฒิภาวะทางคุณธรรมค่ะ', exp3: 'เกร็ดความรู้: คนที่เคารพผู้อื่นเสมอ มักได้รับความเคารพกลับคืนมาเช่นกันค่ะ' }
+    ];
+
+    function navigateBack() { window.speechSynthesis.cancel(); window.location.href = "index.html"; }
+    function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇"; }
+    function toggleSpeech() {
+      speechEnabled = !speechEnabled;
+      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
+      if (!speechEnabled) window.speechSynthesis.cancel();
+    }
+
+    function registerAndStart() {
+      const nameInput = document.getElementById('reg-player-name');
+      const name = nameInput.value.trim();
+      if (!name) { alert("กรุณากรอกชื่อนักสู้ตัวน้อยก่อนเริ่มเล่นนะคะ! 😊"); return; }
+      playerName = name;
+      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'ห้องทดลองเอคิว-เอ็มคิว (ป.2)');
+      document.getElementById('hud-name').innerText = playerName;
+      document.getElementById('register-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      synth.init();
+      const welcomeMsg = `ยินดีต้อนรับ ${playerName} เข้าสู่ห้องทดลองเอคิวเอ็มคิวค่ะ เรามาเริ่มจากห้องใจสู้กันก่อนนะคะ`;
+      if (speechEnabled && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+      score = 0; currentIdx = 0; aqCorrectCount = 0; mqCorrectCount = 0; currentRound = 1;
+      questionsAQ = shuffle([...aqBank]);
+      questionsMQ = shuffle([...mqBank]);
+      loadQuestion();
+    }
+
+    function currentBank() { return currentRound === 1 ? questionsAQ : questionsMQ; }
+    function totalQuestions() { return questionsAQ.length + questionsMQ.length; }
+    function overallIndex() { return currentRound === 1 ? currentIdx : questionsAQ.length + currentIdx; }
+
+    function loadQuestion() {
+      const bank = currentBank();
+      if (currentIdx >= bank.length) {
+        if (currentRound === 1) { showTransition(); return; }
+        finishGame();
+        return;
+      }
+      document.getElementById('hud-progress').innerText = `${overallIndex() + 1}/${totalQuestions()}`;
+      document.getElementById('hud-score').innerText = score;
+      const q = bank[currentIdx];
+      const roundTag = document.getElementById('round-tag');
+      if (currentRound === 1) { roundTag.innerText = '💪 ห้องใจสู้ (AQ)'; roundTag.className = 'round-tag aq'; }
+      else { roundTag.innerText = '🕊️ ห้องคุณธรรม (MQ)'; roundTag.className = 'round-tag mq'; }
+      document.getElementById('question-avatar').innerText = q.avatar;
+      document.getElementById('question-sentence').innerText = q.sentence;
+
+      const grid = document.getElementById('choices-grid');
+      grid.innerHTML = '';
+      const choices = shuffle([...q.c]);
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice;
+        btn.setAttribute('data-value', choice);
+        btn.addEventListener('click', () => checkChoice(choice, btn));
+        grid.appendChild(btn);
+      });
+
+      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
+    }
+
+    function speakCurrentQuestion() {
+      if (!('speechSynthesis' in window) || !speechEnabled) return;
+      window.speechSynthesis.cancel();
+      const q = currentBank()[currentIdx];
+      const utterance = new SpeechSynthesisUtterance(`ข้อที่ ${overallIndex() + 1}. ${q.sentence}`);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function checkChoice(value, btnEl) {
+      window.speechSynthesis.cancel();
+      const q = currentBank()[currentIdx];
+      const isCorrect = (value === q.a);
+      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
+      });
+
+      if (isCorrect) {
+        synth.playCorrect();
+        score += 100;
+        if (currentRound === 1) aqCorrectCount++; else mqCorrectCount++;
+        document.getElementById('result-icon').innerText = "🎉";
+        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะคะ";
+        document.getElementById('result-title').className = "result-title correct";
+      } else {
+        synth.playIncorrect();
+        btnEl.classList.add('incorrect-ui');
+        document.getElementById('result-icon').innerText = "🌱";
+        document.getElementById('result-title').innerText = "ยังไม่ถูกนะคะ ลองใหม่ได้เลย!";
+        document.getElementById('result-title').className = "result-title incorrect";
+      }
+
+      document.getElementById('exp-correct').innerText = q.exp1;
+      document.getElementById('exp-incorrect').innerText = q.exp2;
+      document.getElementById('exp-summary').innerText = q.exp3;
+
+      setTimeout(() => {
+        document.getElementById('explanation-overlay').classList.add('active');
+        if (speechEnabled) {
+          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
+          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
+          utterance.lang = 'th-TH';
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 700);
+    }
+
+    function nextQuestion() {
+      window.speechSynthesis.cancel();
+      document.getElementById('explanation-overlay').classList.remove('active');
+      currentIdx++;
+      loadQuestion();
+    }
+
+    function showTransition() {
+      window.speechSynthesis.cancel();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('transition-screen').style.display = 'flex';
+      if (speechEnabled) {
+        const u = new SpeechSynthesisUtterance(`เก่งมากค่ะ ${playerName} ฝึกห้องใจสู้ครบแล้ว ต่อไปเรามาฝึกห้องคุณธรรมกันบ้างนะคะ`);
+        u.lang = 'th-TH';
+        window.speechSynthesis.speak(u);
+      }
+    }
+    function startRound2() {
+      window.speechSynthesis.cancel();
+      document.getElementById('transition-screen').style.display = 'none';
+      document.getElementById('play-screen').style.display = 'flex';
+      currentRound = 2;
+      currentIdx = 0;
+      loadQuestion();
+    }
+
+    function finishGame() {
+      window.speechSynthesis.cancel();
+      synth.playFanfare();
+      saveLeaderboardData();
+      document.getElementById('play-screen').style.display = 'none';
+      document.getElementById('summary-screen').style.display = 'flex';
+      document.getElementById('aq-score').innerText = aqCorrectCount;
+      document.getElementById('mq-score').innerText = mqCorrectCount;
+      const totalCorrect = aqCorrectCount + mqCorrectCount;
+      const starsDisplay = document.getElementById('stars-display');
+      let starStr = "";
+      if (totalCorrect >= 18) starStr = "⭐⭐⭐";
+      else if (totalCorrect >= 12) starStr = "⭐⭐";
+      else starStr = "⭐";
+      starsDisplay.innerText = starStr;
+      document.getElementById('cert-name').value = playerName;
+      document.getElementById('cert-score-desc').innerText = `AQ ถูก ${aqCorrectCount}/10 ข้อ · MQ ถูก ${mqCorrectCount}/10 ข้อ (คะแนนสะสม: ${score} คะแนน)`;
+      if (speechEnabled) {
+        const speakFinish = `เก่งมากๆ เลยค่ะ ${playerName} ฝึกครบทั้งห้องใจสู้และห้องคุณธรรมแล้ว ด้วยคะแนนสะสม ${score} คะแนน เก่งทั้งใจสู้และมีคุณธรรมเลยนะคะ`;
+        const utterance = new SpeechSynthesisUtterance(speakFinish);
+        utterance.lang = 'th-TH';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function printCertificate() { window.print(); }
+    function resetToHome() {
+      document.getElementById('summary-screen').style.display = 'none';
+      document.getElementById('register-screen').style.display = 'flex';
+      document.getElementById('reg-player-name').value = "";
+      renderLeaderboard();
+    }
+
+    function saveLeaderboardData() {
+      let leaderboard = JSON.parse(localStorage.getItem('aqmq_leaderboard')) || [];
+      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
+      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
+      else { leaderboard.push({ name: playerName, score: score }); }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('aqmq_leaderboard', JSON.stringify(leaderboard));
+      if (typeof fbSaveScore === 'function') fbSaveScore('aqmq_leaderboard', { name: playerName, score: score });
+    }
+
+    function renderLeaderboardBox(leaderboard) {
+      const box = document.getElementById('leaderboard-box');
+      if (!leaderboard || leaderboard.length === 0) {
+        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีนักสู้ใจดีประจำห้องค่ะ</div>`;
+        return;
+      }
+      box.innerHTML = leaderboard.map((item, idx) => {
+        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} 🦁 ${item.name}</span><span>${item.score} คะแนน</span></div>`;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      renderLeaderboardBox(JSON.parse(localStorage.getItem('aqmq_leaderboard')) || []);
+      if (typeof fbLoadTopScores === 'function') {
+        fbLoadTopScores('aqmq_leaderboard', cloudList => {
+          if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
+        });
+      }
+    }
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>

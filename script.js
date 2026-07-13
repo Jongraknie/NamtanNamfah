@@ -1278,6 +1278,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const doctorBtn = document.getElementById('btn-select-doctor');
+  if (doctorBtn) {
+    doctorBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปที่คลินิกหมอน้อยกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'doctor.html';
+      }, 1000);
+    });
+  }
+
   const tutorBtn = document.getElementById('btn-select-tutor');
   if (tutorBtn) {
     tutorBtn.addEventListener('click', () => {

@@ -212,9 +212,27 @@
     box-shadow: 0 6px 18px rgba(21,101,192,0.12);
   }
   .topic-card:hover { transform: translateY(-3px); }
+  .topic-card { flex-wrap: wrap; }
   .topic-emoji { font-size: 2.6rem; flex-shrink: 0; }
+  .topic-text { flex: 1; min-width: 200px; }
   .topic-text h3 { font-size: 1.15rem; color: var(--sky-dark); margin-bottom: 4px; }
   .topic-text p { font-size: 0.88rem; color: #607d8b; }
+  .topic-level-row { display: flex; gap: 10px; margin-top: 12px; width: 100%; flex-wrap: wrap; }
+  .level-btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 9px 16px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    flex: 1;
+    min-width: 130px;
+  }
+  .level-btn.level-1 { background: linear-gradient(135deg, #66bb6a, #388e3c); }
+  .level-btn.level-2 { background: linear-gradient(135deg, #ff7043, #d84315); }
+  .level-btn:hover { filter: brightness(1.08); }
 
   /* Dial (scale) mode */
   .dial-wrap { display: flex; flex-direction: column; align-items: center; }
@@ -334,7 +352,7 @@
       <div class="dial-wrap">
         <svg id="scale-svg" viewBox="0 0 300 200"></svg>
         <div class="dial-readout">เข็มชี้ที่: <span id="dial-readout-value">0</span> กก.</div>
-        <p class="dial-hint">ลากนิ้วหรือเมาส์บนหน้าปัดเพื่อวาดเข็มให้ชี้ตรงกับน้ำหนักที่โจทย์บอกนะคะ</p>
+        <p class="dial-hint" id="dial-hint-text">ลากนิ้วหรือเมาส์บนหน้าปัดเพื่อวาดเข็มให้ชี้ตรงกับน้ำหนักที่โจทย์บอกนะคะ</p>
         <button class="btn btn-amber" id="btn-check-dial">✅ ตรวจคำตอบ</button>
       </div>
     </div>
@@ -391,7 +409,7 @@
   </div>
 
 <script>
-  const LEADERBOARD_KEY = 'wordproblems_leaderboard';
+  const LEADERBOARD_KEY_BASE = 'wordproblems_leaderboard';
   const TOTAL_QUESTIONS = 10;
 
   let playerName = '';
@@ -402,6 +420,11 @@
   let questions = [];
   let currentQuestion = null;
   let currentTopic = null;
+  let currentLevel = 1;
+
+  function getLeaderboardKey() {
+    return currentLevel === 2 ? `${LEADERBOARD_KEY_BASE}_v2` : LEADERBOARD_KEY_BASE;
+  }
 
   const TOPICS = [
     {
@@ -483,6 +506,13 @@
   }
 
   function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+  // Internal canonical-unit helpers (used by the harder version-2 word problems
+  // so multi-step add/subtract chains can't go negative or miscarry).
+  function lenToCm(m, cm) { return m * 100 + cm; }
+  function cmToLen(totalCm) { return { m: Math.floor(totalCm / 100), cm: totalCm % 100 }; }
+  function weightToG(kg, g) { return kg * 1000 + g; }
+  function gToWeight(totalG) { return { kg: Math.floor(totalG / 1000), g: totalG % 1000 }; }
 
   // ---------------------------------------------------------------------
   // TOPIC 1: การคาดคะเนความยาว (Length estimation & word problems)
@@ -604,6 +634,86 @@
   }
 
   // ---------------------------------------------------------------------
+  // TOPIC 1 - VERSION 2 (ท้าทายกว่าเดิม): ตัวเลขมากขึ้น และโจทย์หลายขั้นตอน
+  // ---------------------------------------------------------------------
+  const M_OBJECTS_APPROX = [
+    { name: 'ความกว้างของประตูห้องเรียน', emoji: '🚪', m: 1 },
+    { name: 'ความยาวกระดานดำ', emoji: '⬛', m: 3 },
+    { name: 'เชือกกระโดดของคุณครู', emoji: '🪢', m: 2 },
+    { name: 'ความสูงของต้นมะพร้าว', emoji: '🌴', m: 8 },
+    { name: 'ถนนหน้าโรงเรียน', emoji: '🛣️', m: 50 },
+    { name: 'สนามฟุตบอลหน้าโรงเรียน', emoji: '⚽', m: 100 }
+  ];
+
+  function genLengthEstimateV2() {
+    const obj = M_OBJECTS_APPROX[randInt(0, M_OBJECTS_APPROX.length - 1)];
+    const answer = obj.m;
+    const distractors = pickDistractors(answer, () => {
+      const options = [Math.max(1, Math.round(answer / 10)), answer * 10, answer + randInt(2, Math.max(3, Math.round(answer * 0.5))), Math.max(1, answer - randInt(2, Math.max(3, Math.round(answer * 0.4))))];
+      return options[randInt(0, options.length - 1)];
+    }, 4);
+    const choices = shuffle(distractors.map(c => `${c} ม.`));
+    return {
+      questionText: `${obj.emoji} ${obj.name} ยาวประมาณกี่เมตร?`,
+      speakPrompt: `${obj.name} ยาวประมาณกี่เมตร`,
+      answer: `${answer} ม.`,
+      choices,
+      method: `ลองเทียบ ${obj.name} กับความยาว 1 เมตร ที่น้องรู้จัก (ประมาณความสูงเอวผู้ใหญ่ถึงพื้น) แล้วนับว่าจะวางต่อกันได้กี่ช่วง เมื่อเทียบขนาดแล้ว ${obj.name} จะมีความยาวประมาณ ${answer} เมตร ซึ่งเป็นค่าที่สมเหตุสมผลที่สุด`,
+      principle: 'การคาดคะเนความยาวของสิ่งที่มีขนาดใหญ่ ให้เทียบกับหน่วยเมตรที่เรารู้จักอยู่แล้ว แล้วลองนึกภาพว่าจะวางต่อกันได้กี่ช่วง จึงจะประมาณค่าได้ใกล้เคียงที่สุดค่ะ'
+    };
+  }
+
+  function genLengthWordProblemAddTripleV2() {
+    const names = ['เชือก', 'ริบบิ้น', 'ผ้าเทป', 'ลวด'];
+    const nm = names[randInt(0, names.length - 1)];
+    const m1 = randInt(1, 4), cm1 = randInt(5, 95);
+    const m2 = randInt(1, 4), cm2 = randInt(5, 95);
+    const m3 = randInt(1, 3), cm3 = randInt(5, 95);
+    const totalCmVal = lenToCm(m1, cm1) + lenToCm(m2, cm2) + lenToCm(m3, cm3);
+    const { m: totalM, cm: totalCm } = cmToLen(totalCmVal);
+    const answer = formatLength(totalM, totalCm);
+    const distractors = pickDistractors(answer, () => {
+      const dm = totalM + randInt(-1, 1);
+      const dcm = totalCm + randInt(-15, 15);
+      if (dm < 0 || dcm < 0 || dcm > 99) return null;
+      return formatLength(dm, dcm);
+    }, 4);
+    return {
+      questionText: `น้องมี${nm} 3 เส้น ยาว ${formatLength(m1, cm1)}, ${formatLength(m2, cm2)} และ ${formatLength(m3, cm3)} ถ้านำ${nm}ทั้ง 3 เส้นมาต่อกันทั้งหมด จะยาวเท่าไร?`,
+      speakPrompt: `${nm} 3 เส้น ยาว ${formatLength(m1, cm1)} กับ ${formatLength(m2, cm2)} กับ ${formatLength(m3, cm3)} นำมาต่อกันทั้งหมดยาวเท่าไร`,
+      answer,
+      choices: shuffle(distractors),
+      method: `ขั้นที่ 1 เปลี่ยนความยาวทุกเส้นให้เป็นเซนติเมตรทั้งหมดก่อน: เส้นที่ 1 = ${m1} x 100 + ${cm1} = ${lenToCm(m1, cm1)} ซม., เส้นที่ 2 = ${m2} x 100 + ${cm2} = ${lenToCm(m2, cm2)} ซม., เส้นที่ 3 = ${m3} x 100 + ${cm3} = ${lenToCm(m3, cm3)} ซม.\nขั้นที่ 2 นำเซนติเมตรทั้ง 3 จำนวนมาบวกกัน: ${lenToCm(m1, cm1)} + ${lenToCm(m2, cm2)} + ${lenToCm(m3, cm3)} = ${totalCmVal} ซม.\nขั้นที่ 3 เปลี่ยนกลับเป็นเมตร-เซนติเมตร โดยหารด้วย 100: ${totalCmVal} ซม. = ${answer}`,
+      principle: 'โจทย์ที่มีความยาวหลายเส้น ให้เปลี่ยนทุกเส้นเป็นหน่วยเซนติเมตรก่อน แล้วบวกรวมกันทีเดียว จากนั้นค่อยเปลี่ยนคำตอบกลับเป็นเมตร-เซนติเมตร วิธีนี้จะไม่พลาดแม้ตัวเลขจะเยอะขึ้นค่ะ'
+    };
+  }
+
+  function genLengthWordProblemSubtractTwiceV2() {
+    const names = ['เชือก', 'ริบบิ้น', 'ผ้าเทป', 'ลวด'];
+    const nm = names[randInt(0, names.length - 1)];
+    const resultM = randInt(0, 3), resultCm = randInt(5, 90);
+    const a1M = randInt(0, 2), a1Cm = randInt(10, 60);
+    const a2M = randInt(0, 2), a2Cm = randInt(10, 60);
+    const startCmVal = lenToCm(resultM, resultCm) + lenToCm(a1M, a1Cm) + lenToCm(a2M, a2Cm);
+    const { m: startM, cm: startCm } = cmToLen(startCmVal);
+    const answer = formatLength(resultM, resultCm);
+    const distractors = pickDistractors(answer, () => {
+      const dm = resultM + randInt(-1, 1);
+      const dcm = resultCm + randInt(-15, 15);
+      if (dm < 0 || dcm < 0 || dcm > 99) return null;
+      return formatLength(dm, dcm);
+    }, 4);
+    return {
+      questionText: `พ่อมี${nm}ยาว ${formatLength(startM, startCm)} นำไปใช้งานครั้งแรก ${formatLength(a1M, a1Cm)} และนำไปใช้งานอีกครั้ง ${formatLength(a2M, a2Cm)} จะเหลือ${nm}ยาวเท่าไร?`,
+      speakPrompt: `${nm}ยาว ${formatLength(startM, startCm)} ใช้ไป ${formatLength(a1M, a1Cm)} และใช้ไปอีก ${formatLength(a2M, a2Cm)} เหลือเท่าไร`,
+      answer,
+      choices: shuffle(distractors),
+      method: `ขั้นที่ 1 เปลี่ยนทุกความยาวให้เป็นเซนติเมตรก่อน: ${nm}ทั้งหมด = ${startCmVal} ซม., ใช้ครั้งแรก = ${lenToCm(a1M, a1Cm)} ซม., ใช้ครั้งที่สอง = ${lenToCm(a2M, a2Cm)} ซม.\nขั้นที่ 2 นำมาลบกันทีละครั้ง: ${startCmVal} - ${lenToCm(a1M, a1Cm)} - ${lenToCm(a2M, a2Cm)} = ${lenToCm(resultM, resultCm)} ซม.\nขั้นที่ 3 เปลี่ยนกลับเป็นเมตร-เซนติเมตร: ${lenToCm(resultM, resultCm)} ซม. = ${answer}`,
+      principle: 'โจทย์ที่ตัดหรือใช้งานความยาวหลายครั้ง ให้เปลี่ยนทุกจำนวนเป็นเซนติเมตรก่อน แล้วลบออกทีละจำนวน จะได้คำตอบที่ถูกต้องแม่นยำแม้ต้องลบหลายครั้งค่ะ'
+    };
+  }
+
+  // ---------------------------------------------------------------------
   // TOPIC 3: การวัดน้ำหนักเป็นกิโลกรัม กรัม และขีด
   // ---------------------------------------------------------------------
   function genKgGramConvert() {
@@ -710,13 +820,99 @@
     };
   }
 
+  // ---------------------------------------------------------------------
+  // TOPIC 3 - VERSION 2 (ท้าทายกว่าเดิม): บวกสามจำนวน ลบสองครั้ง และผสมหน่วย
+  // ---------------------------------------------------------------------
+  function genWeightWordProblemSumTripleV2() {
+    const scene = WEIGHT_SCENES[randInt(0, WEIGHT_SCENES.length - 1)];
+    const items = [
+      { kg: randInt(1, 4), g: randInt(1, 9) * 100 },
+      { kg: randInt(1, 4), g: randInt(1, 9) * 100 },
+      { kg: randInt(1, 3), g: randInt(1, 9) * 100 }
+    ];
+    const totalGVal = items.reduce((sum, it) => sum + weightToG(it.kg, it.g), 0);
+    const { kg: totalKg, g: totalG } = gToWeight(totalGVal);
+    const answer = `${totalKg} กิโลกรัม ${totalG} กรัม`;
+    const distractors = pickDistractors(answer, () => {
+      const dk = totalKg + randInt(-1, 1);
+      const dg = totalG + randInt(-200, 200);
+      if (dk < 0 || dg < 0 || dg > 900) return null;
+      return `${dk} กิโลกรัม ${dg} กรัม`;
+    }, 4);
+    const listText = items.map(it => `${it.kg} กิโลกรัม ${it.g} กรัม`).join(', ');
+    const listGText = items.map(it => `${weightToG(it.kg, it.g)}`).join(' + ');
+    return {
+      questionText: `${scene.subject}${scene.verb}${scene.a} 3 ครั้ง หนัก ${listText} ตามลำดับ รวมทั้งหมดหนักกี่กิโลกรัมกี่กรัม?`,
+      speakPrompt: `${scene.subject}${scene.verb}${scene.a} 3 ครั้ง หนัก ${listText} รวมทั้งหมดหนักเท่าไร`,
+      answer,
+      choices: shuffle(distractors),
+      method: `ขั้นที่ 1 เปลี่ยนน้ำหนักทุกครั้งให้เป็นกรัมทั้งหมดก่อน: ${items.map(it => `${it.kg} x 1,000 + ${it.g} = ${weightToG(it.kg, it.g)} กรัม`).join(', ')}\nขั้นที่ 2 นำกรัมทั้ง 3 จำนวนมาบวกกัน: ${listGText} = ${totalGVal} กรัม\nขั้นที่ 3 เปลี่ยนกลับเป็นกิโลกรัม-กรัม โดยหารด้วย 1,000: ${totalGVal} กรัม = ${answer}`,
+      principle: 'โจทย์ที่มีน้ำหนักหลายจำนวน ให้เปลี่ยนทุกจำนวนเป็นหน่วยกรัมก่อน แล้วบวกรวมกันทีเดียว จากนั้นค่อยเปลี่ยนคำตอบกลับเป็นกิโลกรัม-กรัม จะไม่พลาดแม้ตัวเลขจะเยอะขึ้นค่ะ'
+    };
+  }
+
+  function genWeightWordProblemSubtractTwiceV2() {
+    const scene = WEIGHT_SCENES[randInt(0, WEIGHT_SCENES.length - 1)];
+    const resultKg = randInt(0, 3), resultG = randInt(1, 9) * 100;
+    const a1Kg = randInt(0, 2), a1G = randInt(1, 9) * 100;
+    const a2Kg = randInt(0, 2), a2G = randInt(1, 9) * 100;
+    const startGVal = weightToG(resultKg, resultG) + weightToG(a1Kg, a1G) + weightToG(a2Kg, a2G);
+    const { kg: startKg, g: startG } = gToWeight(startGVal);
+    const answer = `${resultKg} กิโลกรัม ${resultG} กรัม`;
+    const distractors = pickDistractors(answer, () => {
+      const dk = resultKg + randInt(-1, 1);
+      const dg = resultG + randInt(-200, 200);
+      if (dk < 0 || dg < 0 || dg > 900) return null;
+      return `${dk} กิโลกรัม ${dg} กรัม`;
+    }, 4);
+    return {
+      questionText: `${scene.subject}มี${scene.a} หนัก ${startKg} กิโลกรัม ${startG} กรัม แบ่งให้เพื่อนบ้านครั้งแรก ${a1Kg} กิโลกรัม ${a1G} กรัม และแบ่งอีกครั้ง ${a2Kg} กิโลกรัม ${a2G} กรัม จะเหลือ${scene.a}หนักเท่าไร?`,
+      speakPrompt: `${scene.a}หนัก ${startKg} กิโลกรัม ${startG} กรัม แบ่งไป ${a1Kg} กิโลกรัม ${a1G} กรัม และแบ่งไปอีก ${a2Kg} กิโลกรัม ${a2G} กรัม เหลือเท่าไร`,
+      answer,
+      choices: shuffle(distractors),
+      method: `ขั้นที่ 1 เปลี่ยนทุกน้ำหนักให้เป็นกรัมก่อน: ทั้งหมด = ${startGVal} กรัม, แบ่งครั้งแรก = ${weightToG(a1Kg, a1G)} กรัม, แบ่งครั้งที่สอง = ${weightToG(a2Kg, a2G)} กรัม\nขั้นที่ 2 นำมาลบกันทีละครั้ง: ${startGVal} - ${weightToG(a1Kg, a1G)} - ${weightToG(a2Kg, a2G)} = ${weightToG(resultKg, resultG)} กรัม\nขั้นที่ 3 เปลี่ยนกลับเป็นกิโลกรัม-กรัม: ${weightToG(resultKg, resultG)} กรัม = ${answer}`,
+      principle: 'โจทย์ที่แบ่งหรือใช้น้ำหนักหลายครั้ง ให้เปลี่ยนทุกจำนวนเป็นกรัมก่อน แล้วลบออกทีละจำนวน จะได้คำตอบที่ถูกต้องแม่นยำแม้ต้องลบหลายครั้งค่ะ'
+    };
+  }
+
+  function genMixedUnitWordProblemV2() {
+    const scene = WEIGHT_SCENES[randInt(0, WEIGHT_SCENES.length - 1)];
+    const kg1 = randInt(1, 4), khit1 = randInt(1, 9);
+    const g2 = randInt(1, 9) * 100;
+    const g1FromKhit = khit1 * 100;
+    const item1GVal = weightToG(kg1, g1FromKhit);
+    const totalGVal = item1GVal + g2;
+    const { kg: totalKg, g: totalG } = gToWeight(totalGVal);
+    const answer = `${totalKg} กิโลกรัม ${totalG} กรัม`;
+    const distractors = pickDistractors(answer, () => {
+      const dk = totalKg + randInt(-1, 1);
+      const dg = totalG + randInt(-200, 200);
+      if (dk < 0 || dg < 0 || dg > 900) return null;
+      return `${dk} กิโลกรัม ${dg} กรัม`;
+    }, 4);
+    return {
+      questionText: `${scene.subject}${scene.verb}${scene.a} หนัก ${kg1} กิโลกรัม ${khit1} ขีด และ${scene.verb}${scene.b} หนัก ${g2} กรัม เมื่อนำมารวมกันจะหนักกี่กิโลกรัมกี่กรัม?`,
+      speakPrompt: `${scene.a} หนัก ${kg1} กิโลกรัม ${khit1} ขีด กับ ${scene.b} หนัก ${g2} กรัม รวมกันหนักเท่าไร`,
+      answer,
+      choices: shuffle(distractors),
+      method: `ขั้นที่ 1 เปลี่ยน ${khit1} ขีด ให้เป็นกรัมก่อน (1 ขีด = 100 กรัม): ${khit1} x 100 = ${g1FromKhit} กรัม แล้วรวมกับ ${kg1} กิโลกรัม จะได้ ${item1GVal} กรัม\nขั้นที่ 2 นำมาบวกกับ ${scene.b} ที่หนัก ${g2} กรัม: ${item1GVal} + ${g2} = ${totalGVal} กรัม\nขั้นที่ 3 เปลี่ยนกลับเป็นกิโลกรัม-กรัม: ${totalGVal} กรัม = ${answer}`,
+      principle: 'เมื่อโจทย์ให้น้ำหนักมาหลายหน่วยปนกัน (กิโลกรัม กรัม ขีด) ให้เปลี่ยนทุกจำนวนเป็นหน่วยกรัมให้เหมือนกันก่อนเสมอ (1 กิโลกรัม = 1,000 กรัม, 1 ขีด = 100 กรัม) แล้วจึงบวกลบกันได้อย่างถูกต้องค่ะ'
+    };
+  }
+
   const QUIZ_GENERATORS = {
-    length: [genLengthUnitChoice, genLengthEstimate, genLengthWordProblem],
-    weightunit: [genKgGramConvert, genKgKhitConvert, genWeightWordProblemSum]
+    1: {
+      length: [genLengthUnitChoice, genLengthEstimate, genLengthWordProblem],
+      weightunit: [genKgGramConvert, genKgKhitConvert, genWeightWordProblemSum]
+    },
+    2: {
+      length: [genLengthEstimateV2, genLengthWordProblemAddTripleV2, genLengthWordProblemSubtractTwiceV2],
+      weightunit: [genWeightWordProblemSumTripleV2, genWeightWordProblemSubtractTwiceV2, genMixedUnitWordProblemV2]
+    }
   };
 
-  function generateQuizQuestions(topicId, count) {
-    const gens = QUIZ_GENERATORS[topicId];
+  function generateQuizQuestions(topicId, level, count) {
+    const gens = QUIZ_GENERATORS[level][topicId];
     const list = [];
     for (let i = 0; i < count; i++) list.push(gens[i % gens.length]());
     return list;
@@ -735,38 +931,68 @@
     7: { name: 'สุนัขตัวเล็ก 1 ตัว', emoji: '🐶' },
     8: { name: 'ถังน้ำ 1 ถัง', emoji: '🪣' },
     9: { name: 'ฟักทอง 1 ลูก', emoji: '🎃' },
-    10: { name: 'ลังไม้ใส่ของ 1 ลัง', emoji: '📦' }
+    10: { name: 'ลังไม้ใส่ของ 1 ลัง', emoji: '📦' },
+    11: { name: 'แพะ 1 ตัว', emoji: '🐐' },
+    12: { name: 'หมูตัวโต 1 ตัว', emoji: '🐖' },
+    13: { name: 'โต๊ะตัวเล็ก 1 ตัว', emoji: '🪑' },
+    14: { name: 'จักรยานเด็ก 1 คัน', emoji: '🚲' },
+    15: { name: 'ทีวีเครื่องเล็ก 1 เครื่อง', emoji: '📺' },
+    16: { name: 'กวางตัวเล็ก 1 ตัว', emoji: '🦌' },
+    17: { name: 'ตู้เก็บของ 1 ใบ', emoji: '🗄️' },
+    18: { name: 'เปียโนของเล่น 1 หลัง', emoji: '🎹' },
+    19: { name: 'ลูกวัว 1 ตัว', emoji: '🐄' },
+    20: { name: 'หมีแพนด้าตัวน้อย 1 ตัว', emoji: '🐼' }
   };
 
-  function generateDialQuestions(count) {
+  const DIAL_LEVELS = {
+    1: { max: 10, majorStep: 2, tolerance: 0.5, wholeOnly: true },
+    2: { max: 20, majorStep: 4, tolerance: 0.05, wholeOnly: false }
+  };
+  let dialConfig = DIAL_LEVELS[1];
+
+  function formatKg(v) { return (Math.round(v * 2) / 2) % 1 === 0 ? String(v) : v.toFixed(1); }
+
+  function generateDialQuestions(count, level) {
+    dialConfig = DIAL_LEVELS[level];
     const list = [];
     let last = -1;
     for (let i = 0; i < count; i++) {
-      let target = randInt(1, 10);
-      if (target === last) target = target === 10 ? 9 : target + 1;
+      let target;
+      if (dialConfig.wholeOnly) {
+        target = randInt(1, dialConfig.max);
+        if (target === last) target = target === dialConfig.max ? target - 1 : target + 1;
+      } else {
+        const halfSteps = dialConfig.max * 2;
+        let n = randInt(2, halfSteps); // 1.0 .. max, in steps of 0.5
+        target = n / 2;
+        if (target === last) { n = n === halfSteps ? n - 1 : n + 1; target = n / 2; }
+      }
       last = target;
-      const item = ITEMS_BY_WEIGHT[target];
+      const item = ITEMS_BY_WEIGHT[Math.max(1, Math.min(20, Math.round(target)))];
+      const targetLabel = formatKg(target);
       list.push({
         target,
         item,
-        questionText: `${item.emoji} ${item.name} หนัก ${target} กิโลกรัม ลากวาดเข็มบนหน้าปัดเครื่องชั่งให้ชี้ตรงกับ ${target} กิโลกรัม แล้วกดตรวจคำตอบ`,
-        speakPrompt: `${item.name} หนัก ${target} กิโลกรัม วาดเข็มให้ชี้ตรงกับตัวเลข ${target}`
+        questionText: `${item.emoji} ${item.name} หนัก ${targetLabel} กิโลกรัม ลากวาดเข็มบนหน้าปัดเครื่องชั่งให้ชี้ตรงกับ ${targetLabel} กิโลกรัม แล้วกดตรวจคำตอบ`,
+        speakPrompt: `${item.name} หนัก ${targetLabel} กิโลกรัม วาดเข็มให้ชี้ตรงกับตัวเลข ${targetLabel}`
       });
     }
     return list;
   }
 
   // ---- Dial (SVG scale) rendering & drag logic ----
-  const DIAL_CX = 150, DIAL_CY = 165, DIAL_R = 118, DIAL_MAX = 10;
+  const DIAL_CX = 150, DIAL_CY = 165, DIAL_R = 118;
   let dialValue = 0;
   let dialDragging = false;
   let dialSvg, dialNeedle, dialReadout;
 
-  function angleForValue(v) { return 180 - (v / DIAL_MAX) * 180; }
+  function angleForValue(v) { return 180 - (v / dialConfig.max) * 180; }
   function pointForAngle(deg, r) {
     const rad = deg * Math.PI / 180;
     return { x: DIAL_CX + r * Math.cos(rad), y: DIAL_CY - r * Math.sin(rad) };
   }
+
+  let dialEventsBound = false;
 
   function buildDialSvg() {
     dialSvg = document.getElementById('scale-svg');
@@ -783,9 +1009,9 @@
     face.setAttribute('stroke-width', '3');
     dialSvg.appendChild(face);
 
-    for (let v = 0; v <= DIAL_MAX; v++) {
+    for (let v = 0; v <= dialConfig.max; v++) {
       const angle = angleForValue(v);
-      const isMajor = v % 2 === 0;
+      const isMajor = v % dialConfig.majorStep === 0;
       const outer = pointForAngle(angle, DIAL_R);
       const inner = pointForAngle(angle, isMajor ? DIAL_R - 14 : DIAL_R - 8);
       const tick = document.createElementNS(NS, 'line');
@@ -822,20 +1048,23 @@
 
     setDialValue(0);
 
-    dialSvg.addEventListener('pointerdown', onDialPointerDown);
-    dialSvg.addEventListener('pointermove', onDialPointerMove);
-    dialSvg.addEventListener('pointerup', onDialPointerUp);
-    dialSvg.addEventListener('pointerleave', onDialPointerUp);
+    if (!dialEventsBound) {
+      dialSvg.addEventListener('pointerdown', onDialPointerDown);
+      dialSvg.addEventListener('pointermove', onDialPointerMove);
+      dialSvg.addEventListener('pointerup', onDialPointerUp);
+      dialSvg.addEventListener('pointerleave', onDialPointerUp);
+      dialEventsBound = true;
+    }
   }
 
   function setDialValue(v) {
-    dialValue = Math.max(0, Math.min(DIAL_MAX, v));
+    dialValue = Math.max(0, Math.min(dialConfig.max, v));
     const angle = angleForValue(dialValue);
     const tip = pointForAngle(angle, DIAL_R - 20);
     dialNeedle.setAttribute('x2', tip.x);
     dialNeedle.setAttribute('y2', tip.y);
     dialReadout = document.getElementById('dial-readout-value');
-    dialReadout.innerText = Math.round(dialValue * 2) / 2;
+    dialReadout.innerText = formatKg(Math.round(dialValue * 2) / 2);
   }
 
   function clientToSvgPoint(evt) {
@@ -852,7 +1081,7 @@
     let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
     if (dy < 0) angleDeg = dx >= 0 ? 0 : 180;
     angleDeg = Math.max(0, Math.min(180, angleDeg));
-    const value = (180 - angleDeg) / 180 * DIAL_MAX;
+    const value = (180 - angleDeg) / 180 * dialConfig.max;
     setDialValue(Math.round(value * 2) / 2);
   }
 
@@ -870,7 +1099,7 @@
 
   function renderDialItems(question) {
     const container = document.getElementById('dial-item-display');
-    container.innerHTML = `<div class="item-box"><div class="item-emoji">${question.item.emoji}</div><div class="item-label">${question.item.name}</div><div class="item-value">น้ำหนักเป้าหมาย: ${question.target} กก.</div></div>`;
+    container.innerHTML = `<div class="item-box"><div class="item-emoji">${question.item.emoji}</div><div class="item-label">${question.item.name}</div><div class="item-value">น้ำหนักเป้าหมาย: ${formatKg(question.target)} กก.</div></div>`;
   }
 
   // ---------------------------------------------------------------------
@@ -878,7 +1107,8 @@
   // ---------------------------------------------------------------------
   function updateHUD() {
     document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
-    document.getElementById('hud-title').innerText = `${currentTopic.hudEmoji} ${currentTopic.title}`;
+    const levelLabel = currentLevel === 2 ? ' (ระดับ 2 ท้าทาย 🔥)' : ' (ระดับ 1)';
+    document.getElementById('hud-title').innerText = `${currentTopic.hudEmoji} ${currentTopic.title}${levelLabel}`;
     const pct = (currentIndex / TOTAL_QUESTIONS) * 100;
     document.getElementById('progress-fill').style.width = pct + '%';
   }
@@ -939,12 +1169,13 @@
   }
 
   document.getElementById('btn-check-dial').addEventListener('click', () => {
-    const isCorrect = Math.abs(dialValue - currentQuestion.target) <= 0.5;
+    const isCorrect = Math.abs(dialValue - currentQuestion.target) <= dialConfig.tolerance;
+    const targetLabel = formatKg(currentQuestion.target);
     setDialValue(currentQuestion.target);
     if (isCorrect) { score += 10; correctCount++; synth.correct(); }
     else { synth.wrong(); }
-    const answerText = `${currentQuestion.target} กิโลกรัม`;
-    const method = `โจทย์บอกว่า ${currentQuestion.item.name} หนัก ${currentQuestion.target} กิโลกรัม ดังนั้นเข็มของเครื่องชั่งจึงต้องวาดให้ชี้ตรงกับตัวเลข ${currentQuestion.target} บนหน้าปัดพอดี (ดูภาพเข็มที่เฉลยไว้ด้านบนหน้าปัดนะคะ)`;
+    const answerText = `${targetLabel} กิโลกรัม`;
+    const method = `โจทย์บอกว่า ${currentQuestion.item.name} หนัก ${targetLabel} กิโลกรัม ดังนั้นเข็มของเครื่องชั่งจึงต้องวาดให้ชี้ตรงกับตัวเลข ${targetLabel} บนหน้าปัดพอดี (ดูภาพเข็มที่เฉลยไว้ด้านบนหน้าปัดนะคะ)`;
     const principle = 'เวลาดูเครื่องชั่งน้ำหนัก ให้สังเกตว่าเข็มชี้ไปที่ตัวเลขใดบนหน้าปัด ตัวเลขนั้นคือน้ำหนักของสิ่งของเป็นกิโลกรัมค่ะ ยิ่งของหนักมาก เข็มก็จะยิ่งชี้ไปทางตัวเลขที่มากขึ้น';
     setTimeout(() => showExplanation(isCorrect, answerText, method, principle), 500);
   });
@@ -984,11 +1215,12 @@
 
   function saveLeaderboard() {
     const entry = { name: playerName || 'นักเรียนคนเก่ง', score, date: new Date().toLocaleDateString('th-TH') };
-    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    const key = getLeaderboardKey();
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
     list.push(entry);
     list.sort((a, b) => b.score - a.score);
-    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
-    if (typeof fbSaveScore === 'function') fbSaveScore(LEADERBOARD_KEY, entry);
+    localStorage.setItem(key, JSON.stringify(list.slice(0, 5)));
+    if (typeof fbSaveScore === 'function') fbSaveScore(key, entry);
   }
 
   function renderLeaderboardList(list) {
@@ -1007,9 +1239,10 @@
   }
 
   function renderLeaderboard() {
-    renderLeaderboardList(JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]'));
+    const key = getLeaderboardKey();
+    renderLeaderboardList(JSON.parse(localStorage.getItem(key) || '[]'));
     if (typeof fbLoadTopScores === 'function') {
-      fbLoadTopScores(LEADERBOARD_KEY, cloudList => {
+      fbLoadTopScores(key, cloudList => {
         if (cloudList && cloudList.length) renderLeaderboardList(cloudList);
       });
     }
@@ -1021,24 +1254,35 @@
     TOPICS.forEach(topic => {
       const card = document.createElement('div');
       card.className = 'topic-card';
-      card.innerHTML = `<div class="topic-emoji">${topic.emoji}</div><div class="topic-text"><h3>${topic.title}</h3><p>${topic.desc}</p></div>`;
-      card.addEventListener('click', () => startTopic(topic));
+      card.innerHTML = `
+        <div class="topic-emoji">${topic.emoji}</div>
+        <div class="topic-text">
+          <h3>${topic.title}</h3>
+          <p>${topic.desc}</p>
+          <div class="topic-level-row">
+            <button class="level-btn level-1">🟢 ระดับ 1 (พื้นฐาน)</button>
+            <button class="level-btn level-2">🔴 ระดับ 2 (ท้าทาย!)</button>
+          </div>
+        </div>`;
+      card.querySelector('.level-1').addEventListener('click', () => startTopic(topic, 1));
+      card.querySelector('.level-2').addEventListener('click', () => startTopic(topic, 2));
       grid.appendChild(card);
     });
   }
 
-  function startTopic(topic) {
+  function startTopic(topic, level) {
     currentTopic = topic;
+    currentLevel = level;
     score = 0;
     correctCount = 0;
     currentIndex = 0;
-    if (typeof fbLogActivity === 'function') fbLogActivity(playerName, `ภารกิจนักวัดตัวน้อย: ${topic.title}`);
+    if (typeof fbLogActivity === 'function') fbLogActivity(playerName, `ภารกิจนักวัดตัวน้อย: ${topic.title} (ระดับ ${level})`);
 
     if (topic.mode === 'quiz') {
-      questions = generateQuizQuestions(topic.id, TOTAL_QUESTIONS);
+      questions = generateQuizQuestions(topic.id, level, TOTAL_QUESTIONS);
     } else {
-      questions = generateDialQuestions(TOTAL_QUESTIONS);
-      if (!dialSvg) buildDialSvg();
+      questions = generateDialQuestions(TOTAL_QUESTIONS, level);
+      buildDialSvg();
     }
     showScreen('screen-game');
     loadQuestion();

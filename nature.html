@@ -1,411 +1,1084 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>นักสำรวจธรรมชาติน้อย | สำหรับ น้ำฟ้า 💖</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth-gate.js"></script>
-  <script src="firebase-helpers.js"></script>
-  <style>
-    :root {
-      --color-dark: #166534; --color-medium: #4ade80; --color-light: #bbf7d0; --color-bg: #f0fdf4;
-      --color-accent-orange: #f59e0b; --color-accent-pink: #ec4899; --color-text-dark: #1f2937;
-      --grad-main: linear-gradient(135deg, #4ade80 0%, #38bdf8 100%);
-      --font-playful: 'Itim', 'Prompt', sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--color-bg); background-image: radial-gradient(circle at 15% 20%, rgba(74, 222, 128, 0.15) 0%, transparent 40%), radial-gradient(circle at 85% 80%, rgba(56, 189, 248, 0.12) 0%, transparent 45%); color: var(--color-text-dark); font-family: var(--font-playful); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
-    .app-header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px; backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(22, 101, 52, 0.08); border: 2px solid rgba(255, 255, 255, 0.5); }
-    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
-    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
-    .logo-header { display: flex; align-items: center; gap: 10px; }
-    .logo-header h2 { font-size: 1.3rem; color: var(--color-dark); }
-    .header-controls { display: flex; gap: 10px; }
-    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
-    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
-    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
-    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
-    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(22, 101, 52, 0.06); border-bottom: 4px solid var(--color-light); }
-    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
-    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(22, 101, 52, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
-    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
-    .sentence-display { font-size: 1.25rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
-    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
-    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
-    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
-    .choice-btn { font-family: var(--font-playful); font-size: 1.05rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 18px 12px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
-    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(22, 101, 52, 0.08); }
-    .choice-btn:active { transform: scale(0.95); }
-    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
-    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(22, 101, 52, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
-    .overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .overlay.active .modal-card { transform: scale(1); }
-    .result-icon { font-size: 4rem; margin-bottom: 10px; }
-    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
-    .result-title.correct { color: #10b981; }
-    .result-title.incorrect { color: #ef4444; }
-    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
-    .exp-step { margin-bottom: 12px; }
-    .exp-step:last-child { margin-bottom: 0; }
-    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(74, 222, 128, 0.35); transition: all 0.2s; }
-    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(74, 222, 128, 0.45); }
-    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(22, 101, 52, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
-    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
-    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
-    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
-    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
-    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
-    .cert-score { font-size: 1.2rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
-    @media print {
-      body * { visibility: hidden; }
-      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
-      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
-      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
-      .cert-name-input { border: none; font-size: 2.2rem; }
-      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
-    }
-    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
-    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
-    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
-    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
-    @media (max-width: 500px) {
-      .choices-grid { grid-template-columns: 1fr; }
-      .sentence-display { font-size: 1.05rem; }
-      .choice-btn { font-size: 1rem; padding: 14px 10px; }
-      .hud-value { font-size: 1.1rem; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นักสำรวจธรรมชาติน้อย | สำหรับ น้องน้ำฟ้า 💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-gate.js"></script>
+<script src="firebase-helpers.js"></script>
+<style>
+  :root {
+    --forest-deep: #1b5e20;
+    --forest-medium: #2e7d32;
+    --forest-light: #4caf50;
+    --mint-bg: #e8f5e9;
+    --wood-brown: #8d6e63;
+    --gold: #ffb300;
+    --gold-dark: #ff8f00;
+    --sand-bg: #fffde7;
+    --slate: #2c3e50;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Prompt', 'Itim', sans-serif;
+    background: linear-gradient(180deg, #e8f5e9 0%, #fffde7 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: var(--slate);
+  }
+
+  .screen { display: none; width: 100%; max-width: 720px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  .card {
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 10px 30px rgba(46,125,50,0.18);
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+    border: 3px solid #c8e6c9;
+  }
+
+  h1 { font-size: 1.8rem; color: var(--forest-deep); margin-bottom: 6px; }
+  h2 { font-size: 1.4rem; color: var(--wood-brown); }
+  .subtitle { color: #558b2f; margin-bottom: 20px; font-size: 0.95rem; }
+
+  /* Companion Selection */
+  .companion-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .companion-card {
+    background: #f1f8e9;
+    border: 2px dashed var(--forest-light);
+    border-radius: 18px;
+    padding: 12px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .companion-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(46,125,50,0.12);
+  }
+  .companion-card.selected {
+    background: #d0f8ce;
+    border: 3px solid var(--forest-medium);
+    transform: scale(1.05);
+  }
+  .companion-emoji { font-size: 2.8rem; margin-bottom: 4px; }
+  .companion-name { font-weight: 700; font-size: 0.9rem; color: var(--forest-deep); }
+
+  input.reg-input {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    border: 2px solid var(--forest-light);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+    background: #fafdfb;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+  }
+
+  .btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--forest-light) 0%, var(--forest-medium) 100%);
+    box-shadow: 0 6px 16px rgba(46,125,50,0.35);
+    transition: all 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46,125,50,0.45); }
+  .btn-amber {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+    color: #4a3600;
+    box-shadow: 0 6px 16px rgba(255,179,0,0.35);
+  }
+  .btn-amber:hover { box-shadow: 0 8px 20px rgba(255,179,0,0.45); }
+  .btn-blue {
+    background: linear-gradient(135deg, #42a5f5 0%, #1565c0 100%);
+    box-shadow: 0 6px 16px rgba(33,150,243,0.3);
+  }
+  
+  .hud {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-radius: 20px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(46,125,50,0.12);
+    border: 2px solid #e8f5e9;
+  }
+  .hud-title { font-weight: 700; color: var(--forest-medium); }
+  .hud-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    background: #e8f5e9;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: #c8e6c9; }
+
+  /* Map Container & Trail styling */
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    background: #dcedc8;
+    border-radius: 24px;
+    padding: 24px 16px;
+    margin-bottom: 16px;
+    border: 3px solid #8d6e63;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.08);
+    overflow-x: auto;
+  }
+  .trail-line {
+    position: absolute;
+    top: 55%;
+    left: 40px;
+    right: 40px;
+    height: 8px;
+    background: #a1887f;
+    transform: translateY(-50%);
+    z-index: 1;
+    border-radius: 4px;
+    border-bottom: 2px dashed #5d4037;
+  }
+  .checkpoints-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    min-width: 640px;
+    padding: 20px 0;
+    z-index: 2;
+  }
+  .checkpoint-dot-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .checkpoint-dot {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--wood-brown);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    z-index: 2;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .checkpoint-dot.completed {
+    background: #a5d6a7;
+    border-color: var(--forest-medium);
+    color: #fff;
+  }
+  .checkpoint-dot.active {
+    background: #fffde7;
+    border-color: #fbc02d;
+    box-shadow: 0 0 15px #fbc02d;
+    transform: scale(1.18);
+  }
+  .checkpoint-dot.locked {
+    background: #cfd8dc;
+    border-color: #90a4ae;
+    filter: grayscale(1);
+    opacity: 0.6;
+  }
+  .checkpoint-label {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #5d4037;
+    background: rgba(255,255,255,0.7);
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
+  .hiker-avatar {
+    position: absolute;
+    top: -34px;
+    font-size: 1.8rem;
+    z-index: 3;
+    animation: walkBounce 0.8s infinite alternate;
+  }
+  @keyframes walkBounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-8px); }
+  }
+
+  /* Game Main Scene */
+  .scene {
+    width: 100%;
+    max-width: 720px;
+    background: #fffefb;
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(46,125,50,0.15);
+    text-align: center;
+    margin-bottom: 20px;
+    border: 3px solid #c8e6c9;
+  }
+  .guide-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .guide-avatar { font-size: 3.5rem; margin-bottom: 4px; }
+  .guide-name { font-size: 0.95rem; font-weight: 700; color: var(--forest-medium); background: #e8f5e9; padding: 2px 12px; border-radius: 20px; }
+
+  .question-bubble {
+    background: #e8f5e9;
+    border-radius: 20px;
+    padding: 20px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--slate);
+    margin-bottom: 20px;
+    position: relative;
+    border-left: 5px solid var(--forest-medium);
+    text-align: left;
+    line-height: 1.6;
+  }
+  .btn-voice {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .choices-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media(min-width: 500px) {
+    .choices-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .choice-btn {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 18px;
+    border: 2.5px solid var(--forest-light);
+    background: #fbfffe;
+    color: var(--forest-deep);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .choice-btn:hover:not(:disabled) { background: #e8f5e9; transform: translateY(-2px); }
+  .choice-btn.correct { background: #6bcf7f; border-color: #2e7d32; color: #fff; }
+  .choice-btn.wrong { background: #ff7675; border-color: #d63031; color: #fff; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Explanation overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 16px;
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    border: 4px solid var(--forest-light);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .modal .result-icon { font-size: 3rem; margin-bottom: 8px; }
+  .exp-step { text-align: left; margin-bottom: 14px; background: #f1f8e9; border-radius: 14px; padding: 12px 16px; border: 1.5px solid #dcedc8; }
+  .exp-step-title { display: block; font-weight: 700; color: var(--forest-medium); margin-bottom: 4px; font-size: 0.9rem; }
+  .exp-text { font-size: 0.95rem; line-height: 1.5; color: var(--slate); }
+
+  .stars { font-size: 2.6rem; margin: 12px 0; }
+  
+  /* Certificate printable styling */
+  .cert-box {
+    border: 8px double var(--forest-medium);
+    border-radius: 20px;
+    padding: 30px 20px;
+    margin: 20px 0;
+    background: #fffdf3;
+    position: relative;
+    overflow: hidden;
+  }
+  .cert-box::before {
+    content: "🌿";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 4rem;
+    opacity: 0.12;
+  }
+  .cert-box::after {
+    content: "🦋";
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    font-size: 4rem;
+    opacity: 0.12;
+  }
+  .cert-title { font-family: 'Itim', cursive; color: var(--forest-deep); font-size: 2rem; font-weight: bold; }
+  .cert-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--forest-medium);
+    border: none;
+    border-bottom: 2px solid var(--wood-brown);
+    text-align: center;
+    background: transparent;
+    width: 80%;
+    font-family: 'Prompt';
+    padding: 4px;
+    outline: none;
+  }
+  .cert-body { margin-top: 14px; font-size: 1.1rem; line-height: 1.6; }
+  
+  .leaderboard { text-align: left; margin-top: 20px; background: #fafdfa; padding: 16px; border-radius: 16px; border: 1.5px dashed var(--forest-light); }
+  .leaderboard h2 { font-size: 1.1rem; color: var(--forest-deep); border-bottom: 2px solid #c8e6c9; padding-bottom: 6px; margin-bottom: 10px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.95rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; border: 4px double var(--forest-medium); }
+  }
+</style>
 </head>
 <body>
 
-  <header class="app-header">
-    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
-    <div class="logo-header">
-      <span style="font-size: 1.8rem;">🌿🦋</span>
-      <h2>นักสำรวจธรรมชาติน้อย</h2>
-    </div>
-    <div class="header-controls">
-      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
-      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
-    </div>
-  </header>
-
-  <main class="game-container">
-    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
-      <div class="avatar-area">🌱🔍</div>
-      <h3 style="font-size: 1.4rem; color: var(--color-dark); margin-bottom: 10px;">ยินดีต้อนรับสู่การสำรวจธรรมชาติ</h3>
-      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">มาเรียนรู้เรื่องพืช สัตว์ และการดูแลสิ่งแวดล้อมกันเถอะค่ะ!</p>
-      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อนักสำรวจตัวน้อยตรงนี้ค่ะ..." maxlength="12" class="register-input">
-      <button class="btn-action" onclick="registerAndStart()">เริ่มสำรวจธรรมชาติ 🚀</button>
-      <div class="leaderboard-container">
-        <div class="leaderboard-title">🏆 นักสำรวจเก่งประจำห้อง</div>
-        <div id="leaderboard-box" class="leaderboard-box"></div>
-      </div>
-    </div>
-
-    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
-      <div class="hud-bar">
-        <div class="hud-card"><span class="hud-label">นักสำรวจ</span><span id="hud-name" class="hud-value">-</span></div>
-        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/15</span></div>
-        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
-      </div>
-      <div class="question-card">
-        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
-        <div class="avatar-area" id="question-avatar">🌱</div>
-        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
-        <div class="choices-grid" id="choices-grid"></div>
-      </div>
-    </div>
-
-    <div id="explanation-overlay" class="overlay">
-      <div class="modal-card">
-        <div id="result-icon" class="result-icon">🎉</div>
-        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
-        <div class="explanation-box">
-          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
-          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
-          <div class="exp-step"><span class="exp-step-title">3. เกร็ดความรู้:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+  <!-- Screen 1: Registration and Companion Selection -->
+  <div id="screen-register" class="screen active">
+    <div class="card">
+      <div style="font-size:3.8rem; margin-bottom: 10px;">🎒🌿🐾</div>
+      <h1>นักสำรวจธรรมชาติน้อย</h1>
+      <p class="subtitle">เดินทางสำรวจป่ารักธรรมชาติ เรียนรู้เรื่องพืช สัตว์ และสิ่งแวดล้อมแสนสนุก!</p>
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--wood-brown);">1. ใส่ชื่อผู้สำรวจตรงนี้ค่ะ:</p>
+      <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ" value="น้องน้ำฟ้า">
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--wood-brown);">2. เลือกเพื่อนร่วมทางเดินป่า:</p>
+      <div class="companion-grid">
+        <div class="companion-card selected" data-id="lion" data-emoji="🦁" data-name="พี่สิงโตใจสู้">
+          <div class="companion-emoji">🦁</div>
+          <div class="companion-name">สิงโตน้อย</div>
         </div>
-        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+        <div class="companion-card" data-id="owl" data-emoji="🦉" data-name="ครูฮูกผู้ใจดี">
+          <div class="companion-emoji">🦉</div>
+          <div class="companion-name">นกฮูกน้อย</div>
+        </div>
+        <div class="companion-card" data-id="panda" data-emoji="🐼" data-name="พี่หมีแพนด้าใจดี">
+          <div class="companion-emoji">🐼</div>
+          <div class="companion-name">แพนด้าน้อย</div>
+        </div>
+        <div class="companion-card" data-id="rabbit" data-emoji="🐰" data-name="ครูกระต่ายแสนซน">
+          <div class="companion-emoji">🐰</div>
+          <div class="companion-name">กระต่ายน้อย</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-start" style="width: 100%; max-width: 320px; font-size: 1.2rem; margin-top: 10px;">เริ่มผจญภัยเดินป่า 🌲</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Game Screen -->
+  <div id="screen-game" class="screen">
+    <!-- HUD Header -->
+    <div class="hud">
+      <span class="hud-title" id="game-title-hud">🌿 นักสำรวจธรรมชาติน้อย</span>
+      <div class="hud-right">
+        <span id="hud-score" style="font-weight: 700;">คะแนน: 0</span>
+        <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
       </div>
     </div>
 
-    <div id="summary-screen" class="summary-screen">
-      <div class="avatar-area">🌳🏆</div>
-      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
-      <p style="color: #64748b; margin-bottom: 10px;">สำรวจธรรมชาติครบทุกข้อแล้ว</p>
-      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
-      <div class="certificate-card" id="print-area">
-        <div class="cert-title">ใบประกาศนักสำรวจธรรมชาติน้อย</div>
-        <div class="cert-subtitle">มอบให้เพื่อชื่นชมความรักธรรมชาติและสิ่งแวดล้อม</div>
-        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
-        <p class="cert-desc">ได้ตั้งใจเรียนรู้เรื่องพืช สัตว์ และสิ่งแวดล้อมที่ห้องนักสำรวจธรรมชาติน้อย</p>
-        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 1500 คะแนนเต็ม!</p>
-      </div>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
-        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
-        <button class="btn-action" onclick="resetToHome()">🔄 เล่นใหม่อีกครั้ง</button>
+    <!-- Interactive Trekking Trail Map -->
+    <div class="map-container">
+      <div class="trail-line"></div>
+      <div class="checkpoints-wrapper" id="checkpoints-wrapper">
+        <!-- Will be dynamically populated by JS -->
       </div>
     </div>
-  </main>
 
-  <script>
-    let playerName = "";
-    let score = 0;
-    let currentIdx = 0;
-    let soundEnabled = true;
-    let speechEnabled = true;
-    let answersCorrectCount = 0;
-    let questions = [];
+    <!-- Main Game Card -->
+    <div class="scene">
+      <div class="guide-display">
+        <div class="guide-avatar" id="guide-avatar">🦁</div>
+        <div class="guide-name" id="guide-name">พี่สิงโตใจสู้</div>
+      </div>
+      
+      <div class="question-bubble">
+        <button class="btn-voice" id="btn-speak">🔊</button>
+        <span id="question-text">พร้อมจะออกเดินทางหรือยังคะน้องน้ำฟ้า?</span>
+      </div>
+      
+      <div class="choices-grid" id="choices-grid">
+        <!-- Choice buttons generated here -->
+      </div>
+    </div>
+  </div>
 
-    const synth = {
-      ctx: null,
-      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
-      playCorrect() {
-        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
-          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
-          osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
-        });
-      },
-      playIncorrect() {
-        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(120, now);
-        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(now); osc.stop(now + 0.35);
-      }
-    };
+  <!-- Screen 3: Explanation Modal Overlay -->
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <h2 id="result-title" style="margin-bottom: 12px;">ถูกต้องเก่งมากค่ะ!</h2>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">💡 คำเฉลยและเหตุผล</span>
+        <div class="exp-text" id="exp-method">-</div>
+      </div>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">📖 สรุปหลักการความรู้</span>
+        <div class="exp-text" id="exp-principle">-</div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-next" style="padding: 10px 30px;">เดินป่าด่านถัดไป ➡️</button>
+    </div>
+  </div>
 
-    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+  <!-- Screen 4: Summary & Certificate Screen -->
+  <div id="screen-summary" class="screen">
+    <div class="card" id="print-area">
+      <div style="font-size:3.5rem;">🏆🌲✨</div>
+      <h1 style="color:var(--forest-deep); margin-bottom: 5px;">สำรวจผืนป่าสำเร็จแล้ว!</h1>
+      <p style="color: #6d4c41; font-weight: 700;">น้องน้ำฟ้าเดินป่าครบทั้ง 10 ด่านอย่างปลอดภัย</p>
+      
+      <div class="stars" id="stars-display">⭐⭐⭐</div>
+      <p style="font-size: 1.1rem; margin-bottom: 15px;">
+        ได้คะแนนรวม <span id="summary-score" style="font-weight:700; color:var(--forest-medium);">0</span> คะแนน (ตอบถูกต้อง <span id="summary-correct">0</span>/10 ด่าน)
+      </p>
 
-    const questionBank = [
-      { avatar: '🌱', sentence: 'พืชต้องการอะไรบ้างในการเจริญเติบโตคะ?', a: 'แสงแดด น้ำ และอากาศ', c: ['แสงแดด น้ำ และอากาศ', 'ขนมและของหวาน', 'เสียงเพลงอย่างเดียว', 'ไม่ต้องการอะไรเลย'],
-        exp1: 'เฉลยคือ แสงแดด น้ำ และอากาศ ค่ะ', exp2: 'พืชใช้แสงแดด น้ำ และก๊าซคาร์บอนไดออกไซด์ในการสร้างอาหารเองค่ะ', exp3: 'เกร็ดความรู้: กระบวนการที่พืชสร้างอาหารเองเรียกว่า การสังเคราะห์แสงค่ะ' },
-      { avatar: '🥚', sentence: 'สัตว์ชนิดใดที่ออกลูกเป็นไข่คะ?', a: 'ไก่', c: ['ไก่', 'สุนัข', 'แมว', 'ช้าง'],
-        exp1: 'เฉลยคือ ไก่ ค่ะ', exp2: 'ไก่เป็นสัตว์ปีกที่ออกลูกเป็นไข่ก่อนจะฟักเป็นตัวค่ะ', exp3: 'เกร็ดความรู้: สัตว์ที่ออกลูกเป็นไข่ยังมีนก เป็ด และปลาด้วยค่ะ' },
-      { avatar: '🐛', sentence: 'ผีเสื้อมีวงจรชีวิตเริ่มต้นจากอะไรคะ?', a: 'ไข่ แล้วกลายเป็นหนอน ดักแด้ และผีเสื้อ', c: ['ไข่ แล้วกลายเป็นหนอน ดักแด้ และผีเสื้อ', 'เป็นผีเสื้อตั้งแต่เกิด', 'ไม่มีวงจรชีวิต', 'เกิดจากดอกไม้โดยตรง'],
-        exp1: 'เฉลยคือ ไข่ แล้วกลายเป็นหนอน ดักแด้ และผีเสื้อ ค่ะ', exp2: 'ผีเสื้อมีการเปลี่ยนแปลงรูปร่างแบบสมบูรณ์ 4 ระยะ คือ ไข่ หนอน ดักแด้ และตัวเต็มวัยค่ะ', exp3: 'เกร็ดความรู้: การเปลี่ยนแปลงรูปร่างแบบนี้เรียกว่า การเปลี่ยนแปลงรูปร่างสมบูรณ์ค่ะ' },
-      { avatar: '♻️', sentence: 'การนำขวดพลาสติกที่ใช้แล้วมาแปรรูปใช้ใหม่ เรียกว่าอะไรคะ?', a: 'การรีไซเคิล', c: ['การรีไซเคิล', 'การทิ้งขยะ', 'การเผาทำลาย', 'การฝังกลบ'],
-        exp1: 'เฉลยคือ การรีไซเคิล ค่ะ', exp2: 'การรีไซเคิลคือการนำวัสดุที่ใช้แล้วมาแปรรูปเป็นของใหม่ ช่วยลดขยะค่ะ', exp3: 'เกร็ดความรู้: หลัก 3R คือ Reduce (ลดใช้) Reuse (ใช้ซ้ำ) Recycle (แปรรูปใหม่) ค่ะ' },
-      { avatar: '🗑️', sentence: 'ข้อใดคือวิธีลดปริมาณขยะที่ดีที่สุดคะ?', a: 'ลดการใช้สิ่งของที่ไม่จำเป็น (Reduce)', c: ['ลดการใช้สิ่งของที่ไม่จำเป็น (Reduce)', 'ซื้อของมาเยอะๆ ทุกวัน', 'ทิ้งขยะโดยไม่แยกประเภท', 'เผาขยะทุกชนิดรวมกัน'],
-        exp1: 'เฉลยคือ ลดการใช้สิ่งของที่ไม่จำเป็น (Reduce) ค่ะ', exp2: 'การลดการใช้ตั้งแต่ต้นทางช่วยลดปริมาณขยะได้ดีที่สุดค่ะ', exp3: 'เกร็ดความรู้: การพกถุงผ้าไปซื้อของแทนถุงพลาสติกก็เป็นตัวอย่างของ Reduce ค่ะ' },
-      { avatar: '🌦️', sentence: 'เมฆก้อนใหญ่สีเทาเข้มมักเป็นสัญญาณของอะไรคะ?', a: 'ฝนกำลังจะตก', c: ['ฝนกำลังจะตก', 'แดดจะออกจัด', 'หิมะจะตก', 'ไม่มีความหมายอะไร'],
-        exp1: 'เฉลยคือ ฝนกำลังจะตก ค่ะ', exp2: 'เมฆสีเทาเข้มมักมีไอน้ำสะสมมากและพร้อมจะกลั่นตัวเป็นฝนค่ะ', exp3: 'เกร็ดความรู้: วัฏจักรของน้ำ คือ การระเหย การควบแน่นเป็นเมฆ และการตกเป็นฝนค่ะ' },
-      { avatar: '🐟', sentence: 'ปลาใช้อวัยวะใดในการหายใจใต้น้ำคะ?', a: 'เหงือก', c: ['เหงือก', 'ปอด', 'ผิวหนัง', 'จมูก'],
-        exp1: 'เฉลยคือ เหงือก ค่ะ', exp2: 'ปลาใช้เหงือกกรองออกซิเจนที่ละลายอยู่ในน้ำเพื่อหายใจค่ะ', exp3: 'เกร็ดความรู้: สัตว์เลี้ยงลูกด้วยนมในน้ำ เช่น โลมา ใช้ปอดหายใจ ไม่ใช่เหงือกค่ะ' },
-      { avatar: '🌳', sentence: 'ต้นไม้มีประโยชน์ต่อโลกของเราอย่างไรคะ?', a: 'ผลิตออกซิเจนและดูดซับคาร์บอนไดออกไซด์', c: ['ผลิตออกซิเจนและดูดซับคาร์บอนไดออกไซด์', 'ทำให้อากาศร้อนขึ้น', 'ไม่มีประโยชน์อะไรเลย', 'ทำให้ฝนไม่ตก'],
-        exp1: 'เฉลยคือ ผลิตออกซิเจนและดูดซับคาร์บอนไดออกไซด์ ค่ะ', exp2: 'ต้นไม้ช่วยฟอกอากาศให้บริสุทธิ์และร่มรื่นให้กับโลกค่ะ', exp3: 'เกร็ดความรู้: การปลูกต้นไม้เพิ่มช่วยลดภาวะโลกร้อนได้ค่ะ' },
-      { avatar: '🐝', sentence: 'ผึ้งมีบทบาทสำคัญต่อพืชดอกอย่างไรคะ?', a: 'ช่วยผสมเกสรดอกไม้', c: ['ช่วยผสมเกสรดอกไม้', 'กัดกินใบไม้จนหมด', 'ทำให้ดอกไม้เหี่ยวเฉา', 'ไม่มีบทบาทอะไรเลย'],
-        exp1: 'เฉลยคือ ช่วยผสมเกสรดอกไม้ ค่ะ', exp2: 'ผึ้งบินไปดูดน้ำหวานจากดอกไม้และพาเกสรไปผสมกับดอกอื่นค่ะ', exp3: 'เกร็ดความรู้: หากไม่มีผึ้ง พืชผลทางการเกษตรหลายชนิดจะให้ผลผลิตน้อยลงมากค่ะ' },
-      { avatar: '🌡️', sentence: 'ฤดูร้อนในประเทศไทยมีลักษณะอากาศอย่างไรคะ?', a: 'อากาศร้อนและแห้ง', c: ['อากาศร้อนและแห้ง', 'หนาวเย็นมีหิมะตก', 'ฝนตกหนักตลอดเวลา', 'มีลมพายุตลอดปี'],
-        exp1: 'เฉลยคือ อากาศร้อนและแห้ง ค่ะ', exp2: 'ฤดูร้อนของไทยมักมีอากาศร้อนจัดและฝนตกน้อยค่ะ', exp3: 'เกร็ดความรู้: ประเทศไทยมี 3 ฤดู คือ ฤดูร้อน ฤดูฝน และฤดูหนาวค่ะ' },
-      { avatar: '🦎', sentence: 'สัตว์ชนิดใดที่เปลี่ยนสีผิวเพื่อพรางตัวได้คะ?', a: 'กิ้งก่า', c: ['กิ้งก่า', 'ช้าง', 'ยีราฟ', 'หมี'],
-        exp1: 'เฉลยคือ กิ้งก่า ค่ะ', exp2: 'กิ้งก่าบางชนิดสามารถเปลี่ยนสีผิวให้กลมกลืนกับสิ่งแวดล้อมเพื่อพรางตัวค่ะ', exp3: 'เกร็ดความรู้: การพรางตัวช่วยให้สัตว์หลบหลีกจากศัตรูได้ค่ะ' },
-      { avatar: '💧', sentence: 'น้ำในแม่น้ำ ทะเล และมหาสมุทร ระเหยกลายเป็นอะไรก่อนตกเป็นฝนคะ?', a: 'ไอน้ำ (เมฆ)', c: ['ไอน้ำ (เมฆ)', 'น้ำแข็ง', 'ทราย', 'น้ำมัน'],
-        exp1: 'เฉลยคือ ไอน้ำ (เมฆ) ค่ะ', exp2: 'น้ำระเหยกลายเป็นไอน้ำลอยขึ้นไปควบแน่นเป็นเมฆ ก่อนตกลงมาเป็นฝนค่ะ', exp3: 'เกร็ดความรู้: กระบวนการนี้เกิดขึ้นซ้ำไปเรื่อยๆ เรียกว่า วัฏจักรของน้ำค่ะ' },
-      { avatar: '🐜', sentence: 'มดเป็นสัตว์ที่อาศัยอยู่ร่วมกันแบบใดคะ?', a: 'อยู่รวมกันเป็นกลุ่มใหญ่และช่วยกันทำงาน', c: ['อยู่รวมกันเป็นกลุ่มใหญ่และช่วยกันทำงาน', 'อยู่ตัวเดียวโดดๆ ตลอดชีวิต', 'ไม่มีการทำงานร่วมกันเลย', 'ต่อสู้กันเองตลอดเวลา'],
-        exp1: 'เฉลยคือ อยู่รวมกันเป็นกลุ่มใหญ่และช่วยกันทำงาน ค่ะ', exp2: 'มดอยู่ร่วมกันเป็นรังใหญ่ แบ่งหน้าที่กันทำงาน เช่น หาอาหาร ดูแลไข่ค่ะ', exp3: 'เกร็ดความรู้: สัตว์ที่อยู่ร่วมกันเป็นสังคมแบบมด เรียกว่า แมลงสังคมค่ะ' },
-      { avatar: '🌸', sentence: 'ส่วนใดของพืชที่ทำหน้าที่ดูดน้ำและแร่ธาตุจากดินคะ?', a: 'ราก', c: ['ราก', 'ใบ', 'ดอก', 'ผล'],
-        exp1: 'เฉลยคือ ราก ค่ะ', exp2: 'รากทำหน้าที่ดูดน้ำและแร่ธาตุจากดินส่งไปเลี้ยงส่วนต่างๆ ของพืชค่ะ', exp3: 'เกร็ดความรู้: ใบทำหน้าที่สร้างอาหารโดยการสังเคราะห์แสง ส่วนดอกทำหน้าที่สืบพันธุ์ค่ะ' }
-    ];
+      <!-- Printable Certificate -->
+      <div class="cert-box">
+        <div class="cert-title">เกียรติบัตรนักอนุรักษ์น้อย</div>
+        <p style="margin: 8px 0; font-size: 0.95rem; color: var(--wood-brown);">เกียรติบัตรฉบับนี้มอบให้เพื่อแสดงว่า</p>
+        <input type="text" id="cert-name" class="cert-name" readonly value="น้องน้ำฟ้า">
+        <div class="cert-body">
+          ได้ปฏิบัติภารกิจ <strong>"เดินป่ารักธรรมชาติ"</strong> สำเร็จลุล่วงครบถ้วน<br>
+          เป็นผู้มีความเข้าใจ เรียนรู้เรื่อง พืช สัตว์ และสิ่งแวดล้อม ป.2 เป็นอย่างดี 🌱🐾
+        </div>
+        <p style="margin-top: 16px; font-size: 0.9rem; color: #795548;">
+          ผู้ประสานงานสำรวจป่า: <span id="cert-witness" style="font-weight: 700;">พี่สิงโตใจสู้ 🦁</span>
+        </p>
+        <p style="margin-top: 4px; font-size: 0.85rem; color: #9e9e9e;">
+          วันที่บันทึกเกียรติบัตร: <span id="cert-date">-</span>
+        </p>
+      </div>
 
-    function navigateBack() { window.speechSynthesis.cancel(); window.location.href = "index.html"; }
-    function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇"; }
-    function toggleSpeech() {
-      speechEnabled = !speechEnabled;
-      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
-      if (!speechEnabled) window.speechSynthesis.cancel();
+      <!-- Leaderboard -->
+      <div class="leaderboard">
+        <h2>🏅 นักสำรวจป่าดีเด่น (5 อันดับสูงสุด)</h2>
+        <div id="leaderboard-list">
+          <!-- Rows dynamically generated -->
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center; width:100%;">
+      <button class="btn btn-amber" id="btn-print">🖨️ พิมพ์ใบประกาศ</button>
+      <button class="btn" id="btn-again" style="background: linear-gradient(135deg, var(--forest-light) 0%, var(--forest-medium) 100%);">🔄 ออกเดินป่าอีกรอบ</button>
+      <button class="btn btn-blue" id="btn-home">🏡 กลับหน้าหลัก</button>
+    </div>
+  </div>
+
+<script>
+  const LEADERBOARD_KEY = 'nature_leaderboard';
+  const TOTAL_QUESTIONS = 10;
+
+  // Companion Characters database
+  const COMPANIONS = {
+    lion: { emoji: '🦁', name: 'พี่สิงโตใจสู้', msg: 'มาเลยค่ะน้องน้ำฟ้า พี่สิงโตจะพาน้ำฟ้าไปดูต้นไม้แปลกๆ และสัตว์ป่าสุดแกร่งนะ!' },
+    owl: { emoji: '🦉', name: 'ครูฮูกผู้ใจดี', msg: 'สวัสดีค่ะน้องน้ำฟ้า ครูฮูกจะพาน้ำฟ้าไปเรียนรู้วิทยาศาสตร์ของป่าที่แสนลึกลับนี้นะคะ' },
+    panda: { emoji: '🐼', name: 'พี่หมีแพนด้าใจดี', msg: 'กิ๊งก่อง! พี่แพนด้าตุนไม้ไผ่และขนมมาเต็มเป้เลย พร้อมเดินทางไปรักป่ารักโลกด้วยกันนะ!' },
+    rabbit: { emoji: '🐰', name: 'ครูกระต่ายแสนซน', msg: 'กระโดดดึ๋งๆ เลยค่ะน้ำฟ้า! ครูกระต่ายจะพาน้ำฟ้าวิ่งไปหาความรู้วิเศษในป่าลึกกันเถอะ!' }
+  };
+
+  // 10 Jungle Trekking Checkpoints / Questions (Science Grade 2)
+  const QUESTIONS = [
+    {
+      id: 1,
+      emoji: '🌻',
+      label: 'พืชดอก',
+      title: "ด่านที่ 1: ส่วนประกอบของพืช 🌻",
+      scenario: "ระหว่างที่พวกเราเดินผ่านทุ่งดอกทานตะวัน น้องน้ำฟ้าคิดว่า 'ส่วนประกอบใดของพืช' ที่ทำหน้าที่หลักในการดูดน้ำและธาตุอาหารจากดินขึ้นมาเลี้ยงลำต้นคะ?",
+      choices: ["ราก (Root)", "ลำต้น (Stem)", "ใบ (Leaf)", "ดอก (Flower)"],
+      answer: "ราก (Root)",
+      speakPrompt: "ด่านที่หนึ่ง ส่วนประกอบของพืช ระหว่างที่พวกเราเดินผ่านทุ่งดอกทานตะวัน น้องน้ำฟ้าคิดว่า ส่วนประกอบใดของพืช ที่ทำหน้าที่หลักในการดูดน้ำและธาตุอาหารจากดินขึ้นมาเลี้ยงลำต้นคะ",
+      method: "ราก (Root) ทำหน้าที่ดูดซึมน้ำและแร่ธาตุต่างๆ ในดิน เพื่อส่งต่อไปยังส่วนอื่นๆ และยังช่วยยึดลำต้นให้อยู่กับดินด้วยค่ะ",
+      principle: "หน้าที่ของพืช: รากดูดน้ำ/ยึดดิน, ลำต้นชูใบและลำเลียงสาร, ใบสร้างอาหารด้วยแสงแดด, ดอกช่วยสืบพันธุ์"
+    },
+    {
+      id: 2,
+      emoji: '☀️',
+      label: 'ปัจจัยพืช',
+      title: "ด่านที่ 2: ปัจจัยการเติบโต ☀️",
+      scenario: "เราเดินมาเจอต้นกล้าต้นหนึ่งที่ใบเริ่มเหี่ยวเฉาเพราะถูกปลูกไว้ในกล่องทึบแสง น้องน้ำฟ้าคิดว่าพืชขาดปัจจัยสำคัญข้อใดในการสังเคราะห์แสงเพื่อสร้างอาหารคะ?",
+      choices: ["แสงแดด (Light)", "ก้อนหิน (Rock)", "ร่มเงา (Shade)", "ลมแรง (Wind)"],
+      answer: "แสงแดด (Light)",
+      speakPrompt: "ด่านที่สอง ปัจจัยการเติบโต เราเดินมาเจอต้นกล้าต้นหนึ่งที่ใบเริ่มเหี่ยวเฉาเพราะถูกปลูกไว้ในกล่องทึบแสง น้องน้ำฟ้าคิดว่าพืชขาดปัจจัยสำคัญข้อใดในการสังเคราะห์แสงเพื่อสร้างอาหารคะ",
+      method: "แสงแดด (Light) เป็นปัจจัยสำคัญในการสังเคราะห์ด้วยแสง พืชใช้แสงในการสร้างน้ำตาลที่เป็นอาหารของพืชค่ะ",
+      principle: "พืชต้องการ 4 ปัจจัยหลักในการดำรงชีวิต: 1. แสงแดด (สร้างอาหาร) 2. น้ำ (ละลายสารอาหาร) 3. อากาศ (หายใจ) 4. แร่ธาตุในดิน"
+    },
+    {
+      id: 3,
+      emoji: '🥭',
+      label: 'วัฏจักรพืช',
+      title: "ด่านที่ 3: วัฏจักรชีวิตของพืชดอก 🥭",
+      scenario: "พี่หมีพามารู้จักกับต้นมะม่วงป่า น้องน้ำฟ้าช่วยเรียงลำดับการเจริญเติบโต (วัฏจักรชีวิต) ของพืชดอกให้ถูกต้องตามวิทยาศาสตร์หน่อยค่ะ?",
+      choices: [
+        "เมล็ด ➡️ ต้นอ่อน ➡️ ต้นโตเต็มวัยมีดอก ➡️ ผลและเมล็ดใหม่",
+        "ต้นอ่อน ➡️ เมล็ด ➡️ ผลและเมล็ดใหม่ ➡️ ต้นโตเต็มวัยมีดอก",
+        "ผลและเมล็ดใหม่ ➡️ ดอก ➡️ ต้นอ่อน ➡️ เมล็ด",
+        "ต้นโตเต็มวัยมีดอก ➡️ เมล็ด ➡️ ต้นอ่อน ➡️ ผลและเมล็ดใหม่"
+      ],
+      answer: "เมล็ด ➡️ ต้นอ่อน ➡️ ต้นโตเต็มวัยมีดอก ➡️ ผลและเมล็ดใหม่",
+      speakPrompt: "ด่านที่สาม วัฏจักรชีวิตของพืชดอก ช่วยเรียงลำดับการเจริญเติบโตหรือวัฏจักรชีวิตของพืชดอกให้ถูกต้องหน่อยค่ะ",
+      method: "วัฏจักรเริ่มจาก เมล็ด ได้รับน้ำงอกเป็น ต้นอ่อน เติบโตจนเป็น ต้นโตเต็มวัยมีดอก เพื่อผสมเกสรแล้วเกิดเป็น ผลที่มีเมล็ดใหม่พร้อมขยายพันธุ์ค่ะ",
+      principle: "วัฏจักรพืชดอกจะวนเวียนแบบนี้สม่ำเสมอ: เมล็ดงอกเป็นต้นอ่อน -> เติบโตจนมีดอก -> ดอกผสมเกสรกลายเป็นผล -> ในผลมีเมล็ดงอกวนรอบใหม่"
+    },
+    {
+      id: 4,
+      emoji: '🐿️',
+      label: 'สิ่งมีชีวิต',
+      title: "ด่านที่ 4: สิ่งมีชีวิตและสิ่งไม่มีชีวิต 🐿️",
+      scenario: "พวกเราหยุดฟังเสียงนกและกระรอกวิ่งเล่น น้องน้ำฟ้าคิดว่าสิ่งใดรอบตัวในป่าแห่งนี้ที่เป็น 'สิ่งไม่มีชีวิต' คะ?",
+      choices: ["ก้อนหินและน้ำตกในลำธาร", "กระรอกน้อยปีนต้นไม้", "เห็ดป่าสีส้มใต้ร่มไม้", "ต้นเฟิร์นสีเขียวขจี"],
+      answer: "ก้อนหินและน้ำตกในลำธาร",
+      speakPrompt: "ด่านที่สี่ สิ่งมีชีวิตและสิ่งไม่มีชีวิต น้องน้ำฟ้าคิดว่าสิ่งใดรอบตัวในป่าแห่งนี้ที่เป็นสิ่งไม่มีชีวิตคะ",
+      method: "ก้อนหินและน้ำตก ไม่ต้องการอาหาร ไม่หายใจ ไม่เติบโต และสืบพันธุ์ไม่ได้ จึงเป็นสิ่งไม่มีชีวิตค่ะ ส่วนกระรอก เห็ด เฟิร์น เป็นสิ่งมีชีวิต",
+      principle: "สิ่งมีชีวิตต้องกินอาหาร หายใจ ขับถ่าย เจริญเติบโต เคลื่อนไหว สืบพันธุ์ และตอบสนองต่อสิ่งเร้าได้ ซึ่งสิ่งไม่มีชีวิตจะทำไม่ได้เลย"
+    },
+    {
+      id: 5,
+      emoji: '🦊',
+      label: 'ปัจจัยสัตว์',
+      title: "ด่านที่ 5: การดำรงชีวิตของสัตว์ป่า 🦊",
+      scenario: "พวกเราสังเกตเห็นแม่สุนัขจิ้งจอกป่ากำลังคาบอาหารไปป้อนลูกตัวน้อยในรัง สัตว์ทั้งหลายต้องการสิ่งใดที่จำเป็นต่อการอยู่รอดและเจริญเติบโตคะ?",
+      choices: ["อาหาร น้ำ และอากาศ", "ของเล่น และคอมพิวเตอร์", "เสื้อกันหนาว และเงิน", "บ้านหรูหรา และรองเท้า"],
+      answer: "อาหาร น้ำ และอากาศ",
+      speakPrompt: "ด่านที่ห้า การดำรงชีวิตของสัตว์ป่า สัตว์ทั้งหลายต้องการสิ่งใดที่จำเป็นต่อการอยู่รอดและเจริญเติบโตคะ",
+      method: "สัตว์ป่าและสัตว์เลี้ยงต้องการ อาหาร (ให้พลังงาน), น้ำ (หล่อเลี้ยงร่างกาย), และ อากาศ (ใช้สำหรับหายใจ) เพื่ออยู่รอดและไม่ล้มตายค่ะ",
+      principle: "ปัจจัยในการดำรงชีวิตของสัตว์เหมือนคน: 1. อาหาร (เพื่อการเจริญเติบโตและพลังงาน) 2. น้ำ (การทำงานของระบบในร่างกาย) 3. อากาศ (การหายใจ)"
+    },
+    {
+      id: 6,
+      emoji: '🏡',
+      label: 'บ้านสัตว์',
+      title: "ด่านที่ 6: บ้านตามธรรมชาติ 🏡",
+      scenario: "มีนกกระยางป่าบินลงมาหาปลา น้องน้ำฟ้าช่วยวิเคราะห์หน่อยค่ะว่า 'แหล่งน้ำลำธาร' ในป่านี้ ทำหน้าที่เป็นสิ่งใดให้กับสัตว์น้ำเช่นปลาคะ?",
+      choices: [
+        "เป็นทั้งแหล่งที่อยู่อาศัยและแหล่งอาหาร",
+        "เป็นสถานที่ท่องเที่ยวพักร้อนของสัตว์บก",
+        "เป็นสถานที่ทิ้งขยะของสัตว์ป่า",
+        "เป็นทางวิ่งออกกำลังกายของปลากับกระต่าย"
+      ],
+      answer: "เป็นทั้งแหล่งที่อยู่อาศัยและแหล่งอาหาร",
+      speakPrompt: "ด่านที่หก บ้านตามธรรมชาติ แหล่งน้ำลำธารในป่านี้ ทำหน้าที่เป็นสิ่งใดให้กับสัตว์น้ำเช่นปลาคะ",
+      method: "ลำธาร แหล่งน้ำ ทำหน้าที่สำคัญเป็น แหล่งที่อยู่อาศัย หลบภัย และยังเป็น แหล่งอาหาร (เช่น พืชน้ำ ลูกปลาตัวเล็ก) ของสัตว์น้ำค่ะ",
+      principle: "สิ่งแวดล้อมป่าไม้และลำธารมีความสำคัญต่อสัตว์ คือ เป็นแหล่งที่อยู่อาศัย แหล่งอาหาร แหล่งสืบพันธุ์ และแหล่งเลี้ยงดูลูกอ่อน"
+    },
+    {
+      id: 7,
+      emoji: '🍀',
+      label: 'การตอบสนอง',
+      title: "ด่านที่ 7: การตอบสนองต่อสิ่งเร้า 🍀",
+      scenario: "พวกเราเดินเท้าผ่านต้นไม้ริมทาง เมื่อพวกเราเผลอใช้มือไป 'แตะใบไมยราบ' แล้วมันก็หุบใบของมันลงทันที สิ่งนี้เรียกว่าอะไรคะ?",
+      choices: [
+        "การตอบสนองต่อสิ่งเร้าสัมผัส",
+        "การตายของพืชเฉียบพลัน",
+        "การขาดแคลนแสงของพืช",
+        "การเขินอายของต้นไม้"
+      ],
+      answer: "การตอบสนองต่อสิ่งเร้าสัมผัส",
+      speakPrompt: "ด่านที่เจ็ด การตอบสนองต่อสิ่งเร้า เมื่อเผลอใช้มือไปแตะใบไมยราบแล้วมันก็หุบใบของมันลงทันที สิ่งนี้เรียกว่าอะไรคะ",
+      method: "ต้นไมยราบหุบใบลงทันทีเมื่อโดนแตะต้อง เป็นการตอบสนองต่อสิ่งเร้าสัมผัส เพื่อเป็นการป้องกันตนเองจากแมลงหรืออันตรายค่ะ",
+      principle: "พืชสามารถตอบสนองต่อสิ่งเร้าได้ เช่น แสงแดด (ยอดพืชเอียงหาแสง), การสัมผัส (ไมยราบหุบใบ, กาบหอยแครงดักแมลง), และน้ำ (รากงอกเข้าหาแหล่งน้ำ)"
+    },
+    {
+      id: 8,
+      emoji: '🗑️',
+      label: 'แยกขยะ',
+      title: "ด่านที่ 8: คัดแยกขยะช่วยป่า 🗑️",
+      scenario: "พวกเราพบแคมป์เก่าของนักท่องเที่ยวที่ลืมทิ้ง 'เศษผลไม้และเปลือกกล้วย' เอาไว้บนดิน น้องน้ำฟ้าคิดว่าเปลือกกล้วยควรทิ้งลงในถังขยะสีใดจึงจะถูกต้องคะ?",
+      choices: [
+        "ถังขยะสีเขียว (ขยะย่อยสลายได้/เปียก)",
+        "ถังขยะสีเหลือง (ขยะรีไซเคิล)",
+        "ถังขยะสีน้ำเงิน (ขยะทั่วไป)",
+        "ถังขยะสีแดง (ขยะอันตราย)"
+      ],
+      answer: "ถังขยะสีเขียว (ขยะย่อยสลายได้/เปียก)",
+      speakPrompt: "ด่านที่แปด คัดแยกขยะช่วยป่า เปลือกกล้วยควรทิ้งลงในถังขยะสีใดจึงจะถูกต้องคะ",
+      method: "เปลือกกล้วยเป็นขยะอินทรีย์ สามารถเน่าเสียและย่อยสลายตามธรรมชาติได้เร็ว จึงต้องแยกใส่ ถังขยะสีเขียว เพื่อไปทำปุ๋ยหมักค่ะ",
+      principle: "ประเภทถังขยะ: เขียว = ขยะย่อยสลายง่าย/ขยะเปียก, เหลือง = ขยะรีไซเคิลนำกลับมาใช้ใหม่, น้ำเงิน = ขยะทั่วไปย่อยยาก, แดง = ขยะอันตรายมีพิษ"
+    },
+    {
+      id: 9,
+      emoji: '🌲',
+      label: 'รักษ์ป่า',
+      title: "ด่านที่ 9: ประโยชน์ของผืนป่า 🌲",
+      scenario: "ทำไมเราต้องช่วยกันรณรงค์ห้ามตัดไม้ทำลายป่า และช่วยกันปลูกต้นไม้ใหม่ทดแทนป่าที่เสื่อมโทรมลงไปคะ?",
+      choices: [
+        "เพื่อเพิ่มอากาศบริสุทธิ์และรักษาหน้าดินไม่ให้ถล่ม",
+        "เพื่อทำให้ป่ามืดครึ้มและเดินลำบากขึ้น",
+        "เพื่อให้มีต้นไม้ล้มขวางทางรถวิ่งในป่า",
+        "เพื่อไม่ให้มีคนเข้ามาเดินเที่ยวเล่น"
+      ],
+      answer: "เพื่อเพิ่มอากาศบริสุทธิ์และรักษาหน้าดินไม่ให้ถล่ม",
+      speakPrompt: "ด่านที่เก้า ประโยชน์ของผืนป่า ทำไมเราต้องช่วยกันรณรงค์ห้ามตัดไม้ทำลายป่า และช่วยกันปลูกต้นไม้ใหม่ทดแทนคะ",
+      method: "ป่าไม้ที่อุดมสมบูรณ์มีรากช่วยยึดดิน ป้องกันดินโคลนถล่มเมื่อฝนตกหนัก ช่วยซึมซับน้ำน้ำท่วม และช่วยคายก๊าซออกซิเจนให้เรามีอากาศบริสุทธิ์หายใจค่ะ",
+      principle: "ป่าไม้เป็นทรัพยากรธรรมชาติที่มีคุณค่ามาก ช่วยควบคุมความสมดุลของน้ำ อากาศ ป้องกันภัยธรรมชาติ และรักษาระบบนิเวศของโลก"
+    },
+    {
+      id: 10,
+      emoji: '🎒',
+      label: 'นักอนุรักษ์',
+      title: "ด่านที่ 10: นักสำรวจป่าใจรักษ์ป่า 🎒",
+      scenario: "ในขณะที่น้องน้ำฟ้าเดินทางถึงจุดสูงสุดของภูเขา และพบดอกไม้ป่าสีแดงสวยงามมาก ข้อปฏิบัติใดคือการกระทำของนักอนุรักษ์ที่ดีที่สุดคะ?",
+      choices: [
+        "ถ่ายรูปเก็บไว้ชื่นชม และไม่เด็ดออกมารวมถึงไม่ทิ้งขยะ",
+        "เด็ดดอกไม้ใส่กระเป๋าเป้กลับไปประดับที่บ้าน",
+        "ใช้ก้อนหินขีดเขียนชื่อตัวเองบนโขดหินแถวนั้น",
+        "ตะโกนดังๆ และทิ้งถุงขนมลงบนยอดเขาเพื่อทำสัญลักษณ์"
+      ],
+      answer: "ถ่ายรูปเก็บไว้ชื่นชม และไม่เด็ดออกมารวมถึงไม่ทิ้งขยะ",
+      speakPrompt: "ด่านที่สิบ นักสำรวจป่าใจรักษ์ป่า ข้อปฏิบัติใดคือการกระทำของนักอนุรักษ์ที่ดีที่สุดคะเมื่อพบบริเวณธรรมชาติที่สวยงาม",
+      method: "การเดินป่าท่องเที่ยวที่ดี ต้องอนุรักษ์ไว้ ไม่เด็ดหรือทำลายพืช ไม่ทิ้งขยะหรือสร้างมลพิษ เพื่อส่งต่อความงามธรรมชาติให้คงอยู่ตลอดไปค่ะ",
+      principle: "กฎเหล็กนักอนุรักษ์: 'ไม่ทิ้งอะไรไว้นอกจากรอยเท้า ไม่เก็บอะไรไปนอกความทรงจำและรูปถ่าย' เพื่อรักษาสมดุลธรรมชาติเดิม"
     }
+  ];
 
-    function registerAndStart() {
-      const nameInput = document.getElementById('reg-player-name');
-      const name = nameInput.value.trim();
-      if (!name) { alert("กรุณากรอกชื่อนักสำรวจตัวน้อยก่อนเริ่มเล่นนะคะ! 😊"); return; }
-      playerName = name;
-      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'นักสำรวจธรรมชาติน้อย (ป.2)');
-      document.getElementById('hud-name').innerText = playerName;
-      document.getElementById('register-screen').style.display = 'none';
-      document.getElementById('play-screen').style.display = 'flex';
-      synth.init();
-      const welcomeMsg = `ยินดีต้อนรับนักสำรวจตัวน้อย ${playerName} เข้าสู่การสำรวจธรรมชาติค่ะ`;
-      if (speechEnabled && 'speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
-        utterance.lang = 'th-TH';
-        window.speechSynthesis.speak(utterance);
+  let playerName = 'น้องน้ำฟ้า';
+  let soundOn = true;
+  let score = 0;
+  let correctCount = 0;
+  let currentIndex = 0;
+  let selectedCompanionId = 'lion';
+
+  // Web Audio Context Synthesizer
+  const synth = {
+    ctx: null,
+    init() {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      score = 0; currentIdx = 0; answersCorrectCount = 0;
-      questions = shuffle([...questionBank]);
-      loadQuestion();
-    }
-
-    function loadQuestion() {
-      if (currentIdx >= questions.length) { finishGame(); return; }
-      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
-      document.getElementById('hud-score').innerText = score;
-      const q = questions[currentIdx];
-      document.getElementById('question-avatar').innerText = q.avatar;
-      document.getElementById('question-sentence').innerText = q.sentence;
-
-      const grid = document.getElementById('choices-grid');
-      grid.innerHTML = '';
-      const choices = shuffle([...q.c]);
-      choices.forEach(choice => {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.innerText = choice;
-        btn.setAttribute('data-value', choice);
-        btn.addEventListener('click', () => checkChoice(choice, btn));
-        grid.appendChild(btn);
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    },
+    tone(freq, dur, type = 'sine') {
+      if (!soundOn || !this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+      } catch (e) {
+        console.warn('Synth tone failed:', e);
+      }
+    },
+    correct() {
+      // Nice upbeat double chime
+      this.tone(523.25, 0.15); // C5
+      setTimeout(() => this.tone(659.25, 0.15), 100); // E5
+      setTimeout(() => this.tone(783.99, 0.25), 200); // G5
+    },
+    wrong() {
+      // Lower slide / buzz sound
+      this.tone(220, 0.3, 'triangle');
+    },
+    victory() {
+      // Full cascading fanfare
+      const melody = [523, 587, 659, 698, 784, 880, 988, 1047];
+      melody.forEach((freq, idx) => {
+        setTimeout(() => this.tone(freq, 0.35), idx * 120);
       });
-
-      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
     }
+  };
 
-    function speakCurrentQuestion() {
-      if (!('speechSynthesis' in window) || !speechEnabled) return;
-      window.speechSynthesis.cancel();
-      const q = questions[currentIdx];
-      const utterance = new SpeechSynthesisUtterance(`ข้อที่ ${currentIdx + 1}. ${q.sentence}`);
+  // Web Speech Text to Speech in Thai
+  function speakText(text) {
+    window.speechSynthesis.cancel();
+    if (!soundOn) return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'th-TH';
-      utterance.rate = 0.95;
+      utterance.rate = 0.92;
+      utterance.pitch = 1.1;
       window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
     }
+  }
 
-    function checkChoice(value, btnEl) {
-      window.speechSynthesis.cancel();
-      const q = questions[currentIdx];
-      const isCorrect = (value === q.a);
-      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
-      allBtns.forEach(b => {
-        b.disabled = true;
-        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
-      });
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const scr = document.getElementById(id);
+    if (scr) scr.classList.add('active');
+  }
 
-      if (isCorrect) {
-        synth.playCorrect();
-        score += 100;
-        answersCorrectCount++;
-        document.getElementById('result-icon').innerText = "🎉";
-        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะคะ";
-        document.getElementById('result-title').className = "result-title correct";
+  // Populate interactive Trekking Map Checkpoints
+  function renderTrekkingMap() {
+    const wrapper = document.getElementById('checkpoints-wrapper');
+    wrapper.innerHTML = '';
+    
+    QUESTIONS.forEach((q, idx) => {
+      const dotWrapper = document.createElement('div');
+      dotWrapper.className = 'checkpoint-dot-wrapper';
+      
+      // Hiker walking icon on the active one
+      if (idx === currentIndex) {
+        const hiker = document.createElement('div');
+        hiker.className = 'hiker-avatar';
+        hiker.innerText = '🚶‍♀️🎒';
+        dotWrapper.appendChild(hiker);
+      }
+      
+      const dot = document.createElement('div');
+      dot.className = 'checkpoint-dot';
+      
+      // Class status
+      if (idx < currentIndex) {
+        dot.classList.add('completed');
+        dot.innerText = '✅';
+      } else if (idx === currentIndex) {
+        dot.classList.add('active');
+        dot.innerText = q.emoji;
       } else {
-        synth.playIncorrect();
-        btnEl.classList.add('incorrect-ui');
-        document.getElementById('result-icon').innerText = "🌿";
-        document.getElementById('result-title').innerText = "ยังไม่ถูกนะคะ ลองใหม่ได้เลย!";
-        document.getElementById('result-title').className = "result-title incorrect";
+        dot.classList.add('locked');
+        dot.innerText = idx + 1;
       }
+      
+      const label = document.createElement('span');
+      label.className = 'checkpoint-label';
+      label.innerText = q.label;
+      
+      dotWrapper.appendChild(dot);
+      dotWrapper.appendChild(label);
+      wrapper.appendChild(dotWrapper);
+    });
 
-      document.getElementById('exp-correct').innerText = q.exp1;
-      document.getElementById('exp-incorrect').innerText = q.exp2;
-      document.getElementById('exp-summary').innerText = q.exp3;
-
-      setTimeout(() => {
-        document.getElementById('explanation-overlay').classList.add('active');
-        if (speechEnabled) {
-          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
-          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
-          utterance.lang = 'th-TH';
-          window.speechSynthesis.speak(utterance);
-        }
-      }, 700);
-    }
-
-    function nextQuestion() {
-      window.speechSynthesis.cancel();
-      document.getElementById('explanation-overlay').classList.remove('active');
-      currentIdx++;
-      loadQuestion();
-    }
-
-    function finishGame() {
-      window.speechSynthesis.cancel();
-      saveLeaderboardData();
-      document.getElementById('play-screen').style.display = 'none';
-      document.getElementById('summary-screen').style.display = 'flex';
-      const starsDisplay = document.getElementById('stars-display');
-      let starStr = "";
-      if (answersCorrectCount >= 13) starStr = "⭐⭐⭐";
-      else if (answersCorrectCount >= 8) starStr = "⭐⭐";
-      else starStr = "⭐";
-      starsDisplay.innerText = starStr;
-      document.getElementById('cert-name').value = playerName;
-      document.getElementById('cert-score-desc').innerText = `ตอบถูกต้องทั้งหมด ${answersCorrectCount} จาก ${questions.length} ข้อ (คะแนนสะสม: ${score} คะแนน)`;
-      if (speechEnabled) {
-        const speakFinish = `เก่งมากๆ เลยค่ะ ${playerName} สำรวจธรรมชาติครบทุกข้อแล้ว ด้วยคะแนนสะสม ${score} คะแนนค่ะ`;
-        const utterance = new SpeechSynthesisUtterance(speakFinish);
-        utterance.lang = 'th-TH';
-        window.speechSynthesis.speak(utterance);
+    // Handle map scroll auto centering active element
+    setTimeout(() => {
+      const activeDot = wrapper.querySelector('.checkpoint-dot.active');
+      if (activeDot) {
+        activeDot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
-    }
+    }, 200);
+  }
 
-    function printCertificate() { window.print(); }
-    function resetToHome() {
-      document.getElementById('summary-screen').style.display = 'none';
-      document.getElementById('register-screen').style.display = 'flex';
-      document.getElementById('reg-player-name').value = "";
-      renderLeaderboard();
-    }
+  function updateHUD() {
+    document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
+  }
 
-    function saveLeaderboardData() {
-      let leaderboard = JSON.parse(localStorage.getItem('nature_leaderboard')) || [];
-      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
-      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
-      else { leaderboard.push({ name: playerName, score: score }); }
-      leaderboard.sort((a, b) => b.score - a.score);
-      leaderboard = leaderboard.slice(0, 5);
-      localStorage.setItem('nature_leaderboard', JSON.stringify(leaderboard));
-      if (typeof fbSaveScore === 'function') fbSaveScore('nature_leaderboard', { name: playerName, score: score });
+  function loadQuestion() {
+    if (currentIndex >= TOTAL_QUESTIONS) {
+      endGame();
+      return;
     }
+    
+    renderTrekkingMap();
+    updateHUD();
+    
+    const currentQuestion = QUESTIONS[currentIndex];
+    document.getElementById('question-text').innerText = currentQuestion.scenario;
+    document.getElementById('game-title-hud').innerText = `🌿 ด่านที่ ${currentIndex + 1}/10`;
 
-    function renderLeaderboardBox(leaderboard) {
-      const box = document.getElementById('leaderboard-box');
-      if (!leaderboard || leaderboard.length === 0) {
-        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีนักสำรวจเก่งประจำห้องค่ะ</div>`;
-        return;
+    const grid = document.getElementById('choices-grid');
+    grid.innerHTML = '';
+    currentQuestion.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.addEventListener('click', () => handleAnswer(choice, btn, currentQuestion));
+      grid.appendChild(btn);
+    });
+
+    // Auto speak
+    setTimeout(() => {
+      speakText(`${currentQuestion.speakPrompt}`);
+    }, 500);
+  }
+
+  function handleAnswer(selected, btnEl, q) {
+    const grid = document.getElementById('choices-grid');
+    const buttons = grid.querySelectorAll('.choice-btn');
+    
+    // Disable all choices and show correct
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (b.innerText === q.answer) {
+        b.classList.add('correct');
       }
-      box.innerHTML = leaderboard.map((item, idx) => {
-        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} 🌿 ${item.name}</span><span>${item.score} คะแนน</span></div>`;
-      }).join('');
+    });
+
+    const isCorrect = selected === q.answer;
+    if (isCorrect) {
+      score += 10;
+      correctCount++;
+      synth.correct();
+    } else {
+      btnEl.classList.add('wrong');
+      synth.wrong();
     }
 
-    function renderLeaderboard() {
-      renderLeaderboardBox(JSON.parse(localStorage.getItem('nature_leaderboard')) || []);
-      if (typeof fbLoadTopScores === 'function') {
-        fbLoadTopScores('nature_leaderboard', cloudList => {
-          if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
-        });
-      }
-    }
+    setTimeout(() => showExplanation(isCorrect, q), 900);
+  }
 
+  function showExplanation(isCorrect, q) {
+    const companion = COMPANIONS[selectedCompanionId];
+    
+    document.getElementById('result-icon').innerText = isCorrect ? '🎉' : '💡';
+    document.getElementById('result-title').innerText = isCorrect 
+      ? `เก่งมากค่ะน้องน้ำฟ้า ${companion.emoji}` 
+      : `ไม่เป็นไรนะค่าน้องน้ำฟ้า ${companion.emoji}`;
+      
+    document.getElementById('exp-method').innerText = q.method;
+    document.getElementById('exp-principle').innerText = q.principle;
+
+    // Speak explanation
+    const speakExplanation = (isCorrect ? 'ถูกต้องเก่งมากค่ะ! ' : 'มาดูเฉลยกันนะคะ! ') + q.method;
+    speakText(speakExplanation);
+
+    document.getElementById('explanation-overlay').classList.add('active');
+  }
+
+  function endGame() {
+    synth.victory();
+    
+    // Set scores
+    document.getElementById('summary-score').innerText = score;
+    document.getElementById('summary-correct').innerText = correctCount;
+    
+    // Stars calculation
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    
+    // Certificate prefill
+    const nameToCert = playerName || 'น้องน้ำฟ้า';
+    document.getElementById('cert-name').value = nameToCert;
+    
+    const companion = COMPANIONS[selectedCompanionId];
+    document.getElementById('cert-witness').innerText = `${companion.name} ${companion.emoji}`;
+    
+    const today = new Date();
+    document.getElementById('cert-date').innerText = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Speak end of game
+    setTimeout(() => {
+      speakText(`ยินดีด้วยค่ะน้องน้ำฟ้า! สำรวจป่าธรรมชาติสำเร็จแล้ว เก่งกาจมากๆ เลย ได้คะแนนทั้งหมด ${score} คะแนนค่ะ`);
+    }, 400);
+
+    saveLeaderboard();
     renderLeaderboard();
-  </script>
+    
+    showScreen('screen-summary');
+  }
+
+  function saveLeaderboard() {
+    const entry = { name: playerName, score, date: new Date().toLocaleDateString('th-TH') };
+    
+    // Save to LocalStorage
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+
+    // Save to Firebase (Cloud sync)
+    if (typeof fbSaveScore === 'function') {
+      fbSaveScore(LEADERBOARD_KEY, entry);
+    }
+  }
+
+  function renderLeaderboardList(list) {
+    const el = document.getElementById('leaderboard-list');
+    el.innerHTML = '';
+    
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div class="lb-row" style="justify-content:center;">ยังไม่มีสถิติค่ะ ออกมาเล่นเป็นคนแรกกันนะ! 🎒</div>';
+      return;
+    }
+    
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <span style="font-weight: 700;">${idx + 1}. 🎒 ${entry.name}</span>
+        <span style="color:var(--forest-medium); font-weight:700;">${entry.score} คะแนน (${entry.date || '-'})</span>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderLeaderboard() {
+    // 1. Render local storage fallback
+    const localList = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    renderLeaderboardList(localList);
+
+    // 2. Load cloud leaderboard if Firebase exists
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(LEADERBOARD_KEY, (cloudList) => {
+        if (cloudList && cloudList.length) {
+          renderLeaderboardList(cloudList);
+        }
+      });
+    }
+  }
+
+  function initGame() {
+    // Prefill name if saved
+    const savedName = localStorage.getItem('tutorStudentName') || 'น้องน้ำฟ้า';
+    document.getElementById('input-name').value = savedName;
+
+    // Companion Selection Card Click
+    const compCards = document.querySelectorAll('.companion-card');
+    compCards.forEach(card => {
+      card.addEventListener('click', () => {
+        compCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedCompanionId = card.getAttribute('data-id');
+        
+        // Speak small greeting from companion
+        synth.init();
+        const companion = COMPANIONS[selectedCompanionId];
+        speakText(companion.msg);
+      });
+    });
+
+    // Start Button Click
+    document.getElementById('btn-start').addEventListener('click', () => {
+      playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+      localStorage.setItem('tutorStudentName', playerName); // Keep name updated across pages
+      
+      const comp = COMPANIONS[selectedCompanionId];
+      document.getElementById('guide-avatar').innerText = comp.emoji;
+      document.getElementById('guide-name').innerText = comp.name;
+
+      synth.init();
+      
+      // Log visit to Firebase activity dashboard
+      if (typeof fbLogActivity === 'function') {
+        fbLogActivity(playerName, `เดินป่ารักธรรมชาติ (ธรรมชาติและสิ่งแวดล้อม ป.2) - ไกด์: ${comp.name}`);
+      }
+
+      score = 0;
+      correctCount = 0;
+      currentIndex = 0;
+
+      showScreen('screen-game');
+      loadQuestion();
+    });
+
+    // Speak Question Button
+    document.getElementById('btn-speak').addEventListener('click', () => {
+      if (currentIndex < TOTAL_QUESTIONS) {
+        speakText(QUESTIONS[currentIndex].speakPrompt);
+      }
+    });
+
+    // Mute/Unmute Toggle
+    const soundToggleBtn = document.getElementById('btn-toggle-sound');
+    soundToggleBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
+      if (!soundOn) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Next Question Button inside explanation overlay
+    document.getElementById('btn-next').addEventListener('click', () => {
+      document.getElementById('explanation-overlay').classList.remove('active');
+      window.speechSynthesis.cancel();
+      currentIndex++;
+      loadQuestion();
+    });
+
+    // Play again click
+    document.getElementById('btn-again').addEventListener('click', () => {
+      showScreen('screen-register');
+    });
+
+    // Print certificate click
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Home button click
+    document.getElementById('btn-home').addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      window.location.href = 'index.html';
+    });
+  }
+
+  // Bind events on load
+  initGame();
+</script>
 </body>
 </html>

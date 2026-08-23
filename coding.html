@@ -559,12 +559,12 @@
 
   // Blocks library metadata
   const BLOCKS = {
-    'move': { label: 'move steps', cls: 'block-motion', val: 1 },
-    'turn-right': { label: 'turn ↪️ degrees', cls: 'block-motion', val: 90 },
-    'turn-left': { label: 'turn ↩️ degrees', cls: 'block-motion', val: 90 },
-    'loop-start-2': { label: 'repeat', cls: 'block-control', val: 2 },
-    'loop-start-3': { label: 'repeat', cls: 'block-control', val: 3 },
-    'loop-start-4': { label: 'repeat', cls: 'block-control', val: 4 }
+    'move': { label: 'เดินหน้า / move steps', cls: 'block-motion', val: 1 },
+    'turn-right': { label: 'เลี้ยวขวา / turn ↪️ degrees', cls: 'block-motion', val: 90 },
+    'turn-left': { label: 'เลี้ยวซ้าย / turn ↩️ degrees', cls: 'block-motion', val: 90 },
+    'loop-start-2': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 2 },
+    'loop-start-3': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 3 },
+    'loop-start-4': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 4 }
   };
 
   // 6 levels - progressive difficulty curriculum
@@ -796,13 +796,13 @@
         
         let labelHtml = b.label;
         if (bId === 'move') {
-          labelHtml = `move <span class="scratch-input">${b.val}</span> steps`;
+          labelHtml = `เดินหน้า / move <span class="scratch-input">${b.val}</span> steps`;
         } else if (bId === 'turn-right') {
-          labelHtml = `turn ↪️ <span class="scratch-input">${b.val}</span> degrees`;
+          labelHtml = `เลี้ยวขวา / turn ↪️ <span class="scratch-input">${b.val}</span> degrees`;
         } else if (bId === 'turn-left') {
-          labelHtml = `turn ↩️ <span class="scratch-input">${b.val}</span> degrees`;
+          labelHtml = `เลี้ยวซ้าย / turn ↩️ <span class="scratch-input">${b.val}</span> degrees`;
         } else if (bId.startsWith('loop-start-')) {
-          labelHtml = `repeat <span class="scratch-input">${b.val}</span>`;
+          labelHtml = `วนซ้ำ / repeat <span class="scratch-input">${b.val}</span>`;
         }
 
         el.innerHTML = labelHtml;
@@ -888,7 +888,7 @@
         // empty loop slot inside C-shape repeat block
         const slot = document.createElement('div');
         slot.className = 'scratch-loop-slot-empty';
-        slot.innerText = '➕ คลิกช่องนี้เพื่อเลือกใส่โค้ดในลูป';
+        slot.innerText = '➕ ใส่โค้ดด้านใน / Click to insert';
         containerElement.appendChild(slot);
       }
       return;
@@ -904,7 +904,7 @@
         const header = document.createElement('div');
         header.className = 'scratch-loop-header';
         header.innerHTML = `
-          <span>repeat</span>
+          <span>วนซ้ำ / repeat</span>
           <span class="scratch-input">${block.val}</span>
         `;
         header.addEventListener('click', (e) => {
@@ -952,11 +952,11 @@
         
         let labelHtml = b.label;
         if (block.type === 'move') {
-          labelHtml = `move <span class="scratch-input">${block.val}</span> steps`;
+          labelHtml = `เดินหน้า / move <span class="scratch-input">${block.val}</span> steps`;
         } else if (block.type === 'turn-right') {
-          labelHtml = `turn ↪️ <span class="scratch-input">${block.val}</span> degrees`;
+          labelHtml = `เลี้ยวขวา / turn ↪️ <span class="scratch-input">${block.val}</span> degrees`;
         } else if (block.type === 'turn-left') {
-          labelHtml = `turn ↩️ <span class="scratch-input">${block.val}</span> degrees`;
+          labelHtml = `เลี้ยวซ้าย / turn ↩️ <span class="scratch-input">${block.val}</span> degrees`;
         }
         blockDiv.innerHTML = labelHtml;
 

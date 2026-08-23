@@ -1399,6 +1399,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const wordproblemsBtn = document.getElementById('btn-select-wordproblems');
+  if (wordproblemsBtn) {
+    wordproblemsBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปทำภารกิจนักวัดตัวน้อยกับเจ้าเพนกวินกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'wordproblems.html';
+      }, 1000);
+    });
+  }
+
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

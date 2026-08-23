@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นักสำรวจใต้ทะเลตัวน้อย | สำหรับ น้องน้ำฟ้า 💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-gate.js"></script>
+<script src="firebase-helpers.js"></script>
+<style>
+  :root {
+    --sea-dark: #022c22;
+    --sea-medium: #0d9488;
+    --sea-light: #2dd4bf;
+    --sand: #fef08a;
+    --sand-dark: #facc15;
+    --text-light: #f0fdfa;
+    --text-muted: #99f6e4;
+    --coral-red: #f87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Prompt', 'Itim', sans-serif;
+    background: linear-gradient(180deg, #0f766e 0%, #115e59 50%, #042f2e 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: var(--text-light);
+    overflow-x: hidden;
+  }
+
+  /* Bubble animation background */
+  .bubble-container {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .bubble {
+    position: absolute;
+    bottom: -50px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    animation: rise 10s infinite linear;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) scale(1); opacity: 0.1; }
+    50% { opacity: 0.6; }
+    100% { transform: translateY(-110vh) scale(1.3); opacity: 0; }
+  }
+
+  .screen { display: none; width: 100%; max-width: 720px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  .card {
+    background: rgba(13, 148, 136, 0.15);
+    border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(45, 212, 191, 0.2);
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+    border: 2px solid rgba(45, 212, 191, 0.35);
+    backdrop-filter: blur(12px);
+  }
+
+  h1 { font-size: 1.8rem; color: var(--sea-light); margin-bottom: 6px; text-shadow: 0 0 10px rgba(45, 212, 191, 0.4); }
+  h2 { font-size: 1.4rem; color: var(--sand-dark); text-shadow: 0 0 8px rgba(250, 204, 21, 0.3); }
+  .subtitle { color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem; }
+
+  /* Submarine Crew Selection */
+  .sub-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .sub-card {
+    background: rgba(15, 23, 42, 0.5);
+    border: 2px dashed var(--sea-light);
+    border-radius: 18px;
+    padding: 12px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sub-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(45, 212, 191, 0.3);
+  }
+  .sub-card.selected {
+    background: rgba(45, 212, 191, 0.25);
+    border: 3px solid var(--sand-dark);
+    transform: scale(1.05);
+    box-shadow: 0 0 12px var(--sand-dark);
+  }
+  .sub-emoji { font-size: 2.8rem; margin-bottom: 4px; filter: drop-shadow(0 0 4px rgba(255,255,255,0.4)); }
+  .sub-name { font-weight: 700; font-size: 0.9rem; color: var(--text-light); }
+
+  input.reg-input {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    border: 2px solid var(--sea-light);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+    background: rgba(4, 47, 46, 0.9);
+    color: var(--text-light);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--sea-medium) 0%, var(--sea-dark) 100%);
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35);
+    transition: all 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13, 148, 136, 0.5); }
+  
+  .btn-amber {
+    background: linear-gradient(135deg, var(--sand-dark) 0%, #ca8a04 100%);
+    color: #3b2300;
+    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.35);
+  }
+  .btn-amber:hover { box-shadow: 0 8px 20px rgba(250, 204, 21, 0.45); }
+  
+  .btn-coral {
+    background: linear-gradient(135deg, var(--coral-red) 0%, #b91c1c 100%);
+    box-shadow: 0 6px 16px rgba(248, 113, 113, 0.3);
+  }
+  .btn-coral:hover { box-shadow: 0 8px 20px rgba(248, 113, 113, 0.4); }
+  
+  .hud {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 20px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12);
+    border: 2px solid rgba(45, 212, 191, 0.2);
+  }
+  .hud-title { font-weight: 700; color: var(--sea-light); }
+  .hud-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    background: rgba(15, 23, 42, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: rgba(45, 212, 191, 0.25); }
+
+  /* Vertical Ocean Descent Trail Map */
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    background: rgba(2, 44, 34, 0.7);
+    border-radius: 24px;
+    padding: 30px 20px;
+    margin-bottom: 16px;
+    border: 2px solid rgba(45, 212, 191, 0.3);
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.5);
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  .descent-line {
+    position: absolute;
+    left: 50%;
+    top: 30px;
+    bottom: 30px;
+    width: 4px;
+    background: transparent;
+    transform: translateX(-50%);
+    z-index: 1;
+    border-left: 2px dashed rgba(45, 212, 191, 0.45);
+  }
+  .checkpoints-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    z-index: 2;
+  }
+  .checkpoint-dot-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+  }
+  .checkpoint-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2.5px solid var(--sea-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    z-index: 2;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    color: var(--text-light);
+  }
+  .checkpoint-dot.completed {
+    background: rgba(13, 148, 136, 0.3);
+    border-color: var(--sea-light);
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.5);
+  }
+  .checkpoint-dot.active {
+    background: rgba(250, 204, 21, 0.15);
+    border-color: var(--sand-dark);
+    box-shadow: 0 0 16px var(--sand-dark);
+    transform: scale(1.18);
+  }
+  .checkpoint-dot.locked {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.3);
+    filter: grayscale(1);
+    opacity: 0.5;
+  }
+  .checkpoint-label {
+    position: absolute;
+    left: calc(50% + 36px);
+    width: 120px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-light);
+    background: rgba(13, 148, 136, 0.5);
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(45, 212, 191, 0.2);
+  }
+  /* Alternating left and right labels for visual balance */
+  .checkpoint-dot-wrapper:nth-child(even) .checkpoint-label {
+    left: auto;
+    right: calc(50% + 36px);
+    text-align: right;
+  }
+  
+  .sub-avatar {
+    position: absolute;
+    left: calc(50% - 68px);
+    font-size: 1.8rem;
+    z-index: 3;
+    animation: subFloat 1s infinite alternate ease-in-out;
+    filter: drop-shadow(0 0 5px var(--sea-light));
+  }
+  .checkpoint-dot-wrapper:nth-child(even) .sub-avatar {
+    left: auto;
+    right: calc(50% - 68px);
+  }
+  @keyframes subFloat {
+    0% { transform: translateY(-4px) rotate(-3deg); }
+    100% { transform: translateY(4px) rotate(3deg); }
+  }
+
+  /* Game Main Scene */
+  .scene {
+    width: 100%;
+    max-width: 720px;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(13, 148, 136, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+    border: 2px solid rgba(45, 212, 191, 0.2);
+  }
+  .guide-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .guide-avatar { font-size: 3.5rem; margin-bottom: 4px; filter: drop-shadow(0 0 5px var(--coral-red)); }
+  .guide-name { font-size: 0.95rem; font-weight: 700; color: var(--coral-red); background: rgba(248, 113, 113, 0.15); padding: 2px 14px; border-radius: 20px; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+  .question-bubble {
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 20px;
+    padding: 20px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    position: relative;
+    border-left: 5px solid var(--sea-light);
+    text-align: left;
+    line-height: 1.6;
+  }
+  .btn-voice {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--sea-light);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sea-light);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .choices-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media(min-width: 500px) {
+    .choices-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .choice-btn {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 18px;
+    border: 2px solid rgba(45, 212, 191, 0.4);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .choice-btn:hover:not(:disabled) { background: rgba(45, 212, 191, 0.15); border-color: var(--sea-light); transform: translateY(-2px); }
+  .choice-btn.correct { background: rgba(34, 197, 94, 0.35); border-color: rgb(34, 197, 94); color: #fff; text-shadow: 0 0 5px rgba(34, 197, 94, 0.6); }
+  .choice-btn.wrong { background: rgba(239, 68, 68, 0.35); border-color: rgb(239, 68, 68); color: #fff; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Explanation overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #022c22;
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    border: 3px solid var(--sea-light);
+    box-shadow: 0 0 25px rgba(45, 212, 191, 0.35);
+  }
+  .modal .result-icon { font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4)); }
+  .exp-step { text-align: left; margin-bottom: 14px; background: rgba(15, 23, 42, 0.6); border-radius: 14px; padding: 12px 16px; border: 1.5px solid rgba(45, 212, 191, 0.2); }
+  .exp-step-title { display: block; font-weight: 700; color: var(--sea-light); margin-bottom: 4px; font-size: 0.9rem; }
+  .exp-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-light); }
+
+  .stars { font-size: 2.6rem; margin: 12px 0; }
+  
+  /* Certificate printable styling */
+  .cert-box {
+    border: 8px double var(--sea-light);
+    border-radius: 20px;
+    padding: 30px 20px;
+    margin: 20px 0;
+    background: rgba(15, 23, 42, 0.95);
+    position: relative;
+    overflow: hidden;
+    border-color: var(--sand-dark);
+  }
+  .cert-box::before {
+    content: "🐬";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-box::after {
+    content: "🪸";
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-title { font-family: 'Itim', cursive; color: var(--sea-light); font-size: 2rem; font-weight: bold; text-shadow: 0 0 8px rgba(45, 212, 191, 0.4); }
+  .cert-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--sand-dark);
+    border: none;
+    border-bottom: 2px solid var(--sea-light);
+    text-align: center;
+    background: transparent;
+    width: 80%;
+    font-family: 'Prompt';
+    padding: 4px;
+    outline: none;
+    color: #34d399;
+  }
+  .cert-body { margin-top: 14px; font-size: 1.1rem; line-height: 1.6; color: var(--text-light); }
+  
+  .leaderboard { text-align: left; margin-top: 20px; background: rgba(15, 23, 42, 0.4); padding: 16px; border-radius: 16px; border: 1.5px dashed rgba(45, 212, 191, 0.4); }
+  .leaderboard h2 { font-size: 1.1rem; color: var(--sea-light); border-bottom: 2px solid rgba(45, 212, 191, 0.2); padding-bottom: 6px; margin-bottom: 10px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.15); font-size: 0.95rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; border: 4px double var(--sand-dark); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Animated Bubbles Background -->
+  <div class="bubble-container" id="bubble-container"></div>
+
+  <!-- Screen 1: Registration and Submarine Selection -->
+  <div id="screen-register" class="screen active">
+    <div class="card">
+      <div style="font-size:3.8rem; margin-bottom: 10px;">🐬🤿🐙</div>
+      <h1>นักสำรวจใต้ทะเลตัวน้อย</h1>
+      <p class="subtitle">ดำดิ่งสำรวจก้นมหาสมุทร เรียนรู้เรื่องปะการัง สัตว์ทะเล และรณรงค์รักษ์ทะเลกันเถอะ!</p>
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--sea-light);">1. ใส่ชื่อนักประดาน้ำจิ๋วตรงนี้ค่ะ:</p>
+      <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ" value="น้องน้ำฟ้า">
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--sand-dark);">2. เลือกเรือดำน้ำสีที่ชอบ:</p>
+      <div class="sub-grid">
+        <div class="sub-card selected" data-id="yellow" data-emoji="🦭" data-name="กัปตันแมวน้ำสีเหลือง">
+          <div class="sub-emoji">🦭</div>
+          <div class="sub-name">เรือดำน้ำเหลือง</div>
+        </div>
+        <div class="sub-card" data-id="pink" data-emoji="🐙" data-name="กัปตันหมึกจิ๋วสีชมพู">
+          <div class="sub-emoji">🐙</div>
+          <div class="sub-name">เรือดำน้ำชมพู</div>
+        </div>
+        <div class="sub-card" data-id="blue" data-emoji="🐬" data-name="กัปตันโลมาสีฟ้า">
+          <div class="sub-emoji">🐬</div>
+          <div class="sub-name">เรือดำน้ำฟ้า</div>
+        </div>
+        <div class="sub-card" data-id="green" data-emoji="🐢" data-name="กัปตันเต่าทะเลสีเขียว">
+          <div class="sub-emoji">🐢</div>
+          <div class="sub-name">เรือดำน้ำเขียว</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-start" style="width: 100%; max-width: 320px; font-size: 1.2rem; margin-top: 10px;">ปิดห้องโดยสารแล้วดำดิ่ง 🐬</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Game Screen -->
+  <div id="screen-game" class="screen">
+    <!-- HUD Header -->
+    <div class="hud">
+      <span class="hud-title" id="game-title-hud">🐬 ด่านสำรวจใต้ทะเล</span>
+      <div class="hud-right">
+        <span id="hud-score" style="font-weight: 700; color: var(--sea-light);">คะแนน: 0</span>
+        <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
+      </div>
+    </div>
+
+    <!-- Vertical Undersea Descent Map -->
+    <div class="map-container" id="map-container">
+      <div class="descent-line"></div>
+      <div class="checkpoints-wrapper" id="checkpoints-wrapper">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Main Game Card -->
+    <div class="scene">
+      <div class="guide-display">
+        <div class="guide-avatar" id="guide-avatar">🦭</div>
+        <div class="guide-name" id="guide-name">กัปตันแมวน้ำสีเหลือง</div>
+      </div>
+      
+      <div class="question-bubble">
+        <button class="btn-voice" id="btn-speak">🔊</button>
+        <span id="question-text">พร้อมลงสู่ความลึกหรือยังคะกัปตันน้ำฟ้า...</span>
+      </div>
+      
+      <div class="choices-grid" id="choices-grid">
+        <!-- Choice buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Explanation Modal Overlay -->
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <h2 id="result-title" style="margin-bottom: 12px; color: var(--sea-light);">ถูกต้องยอดเยี่ยมมากกัปตัน!</h2>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🐬 สรุปเหตุผลโลกใต้ทะเล</span>
+        <div class="exp-text" id="exp-method">-</div>
+      </div>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🪸 ความรู้ระบบนิเวศวิทยา</span>
+        <div class="exp-text" id="exp-principle">-</div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-next" style="padding: 10px 30px;">ดำลงไปจุดถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Summary & Certificate Screen -->
+  <div id="screen-summary" class="screen">
+    <div class="card" id="print-area">
+      <div style="font-size:3.5rem;">🐚🏆🐬</div>
+      <h1 style="color:var(--sea-light); margin-bottom: 5px;">สำรวจมหาสมุทรสำเร็จแล้ว!</h1>
+      <p style="color: var(--text-muted); font-weight: 700;">กัปตันน้ำฟ้านำเรือดำน้ำสำรวจลึกครบ 10 ด่านอย่างปลอดภัย</p>
+      
+      <div class="stars" id="stars-display">⭐⭐⭐</div>
+      <p style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-light);">
+        ได้คะแนนรวม <span id="summary-score" style="font-weight:700; color:var(--sea-light);">0</span> คะแนน (ตอบถูกต้อง <span id="summary-correct">0</span>/10 ด่าน)
+      </p>
+
+      <!-- Printable Certificate -->
+      <div class="cert-box">
+        <div class="cert-title">เกียรติบัตรนักอนุรักษ์ทะเลจิ๋ว</div>
+        <p style="margin: 8px 0; font-size: 0.95rem; color: var(--text-muted);">เกียรติบัตรฉบับนี้มอบให้เพื่อแสดงว่า</p>
+        <input type="text" id="cert-name" class="cert-name" readonly value="น้องน้ำฟ้า">
+        <div class="cert-body">
+          ได้ดำดิ่งสำรวจ <strong>"มหาสมุทรแสนลึก"</strong> ตั้งแต่แนวปะการังถึงทะเลลึกสีดำ<br>
+          มีความเข้าใจในการปกป้องปลาทะเล ปะการัง และระบบนิเวศทางทะเล ป.2 อย่างยอดเยี่ยม!
+        </div>
+        <p style="margin-top: 16px; font-size: 0.9rem; color: var(--sand-dark);">
+          พยานการดำน้ำลึก: <span id="cert-witness" style="font-weight: 700;">กัปตันแมวน้ำสีเหลือง 🦭</span>
+        </p>
+        <p style="margin-top: 4px; font-size: 0.85rem; color: var(--text-muted);">
+          วันที่อนุมัติเกียรติบัตร: <span id="cert-date">-</span>
+        </p>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="leaderboard">
+        <h2>🏅 นักประดาน้ำดีเด่น (5 อันดับสูงสุด)</h2>
+        <div id="leaderboard-list">
+          <!-- Leaderboard Rows -->
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center; width:100%;">
+      <button class="btn btn-amber" id="btn-print">🖨️ พิมพ์เกียรติบัตร</button>
+      <button class="btn btn-coral" id="btn-again">🔄 เริ่มสำรวจรอบใหม่</button>
+      <button class="btn btn-blue" id="btn-home" style="background: linear-gradient(135deg, #0d9488 0%, #042f2e 100%);">🏡 กลับหน้าหลัก</button>
+    </div>
+  </div>
+
+<script>
+  const LEADERBOARD_KEY = 'sea_leaderboard';
+  const TOTAL_QUESTIONS = 10;
+
+  // Submarine choices
+  const SUBS = {
+    yellow: { emoji: '🦭', name: 'กัปตันแมวน้ำสีเหลือง', msg: 'ยินดีต้อนรับกัปตันน้ำฟ้า! เรือแมวน้ำสีเหลืองพร้อมนำทางสู่ปะการังลึกแล้วครับ!' },
+    pink: { emoji: '🐙', name: 'กัปตันหมึกจิ๋วสีชมพู', msg: 'กิ๊งก่อง! หมึกสีชมพูน่ารักพร้อมนำน้ำฟ้าไปดำน้ำทักทายเหล่าปลาการ์ตูนใต้ทะเลแล้วค่ะ!' },
+    blue: { emoji: '🐬', name: 'กัปตันโลมาสีฟ้า', msg: 'ปิ๊บๆ! เรือดำน้ำโลมาสีฟ้าความเร็วสูง พร้อมนำกัปตันน้ำฟ้าไปสืบหาความรู้แล้วครับ!' },
+    green: { emoji: '🐢', name: 'กัปตันเต่าทะเลสีเขียว', msg: 'สวัสดีครับ! ยานเกราะกระดองเต่าสีเขียวพร้อมพาน้ำฟ้าไปเรียนรู้วิธีรักษ์ทะเลแล้วนะ!' }
+  };
+
+  // 10 Undersea Science Checkpoints (Grade 2)
+  const QUESTIONS = [
+    {
+      id: 1,
+      emoji: '🪸',
+      label: 'แนวปะการัง',
+      title: "ด่านที่ 1: แนวปะการังสุดคึกคัก 🪸",
+      scenario: "กัปตันคะ ยานจอดที่แนวปะการังสีสวยงาม น้องน้ำฟ้าคิดว่า 'ปะการัง' แท้จริงแล้วจัดเป็นสิ่งมีชีวิตประเภทใดคะ?",
+      choices: ["สัตว์ทะเลตัวเล็กๆ รวมตัวกัน", "พืชทะเลชนิดหนึ่ง", "ก้อนหินโดนน้ำทะเลกัดเซาะ", "กิ่งไม้น้ำชุบเกลือ"],
+      answer: "สัตว์ทะเลตัวเล็กๆ รวมตัวกัน",
+      speakPrompt: "ด่านที่หนึ่ง แนวปะการังสุดคึกคัก ปะการังสีสวยใต้ท้องทะเลลึก แท้จริงแล้วเป็นสิ่งมีชีวิตประเภทใดคะ",
+      method: "ปะการัง (Coral) แท้จริงแล้วเป็น สัตว์ทะเล ไม่มีกระดูกสันหลังขนาดเล็กที่สร้างเกราะหินปูนครอบคลุมตัวเองและอยู่ร่วมกันจนมองดูเหมือนกิ่งไม้หรือโขดหินค่ะ",
+      principle: "ปะการังเป็นบ้านและแหล่งเพาะพันธุ์ปลาวัยอ่อนในระบบนิเวศปะการัง มีความสำคัญต่อสัตว์น้ำบกและทะเลมาก"
+    },
+    {
+      id: 2,
+      emoji: '☀️',
+      label: 'แสงแดดและสาหร่าย',
+      title: "ด่านที่ 2: แสงแดดและพืชน้ำ ☀️",
+      scenario: "ทำไมสาหร่ายทะเลและหญ้าทะเลสีเขียว จึงชอบขึ้นในเขตน้ำตื้นที่มีแสงแดดส่องถึงอย่างอบอุ่นคะ?",
+      choices: ["ต้องการแสงแดดไปใช้สังเคราะห์แสงสร้างอาหาร", "ต้องการไออุ่นเนื่องจากกลัวความเย็นใต้ทะเล", "ต้องการหลบหนีสัตว์ประหลาดใต้ทะเลลึก", "ต้องการลอยขึ้นมารับลมทะเลเป่าใบ"],
+      answer: "ต้องการแสงแดดไปใช้สังเคราะห์แสงสร้างอาหาร",
+      speakPrompt: "ด่านที่สอง แสงแดดและพืชน้ำ ทำไมสาหร่ายทะเลและหญ้าทะเลสีเขียว จึงชอบขึ้นในเขตน้ำตื้นที่มีแสงแดดส่องถึงอย่างอบอุ่นคะ",
+      method: "พืชน้ำและสาหร่ายทะเลเป็นสิ่งมีชีวิตที่ต้องใช้ แสงแดด ในกระบวนการสังเคราะห์ด้วยแสงเพื่อสร้างแป้งและออกซิเจนในการดำรงชีวิตค่ะ",
+      principle: "แสงแดดส่องลงไปในน้ำทะเลลึกได้จำกัด ( sunlight zone ไม่เกิน 200 เมตร) พืชทะเลจึงเติบโตได้เฉพาะบริเวณนี้"
+    },
+    {
+      id: 3,
+      emoji: '🐬',
+      label: 'โลมาสัตว์เลี้ยงลูกด้วยนม',
+      title: "ด่านที่ 3: โลมาแสนรู้และวาฬยักษ์ 🐬🐳",
+      scenario: "โลมาแสนดีและวาฬยักษ์ที่พ่นน้ำได้ หายใจด้วยปอดและออกลูกเป็นตัว สัตว์ทั้งสองนี้จัดอยู่ในกลุ่มใดตามวิทยาศาสตร์คะ?",
+      choices: ["สัตว์เลี้ยงลูกด้วยนม (Mammals)", "กลุ่มสัตว์ประเภทปลา (Fish)", "สัตว์ครึ่งบกครึ่งน้ำ", "สัตว์เลื้อยคลานใต้ทะเล"],
+      answer: "สัตว์เลี้ยงลูกด้วยนม (Mammals)",
+      speakPrompt: "ด่านที่สาม โลมาแสนรู้และวาฬยักษ์ โลมาแสนดีและวาฬยักษ์จัดอยู่ในกลุ่มใดตามวิทยาศาสตร์คะ",
+      method: "โลมาและวาฬไม่ใช่ปลา เพราะพวกมันหายใจด้วยปอด ออกลูกเป็นตัว และ เลี้ยงลูกด้วยน้ำนม เหมือนกับมนุษย์เราค่ะ",
+      principle: "สัตว์เลี้ยงลูกด้วยนมในทะเล (Marine Mammals): มีอุณหภูมิร่างกายคงที่ หายใจด้วยรูจมูกบนหัว และเลี้ยงลูกด้วยนมต่างจากปลาที่มีเหงือกและเกล็ด"
+    },
+    {
+      id: 4,
+      emoji: '🐙',
+      label: 'การพรางตัว',
+      title: "ด่านที่ 4: นักพรางตัวใต้ทะเล 🐙",
+      scenario: "พวกเราสังเกตเห็นหมึกยักษ์เปลี่ยนสีผิวและลวดลายให้เหมือนพื้นทรายและโขดหินอย่างรวดเร็ว หมึกทำไปเพื่อประโยชน์หลักข้อใดคะ?",
+      choices: ["พรางตัวหลบภัยจากศัตรูและซุ่มล่าเหยื่อ", "ทำให้ร่างกายอุ่นขึ้นในน้ำเย็นจัด", "ส่งสัญญาณชวนเพื่อนๆ ไปออกกำลังกาย", "ลอยตัวเล่นให้คลื่นพัดผ่านไป"],
+      answer: "พรางตัวหลบภัยจากศัตรูและซุ่มล่าเหยื่อ",
+      speakPrompt: "ด่านที่สี่ นักพรางตัวใต้ทะเล หมึกยักษ์เปลี่ยนสีผิวและลวดลายให้เหมือนพื้นทรายและโขดหินอย่างรวดเร็วเพื่อประโยชน์หลักข้อใดคะ",
+      method: "หมึกยักษ์มีเซลล์เม็ดสีในผิวหนังพิเศษที่เปลี่ยนสีรูปทรงได้อย่างรวดเร็ว เพื่อ พรางตัว (Camouflage) ให้กลมกลืนกับธรรมชาติ เพื่อหลบศัตรูหรือจู่โจมล่าเหยื่อค่ะ",
+      principle: "การพรางตัวเป็นพฤติกรรมการปรับตัวด้านสรีรวิทยาเพื่อการเอาชีวิตรอดของสัตว์ทะเลจำนวนมาก"
+    },
+    {
+      id: 5,
+      emoji: '🦠',
+      label: 'ห่วงโซ่อาหาร',
+      title: "ด่านที่ 5: แพลงก์ตอนพืชผู้ผลิตจิ๋ว 🦠",
+      scenario: "ในน้ำทะเลมีสิ่งมีชีวิตเซลล์เดียวขนาดเล็กมากที่มองด้วยตาเปล่าไม่เห็น ลอยน้ำและสังเคราะห์แสงสร้างอาหารได้ สิ่งนี้เรียกว่าอะไรคะ?",
+      choices: ["แพลงก์ตอนพืช (Phytoplankton)", "แพลงก์ตอนสัตว์จิ๋ว", "สาหร่ายสไปรูลิน่ายักษ์", "ลูกปลาทูวัยอ่อน"],
+      answer: "แพลงก์ตอนพืช (Phytoplankton)",
+      speakPrompt: "ด่านที่ห้า ห่วงโซ่อาหาร สิ่งมีชีวิตเซลล์เดียวขนาดเล็กมากลอยน้ำและสังเคราะห์แสงสร้างอาหารได้ สิ่งนี้เรียกว่าอะไรคะ",
+      method: "แพลงก์ตอนพืช (Phytoplankton) คือสิ่งมีชีวิตที่เป็น 'ผู้ผลิตรายแรกสุด' ในทะเล สังเคราะห์แสงแดดสร้างพลังงาน และเป็นจุดเริ่มของห่วงโซ่อาหารค่ะ",
+      principle: "ห่วงโซ่อาหารทางทะเล: ผู้ผลิต (แพลงก์ตอนพืช) -> ผู้บริโภคอันดับแรก (แพลงก์ตอนสัตว์) -> ผู้บริโภคถัดมา (ปลาจิ๋ว ปลากลาง ปลาฉลาม)"
+    },
+    {
+      id: 6,
+      emoji: '🐢',
+      label: 'อันตรายถุงพลาสติก',
+      title: "ด่านที่ 6: ถุงพลาสติกใสศัตรูเต่าทะเล 🐢🛍️",
+      scenario: "กัปตันเต่าส่งสัญญาณขอความช่วยเหลือ! เต่าทะเลมักเผลอกินถุงพลาสติกใสลงท้องจนล้มตาย เพราะเต่าคิดว่าเป็นสัตว์ชนิดใดคะ?",
+      choices: ["แมงกะพรุน (Jellyfish)", "ลูกปลาการ์ตูน", "ปลาหมึกกลมตัวเล็ก", "สาหร่ายทะเลเส้นเรียวยาว"],
+      answer: "แมงกะพรุน (Jellyfish)",
+      speakPrompt: "ด่านที่หก อันตรายถุงพลาสติก เต่าทะเลมักเผลอกินถุงพลาสติกใสลงท้องเพราะเต่าเข้าใจผิดคิดว่าเป็นสัตว์ชนิดใดคะ",
+      method: "ถุงพลาสติกใสเมื่อลอยและพลิ้วไหวในน้ำทะเล จะมีลักษณะเหมือน แมงกะพรุน (Jellyfish) ซึ่งเป็นอาหารของเต่าทะเล เต่าจึงเผลอกินเข้าไปจนอุดตันในลำไส้ล้มตายได้ค่ะ",
+      principle: "ขยะพลาสติกในทะเลส่งผลอันตรายร้ายแรงต่อชีวิตสัตว์ทะเล เราไม่ควรทิ้งขยะลงชายหาดและแม่น้ำเลยนะคะ"
+    },
+    {
+      id: 7,
+      emoji: '🦈',
+      label: 'สัตว์ทะเลลึก',
+      title: "ด่านที่ 7: อวัยวะเรืองแสงใต้ทะเลมืด 🦈💡",
+      scenario: "ดำลงสู่ระดับ 2,000 เมตรที่มืดสนิทและเย็นจัด มีสัตว์บางตัว เช่น ปลาแองเกลอร์ มีโคมไฟส่องสว่างบนหัว อวัยวะนี้มีประโยชน์อย่างไรคะ?",
+      choices: [
+        "ใช้ล่อเหยื่อในความมืดให้ว่ายเข้ามาหาปาก",
+        "ใช้ส่องดูแผนที่ใต้สมุทรหลบเลี่ยงภูเขาไฟ",
+        "ใช้เตือนสติปลาฉลามไม่ให้ว่ายมาชนกัน",
+        "ใช้ส่องแสงสว่างบอกสัญญาณขอความช่วยเหลือ"
+      ],
+      answer: "ใช้ล่อเหยื่อในความมืดให้ว่ายเข้ามาหาปาก",
+      speakPrompt: "ด่านที่เจ็ด สัตว์ทะเลลึก ปลาแองเกลอร์มีโคมไฟส่องสว่างบนหัว อวัยวะนี้มีประโยชน์อย่างไรคะ",
+      method: "ปลาทะเลลึกใช้วิธีเรืองแสงชีวภาพ (Bioluminescence) บนหนวดเพื่อ ล่อเหยื่อ ตัวจิ๋วให้ว่ายหลงเข้ามาใกล้ในความมืด แล้วกางปากกว้างฮุบอย่างรวดเร็วค่ะ",
+      principle: "ในท้องทะเลลึกที่ไร้แสงแดด สัตว์ต่างๆ ต้องมีลักษณะปรับตัวพิเศษ เช่น สร้างไฟล่อเหยื่อ มีตัวนิ่มทนแรงกดดัน หรือตาบอดสนิท"
+    },
+    {
+      id: 8,
+      emoji: '🐚',
+      label: 'เกราะเปลือกแข็ง',
+      title: "ด่านที่ 8: เปลือกแข็งและเกราะค้ำจุน 🐚🦀",
+      scenario: "พวกเราเดินเรือพบฝูงปูเสฉวนและกุ้งทะเล สัตว์เหล่านี้มีเกราะหรือเปลือกแข็งภายนอกไว้เพื่ออะไรคะ?",
+      choices: [
+        "เพื่อปกป้องเนื้อนุ่มๆ จากกรงเล็บและฟันของผู้ล่า",
+        "เพื่อช่วยระบายน้ำเค็มออกจากไขมันหน้าท้อง",
+        "เพื่อคอยเกาะยึดติดกับทรายเวลาคลื่นแรง",
+        "เพื่อชูสะท้อนความงามใต้แสงไฟฉาย"
+      ],
+      answer: "เพื่อปกป้องเนื้อนุ่มๆ จากกรงเล็บและฟันของผู้ล่า",
+      speakPrompt: "ด่านที่แปด เกราะแข็งคุมภัย สัตว์เหล่านี้มีเกราะหรือเปลือกแข็งภายนอกไว้เพื่อประโยชน์อะไรคะ",
+      method: "สัตว์ไร้กระดูกสันหลัง เช่น ปู กุ้ง หอย สร้างเปลือกภายนอก (Exoskeleton) จากแคลเซียมคาร์บอเนตขึ้นมาเป็นเกราะ เพื่อ ปกป้องตัวนุ่มๆ และกันอันตรายภายนอกค่ะ",
+      principle: "เปลือกนอกทำหน้าที่ค้ำจุนร่างกายและช่วยปกป้องอวัยวะภายใน สัตว์จะสลัดเปลือกเพื่อเติบโตซึ่งเรียกว่า 'การลอกคราบ'"
+    },
+    {
+      id: 9,
+      emoji: '⚠️',
+      label: 'ไมโครพลาสติก',
+      title: "ด่านที่ 9: ไมโครพลาสติกขยะจิ๋วอันตราย ⚠️",
+      scenario: "เศษขยะพลาสติกชิ้นใหญ่เมื่อถูกคลื่นทะเลและแสงแดดสับเป็นเศษเล็กจิ๋วขนาดไม่เกิน 5 มิลลิเมตร จะมีชี่อเรียกว่าอะไรคะ?",
+      choices: ["ไมโครพลาสติก (Microplastics)", "คริสตัลอัญมณีจิ๋ว", "แพลงก์ตอนพลาสติกเคมี", "เมล็ดหินน้ำกรดใต้สมุทร"],
+      answer: "ไมโครพลาสติก (Microplastics)",
+      speakPrompt: "ด่านที่เก้า ไมโครพลาสติก เศษขยะพลาสติกที่ถูกคลื่นซัดจนกลายเป็นเม็ดเล็กจิ๋วมีชี่อเรียกว่าอะไรคะ",
+      method: "เม็ดพลาสติกจิ๋วนี้เรียกว่า ไมโครพลาสติก (Microplastics) มันสะสมพิษเคมีได้ดี สัตว์น้ำเข้าใจผิดคิดว่าเป็นอาหารกินเข้าไป และเมื่อมนุษย์กินอาหารทะเลก็จะได้สารพิษนี้กลับเข้าสู่ร่างกายด้วยค่ะ",
+      principle: "มลพิษไมโครพลาสติกเป็นปัญหาสากลและอันตรายต่อห่วงโซ่อาหาร การลดใช้พลาสติกและการคัดแยกขยะช่วยหยุดวงจรนี้ได้ค่ะ"
+    },
+    {
+      id: 10,
+      emoji: '🤿',
+      label: 'ฮีโร่ปกป้องทะเล',
+      title: "ด่านที่ 10: ฮีโร่ตัวน้อยดูแลท้องทะเล 🤿🐳",
+      scenario: "ขั้นตอนปฏิบัติและพฤติกรรมในชีวิตประจำวันข้อใดของน้องน้ำฟ้าที่จะช่วยรักษ์น้ำและสัตว์ทะเลได้ดีที่สุดคะ?",
+      choices: [
+        "ลดใช้พลาสติกแบบใช้ครั้งเดียว และช่วยเก็บขยะริมหาด",
+        "เก็บหอยตามชายฝั่งและเด็ดปะการังกลับมาเลี้ยงที่บ้าน",
+        "โยนถุงขยะพลาสติกลงแม่น้ำเพื่อให้ไหลลงทะเลเร็วๆ",
+        "ซื้อเต่าทะเลหายากมาขังเลี้ยงเล่นในขวดแก้วน้ำจืด"
+      ],
+      answer: "ลดใช้พลาสติกแบบใช้ครั้งเดียว และช่วยเก็บขยะริมหาด",
+      speakPrompt: "ด่านที่สิบ ฮีโร่ปกป้องทะเล พฤติกรรมในชีวิตประจำวันข้อใดของน้องน้ำฟ้าที่จะช่วยรักษ์น้ำและสัตว์ทะเลได้ดีที่สุดคะ",
+      method: "การลดขยะพลาสติกตั้งแต่ต้นทาง (ใช้ถุงผ้า พกแก้วน้ำส่วนตัว) ช่วยลดปริมาณขยะที่จะไหลลงสู่แม่น้ำลงทะเล และรักษาปะการังใต้สมุทรให้สมบูรณ์ปลอดภัยค่ะ",
+      principle: "การท่องเที่ยวอนุรักษ์ทะเล: ไม่ทิ้งขยะ ไม่ทอดสมอทำลายปะการัง ไม่รบกวนสัตว์ทะเล และช่วยดูแลทำความสะอาดชายหาด"
+    }
+  ];
+
+  let playerName = 'น้องน้ำฟ้า';
+  let soundOn = true;
+  let score = 0;
+  let correctCount = 0;
+  let currentIndex = 0;
+  let selectedSubId = 'yellow';
+
+  // Undersea bubble generation
+  function initBubbles() {
+    const container = document.getElementById('bubble-container');
+    container.innerHTML = '';
+    for (let i = 0; i < 15; i++) {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      b.style.left = Math.random() * 100 + 'vw';
+      b.style.width = b.style.height = (Math.random() * 20 + 8) + 'px';
+      b.style.animationDelay = Math.random() * 8 + 's';
+      b.style.animationDuration = (Math.random() * 5 + 6) + 's';
+      container.appendChild(b);
+    }
+  }
+
+  // Undersea Sound Synthesizer using Web Audio API
+  const synth = {
+    ctx: null,
+    init() {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    },
+    tone(freq, dur, type = 'sine') {
+      if (!soundOn || !this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+      } catch (e) {
+        console.warn('Synth tone failed:', e);
+      }
+    },
+    correct() {
+      // High aquatic bubble pop sound
+      this.tone(800, 0.08);
+      setTimeout(() => this.tone(1200, 0.1), 60);
+    },
+    wrong() {
+      // Drowning low gurgle
+      this.tone(200, 0.25, 'sawtooth');
+      setTimeout(() => this.tone(140, 0.3, 'triangle'), 100);
+    },
+    victory() {
+      // Sonar sonar chime ping pattern
+      [440, 554, 659, 880].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.4, 'sine'), i * 150);
+      });
+      // Double bubble pop at the end
+      setTimeout(() => {
+        this.tone(1000, 0.06);
+        setTimeout(() => this.tone(1300, 0.06), 50);
+      }, 700);
+    }
+  };
+
+  // Web Speech Text to Speech in Thai
+  function speakText(text) {
+    window.speechSynthesis.cancel();
+    if (!soundOn) return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.92;
+      utterance.pitch = 1.12;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+    }
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const scr = document.getElementById(id);
+    if (scr) scr.classList.add('active');
+  }
+
+  // Populate interactive Vertical descent trail map
+  function renderOceanMap() {
+    const wrapper = document.getElementById('checkpoints-wrapper');
+    wrapper.innerHTML = '';
+    
+    QUESTIONS.forEach((q, idx) => {
+      const dotWrapper = document.createElement('div');
+      dotWrapper.className = 'checkpoint-dot-wrapper';
+      
+      // Submarine avatar on active checkpoint
+      if (idx === currentIndex) {
+        const sub = document.createElement('div');
+        sub.className = 'sub-avatar';
+        sub.innerText = '🤿🐳';
+        dotWrapper.appendChild(sub);
+      }
+      
+      const dot = document.createElement('div');
+      dot.className = 'checkpoint-dot';
+      
+      // Class status
+      if (idx < currentIndex) {
+        dot.classList.add('completed');
+        dot.innerText = '✅';
+      } else if (idx === currentIndex) {
+        dot.classList.add('active');
+        dot.innerText = q.emoji;
+      } else {
+        dot.classList.add('locked');
+        dot.innerText = idx + 1;
+      }
+      
+      const label = document.createElement('span');
+      label.className = 'checkpoint-label';
+      label.innerText = q.label;
+      
+      dotWrapper.appendChild(dot);
+      dotWrapper.appendChild(label);
+      wrapper.appendChild(dotWrapper);
+    });
+
+    // Auto scroll vert map
+    setTimeout(() => {
+      const activeDot = wrapper.querySelector('.checkpoint-dot.active');
+      if (activeDot) {
+        activeDot.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+    }, 200);
+  }
+
+  function updateHUD() {
+    document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= TOTAL_QUESTIONS) {
+      endGame();
+      return;
+    }
+    
+    renderOceanMap();
+    updateHUD();
+    
+    const q = QUESTIONS[currentIndex];
+    document.getElementById('question-text').innerText = q.scenario;
+    document.getElementById('game-title-hud').innerText = `🐬 ด่านที่ ${currentIndex + 1}/10`;
+
+    const grid = document.getElementById('choices-grid');
+    grid.innerHTML = '';
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.addEventListener('click', () => handleAnswer(choice, btn, q));
+      grid.appendChild(btn);
+    });
+
+    // Speak
+    setTimeout(() => {
+      speakText(q.speakPrompt);
+    }, 500);
+  }
+
+  function handleAnswer(selected, btnEl, q) {
+    const grid = document.getElementById('choices-grid');
+    const buttons = grid.querySelectorAll('.choice-btn');
+    
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (b.innerText === q.answer) {
+        b.classList.add('correct');
+      }
+    });
+
+    const isCorrect = selected === q.answer;
+    if (isCorrect) {
+      score += 10;
+      correctCount++;
+      synth.correct();
+    } else {
+      btnEl.classList.add('wrong');
+      synth.wrong();
+    }
+
+    setTimeout(() => showExplanation(isCorrect, q), 900);
+  }
+
+  function showExplanation(isCorrect, q) {
+    const sub = SUBS[selectedSubId];
+    
+    document.getElementById('result-icon').innerText = isCorrect ? '🎉' : '💡';
+    document.getElementById('result-title').innerText = isCorrect 
+      ? `เก่งมากกัปตันน้ำฟ้า ${sub.emoji}` 
+      : `ไม่เป็นไรค่ะกัปตันน้ำฟ้า ${sub.emoji}`;
+      
+    document.getElementById('exp-method').innerText = q.method;
+    document.getElementById('exp-principle').innerText = q.principle;
+
+    // Speak
+    const speakExplanation = (isCorrect ? 'ถูกต้องกัปตันน้ำฟ้า! ' : 'มาดูเฉลยโลกใต้ทะเลกันนะคะ! ') + q.method;
+    speakText(speakExplanation);
+
+    document.getElementById('explanation-overlay').classList.add('active');
+  }
+
+  function endGame() {
+    synth.victory();
+    
+    // Set scores
+    document.getElementById('summary-score').innerText = score;
+    document.getElementById('summary-correct').innerText = correctCount;
+    
+    // Stars
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    
+    // Cert prefill
+    const nameToCert = playerName || 'น้องน้ำฟ้า';
+    document.getElementById('cert-name').value = nameToCert;
+    
+    const sub = SUBS[selectedSubId];
+    document.getElementById('cert-witness').innerText = `${sub.name} ${sub.emoji}`;
+    
+    const today = new Date();
+    document.getElementById('cert-date').innerText = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Speak
+    setTimeout(() => {
+      speakText(`ยินดีด้วยค่ะกัปตันน้ำฟ้า! ดำสำรวจก้นมหาสมุทรเรียนรู้เสร็จสมบูรณ์ ได้คะแนนทั้งหมด ${score} คะแนนค่ะ น้องน้ำฟ้าเก่งกาจและรักษ์ท้องทะเลที่สุดเลยค่ะ`);
+    }, 400);
+
+    saveLeaderboard();
+    renderLeaderboard();
+    
+    showScreen('screen-summary');
+  }
+
+  function saveLeaderboard() {
+    const entry = { name: playerName, score, date: new Date().toLocaleDateString('th-TH') };
+    
+    // LocalStorage
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+
+    // Firebase
+    if (typeof fbSaveScore === 'function') {
+      fbSaveScore(LEADERBOARD_KEY, entry);
+    }
+  }
+
+  function renderLeaderboardList(list) {
+    const el = document.getElementById('leaderboard-list');
+    el.innerHTML = '';
+    
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div class="lb-row" style="justify-content:center;">ยังไม่มีนักดำน้ำจิ๋วค่ะ โค่นสถิติคนแรกเลย! 🤿</div>';
+      return;
+    }
+    
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <span style="font-weight: 700; color:var(--sea-light);">${idx + 1}. 🤿 ${entry.name}</span>
+        <span style="color:var(--sand-dark); font-weight:700;">${entry.score} คะแนน (${entry.date || '-'})</span>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderLeaderboard() {
+    // Local fallback
+    const localList = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    renderLeaderboardList(localList);
+
+    // Firebase load
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(LEADERBOARD_KEY, (cloudList) => {
+        if (cloudList && cloudList.length) {
+          renderLeaderboardList(cloudList);
+        }
+      });
+    }
+  }
+
+  function initGame() {
+    initBubbles();
+
+    // Prefill name
+    const savedName = localStorage.getItem('tutorStudentName') || 'น้องน้ำฟ้า';
+    document.getElementById('input-name').value = savedName;
+
+    // Sub Card click
+    const subCards = document.querySelectorAll('.sub-card');
+    subCards.forEach(card => {
+      card.addEventListener('click', () => {
+        subCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedSubId = card.getAttribute('data-id');
+        
+        synth.init();
+        const sub = SUBS[selectedSubId];
+        speakText(sub.msg);
+      });
+    });
+
+    // Start click
+    document.getElementById('btn-start').addEventListener('click', () => {
+      playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+      localStorage.setItem('tutorStudentName', playerName); // Keep name synced
+      
+      const sub = SUBS[selectedSubId];
+      document.getElementById('guide-avatar').innerText = sub.emoji;
+      document.getElementById('guide-name').innerText = sub.name;
+
+      synth.init();
+      
+      // Log visit to Firebase
+      if (typeof fbLogActivity === 'function') {
+        fbLogActivity(playerName, `นักสำรวจใต้ทะเลตัวน้อย (วิทยาศาสตร์ทางทะเล ป.2) - ยาน: ${sub.name}`);
+      }
+
+      score = 0;
+      correctCount = 0;
+      currentIndex = 0;
+
+      showScreen('screen-game');
+      loadQuestion();
+    });
+
+    // Speak Button
+    document.getElementById('btn-speak').addEventListener('click', () => {
+      if (currentIndex < TOTAL_QUESTIONS) {
+        speakText(QUESTIONS[currentIndex].speakPrompt);
+      }
+    });
+
+    // Mute toggle
+    const soundToggleBtn = document.getElementById('btn-toggle-sound');
+    soundToggleBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
+      if (!soundOn) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Next button
+    document.getElementById('btn-next').addEventListener('click', () => {
+      document.getElementById('explanation-overlay').classList.remove('active');
+      window.speechSynthesis.cancel();
+      currentIndex++;
+      loadQuestion();
+    });
+
+    // Again click
+    document.getElementById('btn-again').addEventListener('click', () => {
+      showScreen('screen-register');
+    });
+
+    // Print cert
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Home return
+    document.getElementById('btn-home').addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      window.location.href = 'index.html';
+    });
+  }
+
+  initGame();
+</script>
+</body>
+</html>

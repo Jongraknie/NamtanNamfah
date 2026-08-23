@@ -1421,6 +1421,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const seaBtn = document.getElementById('btn-select-sea');
+  if (seaBtn) {
+    seaBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปดำดิ่งสำรวจโลกใต้ทะเลลึกกันเลยค่ะน้ำฟ้า! 🐬', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'sea.html';
+      }, 1000);
+    });
+  }
+
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

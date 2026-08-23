@@ -21,7 +21,7 @@
     --scratch-green: #2ecc71;
     --scratch-dark: #2c3e50;
     --scratch-light: #f9f9f9;
-    --workspace-bg: #eaeaea;
+    --workspace-bg: #eef2f7;
     --text-dark: #1e293b;
     --text-light: #f8fafc;
   }
@@ -39,7 +39,7 @@
     color: var(--text-dark);
   }
 
-  .screen { display: none; width: 100%; max-width: 900px; }
+  .screen { display: none; width: 100%; max-width: 960px; }
   .screen.active { display: flex; flex-direction: column; align-items: center; }
 
   .card {
@@ -65,7 +65,7 @@
     margin-bottom: 20px;
   }
   @media(min-width: 768px) {
-    .editor-container { grid-template-columns: 1.2fr 1fr; }
+    .editor-container { grid-template-columns: 1.1fr 1fr; }
   }
 
   /* Block Interface Styling */
@@ -93,69 +93,150 @@
   .blocks-toolbox {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
   }
 
-  /* Coding Blocks styles */
+  /* Coding Blocks jigsaw styling */
   .scratch-block {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 0.95rem;
+    height: 40px;
+    padding: 0 16px 4px 24px;
+    font-size: 0.92rem;
     font-weight: 700;
     color: #fff;
     cursor: pointer;
     user-select: none;
-    transition: transform 0.1s;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    background-color: var(--scratch-blue);
+    clip-path: polygon(0px 0px, 15px 0px, 18px 4px, 28px 4px, 31px 0px, 100% 0px, 100% 36px, 31px 36px, 28px 40px, 18px 40px, 15px 36px, 0px 36px);
+    margin-bottom: -4px; /* seamless puzzle overlap */
   }
-  .scratch-block:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
-  .block-motion { background-color: var(--scratch-blue); }
-  .block-control { background-color: var(--scratch-orange); }
-  .block-event { background-color: var(--scratch-purple); }
+  .scratch-block:active {
+    transform: translateY(1px);
+  }
+  .block-control {
+    background-color: var(--scratch-orange);
+  }
 
-  /* Workspace styling */
+  /* Circular White Input Capsules in Scratch */
+  .scratch-input {
+    background: white;
+    color: var(--text-dark);
+    padding: 1px 8px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid #cbd5e1;
+    line-height: 1.2;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+  }
+
+  /* C-Shape Loop Container Block */
+  .scratch-loop-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: -4px; /* seamless overlap */
+  }
+  .scratch-loop-header {
+    background-color: var(--scratch-orange);
+    color: white;
+    font-weight: 700;
+    font-size: 0.92rem;
+    height: 40px;
+    padding: 0 16px 4px 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    clip-path: polygon(0px 0px, 15px 0px, 18px 4px, 28px 4px, 31px 0px, 100% 0px, 100% 36px, 31px 36px, 28px 40px, 18px 40px, 15px 36px, 0px 36px);
+    position: relative;
+    cursor: pointer;
+  }
+  .scratch-loop-body {
+    border-left: 16px solid var(--scratch-orange);
+    padding: 8px 4px 8px 12px;
+    background: rgba(255, 171, 25, 0.05);
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    border-radius: 0;
+  }
+  .scratch-loop-body.active-slot {
+    border-left-color: #facc15;
+    background: rgba(250, 204, 21, 0.1);
+  }
+  .scratch-loop-slot-empty {
+    border: 2.5px dashed rgba(255, 171, 25, 0.5);
+    border-radius: 8px;
+    padding: 6px;
+    font-size: 0.8rem;
+    color: #b45309;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .scratch-loop-body.active-slot .scratch-loop-slot-empty {
+    border-color: #eab308;
+    background: rgba(254, 240, 138, 0.3);
+  }
+  .scratch-loop-footer {
+    background-color: var(--scratch-orange);
+    height: 24px;
+    width: 100%;
+    clip-path: polygon(0px 0px, 15px 0px, 18px 4px, 28px 4px, 31px 0px, 100% 0px, 100% 20px, 31px 20px, 28px 24px, 18px 24px, 15px 20px, 0px 20px);
+  }
+
+  /* Close button on workspace blocks */
+  .block-delete-btn {
+    margin-left: 8px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .block-delete-btn:hover {
+    color: #ef4444;
+  }
+
+  /* Workspace canvas */
   .blocks-workspace {
-    min-height: 240px;
+    min-height: 280px;
     background: var(--workspace-bg);
     border-radius: 14px;
     border: 2.5px dashed #cbd5e1;
-    padding: 12px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     align-items: flex-start;
   }
-  .workspace-block {
-    position: relative;
-    animation: blockPop 0.15s ease-out;
-  }
-  @keyframes blockPop {
-    0% { transform: scale(0.9); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .workspace-block::after {
-    content: "❌";
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    font-size: 0.75rem;
-    background: #ef4444;
-    color: #fff;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-  .workspace-block.active-block {
-    outline: 3px solid #facc15;
+  .scratch-block.active-block, .scratch-loop-container.active-block > .scratch-loop-header {
+    outline: 2px solid #ef4444;
     box-shadow: 0 0 12px #facc15;
+    background-color: var(--scratch-purple);
+  }
+
+  /* Dynamic point indicator */
+  .active-indicator-bar {
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #b45309;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   /* Grid Stage Preview */
@@ -175,7 +256,7 @@
     align-items: center;
   }
   
-  /* Coding Grid Stage styles */
+  /* Coding Grid Stage */
   .grid-stage {
     display: grid;
     border: 4px solid var(--scratch-blue);
@@ -201,14 +282,12 @@
     background: #fef08a;
   }
   
-  /* Robot styling */
+  /* Robot */
   .robot {
     font-size: 2.2rem;
     transition: all 0.3s ease-in-out;
     z-index: 10;
   }
-  
-  /* Compass / Direction indicators */
   .robot.dir-N { transform: rotate(0deg); }
   .robot.dir-E { transform: rotate(90deg); }
   .robot.dir-S { transform: rotate(180deg); }
@@ -216,7 +295,7 @@
 
   .hud {
     width: 100%;
-    max-width: 900px;
+    max-width: 960px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -367,10 +446,17 @@
 
         <!-- Script Workspace -->
         <div class="workspace-card">
-          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
             <span>📝 ลำดับคำสั่งเขียนโปรแกรม (Workspace)</span>
             <button class="btn" style="padding: 6px 14px; font-size: 0.85rem;" id="btn-clear-code">🗑️ ล้างทั้งหมด</button>
           </div>
+          
+          <!-- Insertion point bar -->
+          <div class="active-indicator-bar" id="active-indicator-bar">
+            <span id="indicator-text">📍 กำลังเพิ่มโค้ดที่: ด้านนอกสุด</span>
+            <button class="btn" style="padding: 2px 10px; font-size: 0.75rem; background: #ea580c; display:none;" id="btn-reset-insertion">เลิกเลือก</button>
+          </div>
+
           <div class="blocks-workspace" id="blocks-workspace">
             <!-- Stack of active blocks -->
           </div>
@@ -470,13 +556,12 @@
 
   // Blocks library metadata
   const BLOCKS = {
-    'move': { label: '🟦 เดินหน้า 1 ก้าว', cls: 'block-motion', code: 'move' },
-    'turn-right': { label: '↪️ เลี้ยวขวา', cls: 'block-motion', code: 'turn-right' },
-    'turn-left': { label: '↩️ เลี้ยวซ้าย', cls: 'block-motion', code: 'turn-left' },
-    'loop-start-2': { label: '🔁 เริ่มวนซ้ำ 2 ครั้ง', cls: 'block-control', code: 'loop-start-2' },
-    'loop-start-3': { label: '🔁 เริ่มวนซ้ำ 3 ครั้ง', cls: 'block-control', code: 'loop-start-3' },
-    'loop-start-4': { label: '🔁 เริ่มวนซ้ำ 4 ครั้ง', cls: 'block-control', code: 'loop-start-4' },
-    'loop-end': { label: '🔚 จบการทำซ้ำ', cls: 'block-control', code: 'loop-end' }
+    'move': { label: 'move steps', cls: 'block-motion', val: 1 },
+    'turn-right': { label: 'turn ↪️ degrees', cls: 'block-motion', val: 90 },
+    'turn-left': { label: 'turn ↩️ degrees', cls: 'block-motion', val: 90 },
+    'loop-start-2': { label: 'repeat', cls: 'block-control', val: 2 },
+    'loop-start-3': { label: 'repeat', cls: 'block-control', val: 3 },
+    'loop-start-4': { label: 'repeat', cls: 'block-control', val: 4 }
   };
 
   // 6 levels - progressive difficulty curriculum
@@ -484,7 +569,7 @@
     {
       id: 1,
       title: "บทเรียนที่ 1: ก้าวแรกของหุ่นยนต์ 🤖",
-      desc: "เขียนโค้ดพาหุ่นยนต์เดินหน้าเป็นแนวตรงเพื่อไปเก็บปลาการ์ตูน 🐠! (ใช้บล็อก 'เดินหน้า' 2 บล็อกซ้อนกันค่ะ)",
+      desc: "เขียนโค้ดพาหุ่นยนต์เดินหน้าเป็นแนวตรงเพื่อไปเก็บปลาการ์ตูน 🐠! (คลิกบล็อก 'move steps' 2 บล็อกซ้อนกันค่ะ)",
       gridW: 3,
       gridH: 3,
       start: { x: 0, y: 1, dir: 'E' },
@@ -512,48 +597,48 @@
     {
       id: 3,
       title: "บทเรียนที่ 3: จอมขยันทำซ้ำ 🔁",
-      desc: "เดินทางตรง 4 ก้าวเพื่อเก็บแบตเตอรี่ 🔋! แนะนำให้ใช้บล็อก 'ทำซ้ำ 4 ครั้ง' ครอบบล็อกเดินหน้าเพื่อลดประหยัดโค้ดนะคะ",
+      desc: "เดินทางตรง 4 ก้าวเพื่อเก็บแบตเตอรี่ 🔋! แนะนำให้ใช้บล็อก 'repeat 4' เพื่อวนซ้ำก้าวเดินแทนการใส่เดินทีละก้าวค่ะ",
       gridW: 5,
       gridH: 5,
       start: { x: 0, y: 2, dir: 'E' },
       target: { x: 4, y: 2 },
       obstacles: ['2,1', '2,3'],
       targetEmoji: '🔋',
-      toolbox: ['move', 'loop-start-4', 'loop-end'],
-      method: "ใส่บล็อก: เริ่มทำซ้ำ 4 ครั้ง -> เดินหน้า -> จบการทำซ้ำ โค้ดจะวนทำซ้ำก้าวเดินหน้าให้ 4 รอบทันที สะดวกกว่าการวางเดินหน้า 4 บล็อกค่ะ",
-      principle: "การวนลูปทำซ้ำ (Loops): เป็นคำสั่งกู้ประหยัดพื้นที่เขียนโค้ด เพื่อสั่งงานคำสั่งเดิมวนทำซ้ำๆ ตามจำนวนรอบที่ตั้ง"
+      toolbox: ['move', 'loop-start-4'],
+      method: "ใส่บล็อก: repeat 4 ครอบบล็อก move โค้ดจะสั่งเดินหน้าวนทำซ้ำให้ 4 รอบทันที ทำให้ได้โค้ดที่สั้นและกระชับค่ะ",
+      principle: "การวนลูปทำซ้ำ (Loops): เป็นคำสั่งวนลูปประหยัดเนื้อที่โค้ด เพื่อสั่งงานคำสั่งเดิมวนทำซ้ำๆ ตามจำนวนรอบที่ตั้ง"
     },
     {
       id: 4,
       title: "บทเรียนที่ 4: ลูปปั้นบันได 📶",
-      desc: "หุ่นยนต์ต้องการขึ้นขั้นบันไดไปรับอัญมณี 💎! ลองใส่ลูปทำซ้ำ 3 ครั้ง และใส่โค้ดเดินก้าวบันไดข้างในลูปดูนะคะ",
+      desc: "หุ่นยนต์ต้องการขึ้นขั้นบันไดไปรับอัญมณี 💎! ลองใส่บล็อก repeat 3 แล้วคลิกปุ่ม '+' ในร่องเพื่อยัดโค้ดบันไดข้างในนะคะ",
       gridW: 4,
       gridH: 4,
       start: { x: 0, y: 3, dir: 'N' },
       target: { x: 3, y: 0 },
       obstacles: ['0,0', '1,0', '2,0', '0,1', '1,1', '3,2', '3,3'],
       targetEmoji: '💎',
-      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-3', 'loop-end'],
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-3'],
       method: "ใส่บล็อกวนซ้ำ 3 ครั้งครอบ: เดินหน้า -> เลี้ยวขวา -> เดินหน้า -> เลี้ยวซ้าย. โรบอตจะก้าวขึ้นและเยื้องขวาเป็นบันได 3 ขั้นไปเก็บบนยอดสุดสำเร็จค่ะ",
       principle: "ลูปซ้ำแบบโครงสร้างรูปธรรม (Pattern Recognition): คือการมองหารูปแบบเส้นทางที่ซ้ำเดิม แล้วนำมาสรุปย่อเป็นชุดคำสั่งวนลูปเดียว"
     },
     {
       id: 5,
       title: "บทเรียนที่ 5: เขาวงกตพรางตา 🌀",
-      desc: "ขวางทางด้วยเลี้ยวซิกแซก! เขียนโค้ดพาหุ่นยนต์อ้อมไปหาน้องปลา 🐠 วางแผนใช้บล็อกทำซ้ำย่อยๆ เพื่อรักษาสมดุลความสั้นของโค้ดนะคะ",
+      desc: "ขวางทางด้วยเลี้ยวซิกแซก! เขียนโค้ดพาหุ่นยนต์อ้อมไปหาน้องปลา 🐠 วางแผนใช้บล็อก repeat 2 ครอบการก้าวเพื่อประหยัดจำนวนบล็อกกันค่ะ",
       gridW: 5,
       gridH: 5,
       start: { x: 0, y: 4, dir: 'N' },
       target: { x: 4, y: 0 },
       obstacles: ['1,4', '2,4', '3,4', '1,3', '3,3', '4,3', '0,1', '1,1', '2,1', '3,1'],
       targetEmoji: '🐠',
-      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-end'],
-      method: "สูตรสำเร็จ: วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวซ้าย -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า].",
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2'],
+      method: "สูตรสำเร็จ: repeat 2 [move] -> turn-right -> repeat 2 [move] -> turn-left -> repeat 2 [move] -> turn-right -> repeat 2 [move].",
       principle: "ทักษะการคิดเชิงวิเคราะห์ (Decomposition): ย่อยโจทย์ใหญ่ที่เป็นโค้ดเส้นยาว ให้กลายเป็นโค้ดสั้นๆ แล้วนำมาประกอบร่างกัน"
     },
     {
       id: 6,
-      title: "บทเรียนที่ 6: ยอดโปรแกรมเมอร์ 🏆",
+      title: "บทเรียนที่ 6: ยอดนักเขียนโปรแกรม 🏆",
       desc: "ด่านท้าทายสุดท้ายเพื่อเกียรติบัตร! เขียนโค้ดพาน้องหุ่นยนต์เดินฝ่าช่องแคบไปรับถ้วยรางวัลทองคำ 🏆 ให้ได้ค่ะ!",
       gridW: 6,
       gridH: 6,
@@ -561,8 +646,8 @@
       target: { x: 5, y: 0 },
       obstacles: ['1,5', '2,5', '3,5', '4,5', '1,4', '3,4', '5,4', '1,3', '3,3', '5,3', '1,2', '3,2', '4,2', '1,1', '3,1'],
       targetEmoji: '🏆',
-      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-3', 'loop-end'],
-      method: "เส้นทางคือ: วนซ้ำ 3 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวซ้าย -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวซ้าย -> วนซ้ำ 4 ครั้ง [เดินหน้า] (หรือจัดลูปทับซ้อนอื่นๆ)",
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-3'],
+      method: "เส้นทางคือ: repeat 3 [move] -> turn-right -> repeat 2 [move] -> turn-right -> repeat 2 [move] -> turn-left -> repeat 2 [move] -> turn-left -> repeat 4 [move] (หรือจัดลูปทับซ้อนอื่นๆ)",
       principle: "การวางแผนเชิงตรรกศาสตร์ (Logical Planning): ใช้ความคิดสร้างสรรค์ร่วมกับหลักเหตุผล เพื่อออกแบบโปรแกรมที่ทำงานได้อย่างรวดเร็วและไม่มีจุดผิดพลาด"
     }
   ];
@@ -574,7 +659,8 @@
   
   // State for robot simulation
   let robotState = { x: 0, y: 0, dir: 'E' };
-  let workspaceCode = []; // Flat array of block ids
+  let workspaceCode = []; // Array of nested block objects: { id, type, val, children: [...] }
+  let activeContainer = null; // Ref to block object in workspace representing the Repeat loop we are inserting inside
   let isRunning = false;
 
   // Sound Synthesizer using Web Audio API
@@ -704,108 +790,224 @@
       if (b) {
         const el = document.createElement('div');
         el.className = `scratch-block ${b.cls}`;
-        el.innerText = b.label;
-        el.addEventListener('click', () => addBlockToWorkspace(bId));
+        
+        let labelHtml = b.label;
+        if (bId === 'move') {
+          labelHtml = `move <span class="scratch-input">${b.val}</span> steps`;
+        } else if (bId === 'turn-right') {
+          labelHtml = `turn ↪️ <span class="scratch-input">${b.val}</span> degrees`;
+        } else if (bId === 'turn-left') {
+          labelHtml = `turn ↩️ <span class="scratch-input">${b.val}</span> degrees`;
+        } else if (bId.startsWith('loop-start-')) {
+          labelHtml = `repeat <span class="scratch-input">${b.val}</span>`;
+        }
+
+        el.innerHTML = labelHtml;
+        el.addEventListener('click', () => addBlockToWorkspace(bId, b.val));
         box.appendChild(el);
       }
     });
-
-    // Loop End block is always available if any loops are available
-    const hasLoops = lvl.toolbox.some(t => t.startsWith('loop-start-'));
-    if (hasLoops) {
-      const b = BLOCKS['loop-end'];
-      const el = document.createElement('div');
-      el.className = `scratch-block ${b.cls}`;
-      el.innerText = b.label;
-      el.addEventListener('click', () => addBlockToWorkspace('loop-end'));
-      box.appendChild(el);
-    }
   }
 
-  function addBlockToWorkspace(bId) {
+  function addBlockToWorkspace(bId, val) {
     if (isRunning) return;
     synth.click();
-    workspaceCode.push(bId);
-    renderWorkspace();
-  }
-
-  function removeBlockFromWorkspace(idx) {
-    if (isRunning) return;
-    synth.click();
-    workspaceCode.splice(idx, 1);
-    renderWorkspace();
-  }
-
-  function renderWorkspace() {
-    const container = document.getElementById('blocks-workspace');
-    container.innerHTML = '';
     
-    if (workspaceCode.length === 0) {
-      container.innerHTML = '<div style="color:#64748b; font-size:0.9rem; padding: 20px 0; text-align:center; width:100%;">💡 คลิกบล็อกข้างบนเพื่อเขียนโค้ดต่อเรียงบล็อกกันที่นี่ค่ะ!</div>';
+    // Create new block object
+    const blockType = bId.startsWith('loop-start-') ? 'repeat' : bId;
+    const newBlock = {
+      id: 'b_' + Math.random().toString(36).substr(2, 9),
+      type: blockType,
+      val: val,
+      children: blockType === 'repeat' ? [] : undefined
+    };
+
+    if (activeContainer) {
+      activeContainer.children.push(newBlock);
+    } else {
+      workspaceCode.push(newBlock);
+    }
+
+    // Auto focus loop insertion if we just created a repeat block
+    if (blockType === 'repeat') {
+      activeContainer = newBlock;
+    }
+
+    renderWorkspace();
+  }
+
+  function removeBlock(id) {
+    if (isRunning) return;
+    synth.click();
+    
+    deleteBlockRecursive(workspaceCode, id);
+    renderWorkspace();
+  }
+
+  function deleteBlockRecursive(blocksArray, id) {
+    for (let i = 0; i < blocksArray.length; i++) {
+      if (blocksArray[i].id === id) {
+        if (activeContainer === blocksArray[i]) {
+          activeContainer = null;
+        }
+        blocksArray.splice(i, 1);
+        return true;
+      }
+      if (blocksArray[i].type === 'repeat') {
+        const found = deleteBlockRecursive(blocksArray[i].children, id);
+        if (found) return true;
+      }
+    }
+    return false;
+  }
+
+  function setActiveContainer(loopObj) {
+    if (isRunning) return;
+    synth.click();
+    activeContainer = loopObj;
+    renderWorkspace();
+  }
+
+  function resetInsertionPoint() {
+    synth.click();
+    activeContainer = null;
+    renderWorkspace();
+  }
+
+  // Recursive Workspace Renderer
+  function renderBlockStack(blocksArray, containerElement, parentArray) {
+    containerElement.innerHTML = '';
+    
+    if (blocksArray.length === 0) {
+      if (parentArray === workspaceCode) {
+        containerElement.innerHTML = '<div style="color:#64748b; font-size:0.9rem; padding: 24px 0; text-align:center; width:100%;">💡 คลิกบล็อกคำสั่งสไตล์ Scratch ด้านบนเพื่อต่อจิ๊กซอว์โค้ดที่นี่ค่ะ!</div>';
+      } else {
+        // empty loop slot inside C-shape repeat block
+        const slot = document.createElement('div');
+        slot.className = 'scratch-loop-slot-empty';
+        slot.innerText = '➕ คลิกช่องนี้เพื่อเลือกใส่โค้ดในลูป';
+        containerElement.appendChild(slot);
+      }
       return;
     }
 
-    workspaceCode.forEach((bId, idx) => {
-      const b = BLOCKS[bId];
-      const div = document.createElement('div');
-      div.className = `scratch-block ${b.cls} workspace-block`;
-      div.id = `workblock-${idx}`;
-      div.innerText = b.label;
-      div.addEventListener('click', (e) => {
-        e.stopPropagation();
-        removeBlockFromWorkspace(idx);
-      });
-      container.appendChild(div);
+    blocksArray.forEach((block) => {
+      if (block.type === 'repeat') {
+        const loopDiv = document.createElement('div');
+        loopDiv.className = 'scratch-loop-container';
+        loopDiv.id = `block-${block.id}`;
+
+        // C-Shape Loop Header
+        const header = document.createElement('div');
+        header.className = 'scratch-loop-header';
+        header.innerHTML = `
+          <span>repeat</span>
+          <span class="scratch-input">${block.val}</span>
+        `;
+        header.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setActiveContainer(block);
+        });
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'block-delete-btn';
+        delBtn.innerText = '×';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeBlock(block.id);
+        });
+        header.appendChild(delBtn);
+
+        // C-Shape Loop Body slot
+        const body = document.createElement('div');
+        body.className = 'scratch-loop-body';
+        if (activeContainer === block) {
+          body.classList.add('active-slot');
+        }
+        body.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setActiveContainer(block);
+        });
+
+        // Loop Footer bottom jigsaw notch
+        const footer = document.createElement('div');
+        footer.className = 'scratch-loop-footer';
+
+        // Render children blocks inside loop body recursively
+        renderBlockStack(block.children, body, block.children);
+
+        loopDiv.appendChild(header);
+        loopDiv.appendChild(body);
+        loopDiv.appendChild(footer);
+        containerElement.appendChild(loopDiv);
+      } else {
+        // Standard Motion Blocks
+        const b = BLOCKS[block.type];
+        const blockDiv = document.createElement('div');
+        blockDiv.className = `scratch-block ${b.cls}`;
+        blockDiv.id = `block-${block.id}`;
+        
+        let labelHtml = b.label;
+        if (block.type === 'move') {
+          labelHtml = `move <span class="scratch-input">${block.val}</span> steps`;
+        } else if (block.type === 'turn-right') {
+          labelHtml = `turn ↪️ <span class="scratch-input">${block.val}</span> degrees`;
+        } else if (block.type === 'turn-left') {
+          labelHtml = `turn ↩️ <span class="scratch-input">${block.val}</span> degrees`;
+        }
+        blockDiv.innerHTML = labelHtml;
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'block-delete-btn';
+        delBtn.innerText = '×';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeBlock(block.id);
+        });
+        blockDiv.appendChild(delBtn);
+
+        containerElement.appendChild(blockDiv);
+      }
     });
   }
 
-  // Parse sequence flat array expanding loop starts and ends
-  function expandBlockArray(list) {
-    let result = [];
-    let i = 0;
-    
-    while (i < list.length) {
-      const item = list[i];
-      if (item.startsWith('loop-start-')) {
-        const count = parseInt(item.replace('loop-start-', ''), 10);
-        
-        // Find matching loop-end
-        let endIdx = -1;
-        let depth = 1;
-        for (let j = i + 1; j < list.length; j++) {
-          if (list[j].startsWith('loop-start-')) depth++;
-          if (list[j] === 'loop-end') depth--;
-          if (depth === 0) {
-            endIdx = j;
-            break;
-          }
-        }
-        
-        if (endIdx !== -1) {
-          const innerBody = list.slice(i + 1, endIdx);
-          const expandedBody = expandBlockArray(innerBody);
-          
-          for (let c = 0; c < count; c++) {
-            // Keep mapping reference for highlighted workspace visual
-            expandedBody.forEach(act => {
-              result.push({ cmd: act.cmd, originIdx: act.originIdx });
-            });
-          }
-          i = endIdx + 1;
-        } else {
-          // Unclosed loop
-          result.push({ cmd: item, originIdx: i });
-          i++;
-        }
-      } else if (item === 'loop-end') {
-        // Unmatched end
-        result.push({ cmd: item, originIdx: i });
-        i++;
-      } else {
-        result.push({ cmd: item, originIdx: i });
-        i++;
-      }
+  function renderWorkspace() {
+    // Update insertion point indicator UI
+    const bar = document.getElementById('active-indicator-bar');
+    const txt = document.getElementById('indicator-text');
+    const resetBtn = document.getElementById('btn-reset-insertion');
+
+    if (activeContainer) {
+      txt.innerText = `📍 กำลังเพิ่มโค้ดที่: ภายในลูปวนซ้ำ (repeat ${activeContainer.val})`;
+      resetBtn.style.display = 'inline-block';
+      bar.style.background = '#fef3c7';
+      bar.style.borderColor = '#f59e0b';
+    } else {
+      txt.innerText = `📍 กำลังเพิ่มโค้ดที่: ส่วนนอกสุด`;
+      resetBtn.style.display = 'none';
+      bar.style.background = '#eff6ff';
+      bar.style.borderColor = '#dbeafe';
     }
+
+    const container = document.getElementById('blocks-workspace');
+    renderBlockStack(workspaceCode, container, workspaceCode);
+  }
+
+  // Recursive compiler expanding loops to atomic execution list
+  function expandWorkspace(blocksList) {
+    let result = [];
+    blocksList.forEach(block => {
+      if (block.type === 'repeat') {
+        const expandedChildren = expandWorkspace(block.children);
+        for (let c = 0; c < block.val; c++) {
+          expandedChildren.forEach(child => {
+            result.push({ type: child.type, val: child.val, originId: child.originId });
+          });
+        }
+      } else {
+        result.push({ type: block.type, val: block.val, originId: block.id });
+      }
+    });
     return result;
   }
 
@@ -817,23 +1019,23 @@
     document.getElementById('btn-clear-code').disabled = true;
     
     const lvl = LEVELS[currentLevelIdx];
-    // Reset robot position to start first
+    // Reset robot position to start
     robotState = { ...lvl.start };
     renderRobot();
 
-    const actions = expandBlockArray(workspaceCode);
+    const actions = expandWorkspace(workspaceCode);
     let success = false;
 
     for (let step = 0; step < actions.length; step++) {
       const act = actions[step];
       
-      // Highlight code line in Workspace
-      document.querySelectorAll('.workspace-block').forEach(b => b.classList.remove('active-block'));
-      const activeBlockEl = document.getElementById(`workblock-${act.originIdx}`);
+      // Highlight current executing block visually
+      document.querySelectorAll('.scratch-block, .scratch-loop-container').forEach(b => b.classList.remove('active-block'));
+      const activeBlockEl = document.getElementById(`block-${act.originId}`);
       if (activeBlockEl) activeBlockEl.classList.add('active-block');
 
-      // Command execution
-      const crash = executeCommand(act.cmd, lvl);
+      // Execute atomic motion
+      const crash = executeCommand(act.type, lvl);
       renderRobot();
       
       if (crash) {
@@ -841,28 +1043,27 @@
         speakText('อุ๊ย! หุ่นยนต์ชนปะการังหรือออกนอกแผนที่แล้วค่ะ ลองเขียนโค้ดใหม่นะคะ');
         break;
       } else {
-        synth.tone(350, 0.08); // Step tick sound
+        synth.tone(350, 0.08);
       }
 
-      // Check target reach
+      // Check target reached
       if (robotState.x === lvl.target.x && robotState.y === lvl.target.y) {
         success = true;
         break;
       }
 
-      // 600ms delay per block animation
+      // 600ms delay per animation step
       await new Promise(resolve => setTimeout(resolve, 600));
     }
 
-    // Clear highlights
-    document.querySelectorAll('.workspace-block').forEach(b => b.classList.remove('active-block'));
+    // Clear active highlights
+    document.querySelectorAll('.scratch-block, .scratch-loop-container').forEach(b => b.classList.remove('active-block'));
 
     if (success) {
       score += 10;
       synth.correct();
       setTimeout(() => showExplanation(lvl), 500);
     } else if (!success) {
-      // Failed, reset positions
       setTimeout(() => {
         robotState = { ...lvl.start };
         renderRobot();
@@ -874,17 +1075,17 @@
     document.getElementById('btn-clear-code').disabled = false;
   }
 
-  function executeCommand(cmd, lvl) {
+  function executeCommand(type, lvl) {
     let nextX = robotState.x;
     let nextY = robotState.y;
 
-    if (cmd === 'move') {
+    if (type === 'move') {
       if (robotState.dir === 'N') nextY--;
       else if (robotState.dir === 'E') nextX++;
       else if (robotState.dir === 'S') nextY++;
       else if (robotState.dir === 'W') nextX--;
 
-      // Boundary or obstacle check
+      // Check boundaries and obstacles
       if (nextX < 0 || nextX >= lvl.gridW || nextY < 0 || nextY >= lvl.gridH) {
         return true; // Crash
       }
@@ -894,11 +1095,11 @@
 
       robotState.x = nextX;
       robotState.y = nextY;
-    } else if (cmd === 'turn-right') {
+    } else if (type === 'turn-right') {
       const dirs = ['N', 'E', 'S', 'W'];
       let idx = dirs.indexOf(robotState.dir);
       robotState.dir = dirs[(idx + 1) % 4];
-    } else if (cmd === 'turn-left') {
+    } else if (type === 'turn-left') {
       const dirs = ['N', 'E', 'S', 'W'];
       let idx = dirs.indexOf(robotState.dir);
       robotState.dir = dirs[(idx + 3) % 4];
@@ -928,6 +1129,7 @@
     document.getElementById('lesson-desc').innerText = lvl.desc;
     
     workspaceCode = [];
+    activeContainer = null; // reset insertion pointer
     renderWorkspace();
     renderToolbox(lvl);
     loadLevelGrid(lvl);
@@ -1041,7 +1243,13 @@
       if (isRunning) return;
       synth.click();
       workspaceCode = [];
+      activeContainer = null;
       renderWorkspace();
+    });
+
+    // Reset insertion point button
+    document.getElementById('btn-reset-insertion').addEventListener('click', () => {
+      resetInsertionPoint();
     });
 
     // Sound toggle

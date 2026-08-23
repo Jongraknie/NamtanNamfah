@@ -30,13 +30,35 @@
   
   body {
     font-family: 'Prompt', 'Itim', sans-serif;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 16px;
-    color: var(--text-dark);
+    color: var(--text-light);
+    overflow-x: hidden;
+  }
+
+  /* Sparkle floating coding elements background */
+  .sparkle-container {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .sparkle {
+    position: absolute;
+    bottom: -60px;
+    font-size: 1.6rem;
+    animation: drift 12s infinite linear;
+    opacity: 0.15;
+  }
+  @keyframes drift {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.12; }
+    50% { opacity: 0.35; }
+    100% { transform: translateY(-110vh) translateX(50px) rotate(360deg); opacity: 0; }
   }
 
   .screen { display: none; width: 100%; max-width: 960px; }
@@ -45,14 +67,15 @@
   .card {
     background: #fff;
     border-radius: 28px;
-    box-shadow: 0 10px 30px rgba(76, 151, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(76, 151, 255, 0.25);
     padding: 30px;
     width: 100%;
     text-align: center;
-    border: 3px solid #dbeafe;
+    border: 3px solid #818cf8;
+    color: var(--text-dark);
   }
 
-  h1 { font-size: 1.8rem; color: var(--scratch-blue); margin-bottom: 6px; }
+  h1 { font-size: 1.8rem; color: var(--scratch-blue); margin-bottom: 6px; text-shadow: 0 0 10px rgba(76, 151, 255, 0.2); }
   h2 { font-size: 1.4rem; color: var(--scratch-purple); }
   .subtitle { color: #64748b; margin-bottom: 20px; font-size: 0.95rem; }
 
@@ -65,7 +88,7 @@
     margin-bottom: 20px;
   }
   @media(min-width: 768px) {
-    .editor-container { grid-template-columns: 1.1fr 1fr; }
+    .editor-container { grid-template-columns: 1.15fr 1fr; }
   }
 
   /* Block Interface Styling */
@@ -73,6 +96,7 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    color: var(--text-dark);
   }
   .toolbox-card, .workspace-card {
     background: #fff;
@@ -169,8 +193,8 @@
     border-radius: 0;
   }
   .scratch-loop-body.active-slot {
-    border-left-color: #facc15;
-    background: rgba(250, 204, 21, 0.1);
+    border-left-color: #eab308;
+    background: rgba(254, 240, 138, 0.12);
   }
   .scratch-loop-slot-empty {
     border: 2.5px dashed rgba(255, 171, 25, 0.5);
@@ -180,7 +204,7 @@
     color: #b45309;
     text-align: center;
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.7);
   }
   .scratch-loop-body.active-slot .scratch-loop-slot-empty {
     border-color: #eab308;
@@ -219,20 +243,20 @@
     align-items: flex-start;
   }
   .scratch-block.active-block, .scratch-loop-container.active-block > .scratch-loop-header {
-    outline: 2px solid #ef4444;
-    box-shadow: 0 0 12px #facc15;
+    outline: 2.5px solid #fbbf24;
+    box-shadow: 0 0 16px #fbbf24;
     background-color: var(--scratch-purple);
   }
 
   /* Dynamic point indicator */
   .active-indicator-bar {
-    background: #fef3c7;
-    border: 1.5px solid #f59e0b;
+    background: #eff6ff;
+    border: 1.5px solid #dbeafe;
     border-radius: 10px;
     padding: 6px 12px;
     font-size: 0.85rem;
     font-weight: 700;
-    color: #b45309;
+    color: #1d4ed8;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
@@ -244,6 +268,7 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    color: var(--text-dark);
   }
   .stage-card {
     background: #fff;
@@ -261,31 +286,42 @@
     display: grid;
     border: 4px solid var(--scratch-blue);
     border-radius: 14px;
-    background: #eef2ff;
+    background: #f8fafc;
     overflow: hidden;
     position: relative;
     box-shadow: 0 6px 12px rgba(76, 151, 255, 0.15);
   }
   .grid-cell {
-    border: 1px solid rgba(76, 151, 255, 0.15);
+    border: 1px solid rgba(76, 151, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
     position: relative;
   }
+  .grid-cell.even-cell {
+    background-color: #ffffff;
+  }
+  .grid-cell.odd-cell {
+    background-color: #f1f5f9;
+  }
   .grid-cell.obstacle {
     background: #cbd5e1;
     font-size: 1.8rem;
   }
   .grid-cell.target {
-    background: #fef08a;
+    background-color: #fef08a;
+    animation: targetPulse 1s infinite alternate ease-in-out;
+  }
+  @keyframes targetPulse {
+    0% { transform: scale(1); box-shadow: inset 0 0 10px #eab308; }
+    100% { transform: scale(1.06); box-shadow: inset 0 0 20px #eab308, 0 0 8px #fef08a; }
   }
   
   /* Robot */
   .robot {
     font-size: 2.2rem;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.25s ease-in-out;
     z-index: 10;
   }
   .robot.dir-N { transform: rotate(0deg); }
@@ -304,7 +340,8 @@
     padding: 12px 20px;
     margin-bottom: 16px;
     box-shadow: 0 4px 14px rgba(76, 151, 255, 0.1);
-    border: 2px solid #dbeafe;
+    border: 2px solid #818cf8;
+    color: var(--text-dark);
   }
   .hud-title { font-weight: 700; color: var(--scratch-blue); }
   .hud-right { display: flex; align-items: center; gap: 10px; }
@@ -320,8 +357,44 @@
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
+    color: var(--text-dark);
   }
   .icon-btn:hover { background: #dbeafe; }
+
+  input.reg-input {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    border: 2px solid var(--scratch-blue);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+    background: #f8fafc;
+    color: var(--text-dark);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--scratch-blue) 0%, #2563eb 100%);
+    box-shadow: 0 4px 14px rgba(76, 151, 255, 0.25);
+    transition: all 0.2s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(76, 151, 255, 0.35); }
+  .btn-amber {
+    background: linear-gradient(135deg, var(--scratch-orange) 0%, #d97706 100%);
+    box-shadow: 0 4px 14px rgba(251, 171, 25, 0.25);
+  }
+  .btn-amber:hover { box-shadow: 0 6px 18px rgba(251, 171, 25, 0.35); }
 
   /* Explanation overlay */
   .overlay {
@@ -333,6 +406,7 @@
     justify-content: center;
     z-index: 999;
     padding: 16px;
+    color: var(--text-dark);
   }
   .overlay.active { display: flex; }
   .modal {
@@ -406,12 +480,15 @@
 </head>
 <body>
 
+  <!-- Sparkles Floating Background -->
+  <div class="sparkle-container" id="sparkle-container"></div>
+
   <!-- Screen 1: Registration Screen -->
   <div id="screen-register" class="screen active">
     <div class="card">
       <div style="font-size:3.8rem; margin-bottom: 10px;">🤖💻🔁</div>
       <h1>นักคิดโค้ดดิ้งน้อย</h1>
-      <p class="subtitle">ท้าทายสมองขุดพลังตรรกศาสตร์ ลากบล็อกคำสั่งสไตล์ Scratch ช่วยน้องโรบอตตะลุยด่าน!</p>
+      <p class="subtitle">ท้าทายสมองขุดพลังตรรกศาสตร์ ลากบล็อกคำสั่งสไตล์ Scratch ช่วยน้องโรบอตตะลุย 15 ด่าน!</p>
       
       <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--scratch-blue);">ใส่ชื่อโปรแกรมเมอร์จิ๋วตรงนี้ค่ะ:</p>
       <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ" value="น้องน้ำฟ้า">
@@ -513,7 +590,7 @@
     <div class="card" id="print-area">
       <div style="font-size:3.5rem;">🏆💻🤖</div>
       <h1 style="color:var(--scratch-blue); margin-bottom: 5px;">ผ่านหลักสูตรโค้ดดิ้งจิ๋วแล้ว!</h1>
-      <p style="color: var(--scratch-purple); font-weight: 700;">น้องน้ำฟ้าเขียนบล็อกแก้โจทย์ปัญหาครบ 6 บทเรียนสำเร็จ</p>
+      <p style="color: var(--scratch-purple); font-weight: 700;">น้องน้ำฟ้าเขียนบล็อกแก้โจทย์ปัญหาครบ 15 บทเรียนสำเร็จ</p>
       
       <div class="stars" id="stars-display">⭐⭐⭐</div>
       <p style="font-size: 1.1rem; margin-bottom: 15px;">
@@ -555,24 +632,39 @@
 
 <script>
   const LEADERBOARD_KEY = 'coding_leaderboard';
-  const TOTAL_LEVELS = 6;
+  const TOTAL_LEVELS = 15;
 
-  // Blocks library metadata
+  // Blocks library metadata (Dual Thai-English)
   const BLOCKS = {
     'move': { label: 'เดินหน้า / move steps', cls: 'block-motion', val: 1 },
     'turn-right': { label: 'เลี้ยวขวา / turn ↪️ degrees', cls: 'block-motion', val: 90 },
     'turn-left': { label: 'เลี้ยวซ้าย / turn ↩️ degrees', cls: 'block-motion', val: 90 },
     'loop-start-2': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 2 },
     'loop-start-3': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 3 },
-    'loop-start-4': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 4 }
+    'loop-start-4': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 4 },
+    'loop-start-5': { label: 'วนซ้ำ / repeat', cls: 'block-control', val: 5 }
   };
 
-  // 6 levels - progressive difficulty curriculum
+  // 15 levels - progressive difficulty curriculum
   const LEVELS = [
     {
       id: 1,
       title: "บทเรียนที่ 1: ก้าวแรกของหุ่นยนต์ 🤖",
-      desc: "เขียนโค้ดพาหุ่นยนต์เดินหน้าเป็นแนวตรงเพื่อไปเก็บปลาการ์ตูน 🐠! (คลิกบล็อก 'move steps' 2 บล็อกซ้อนกันค่ะ)",
+      desc: "เขียนโค้ดพาหุ่นยนต์เดินหน้าตรงเพื่อเก็บปลาการ์ตูน 🐠! (ใช้บล็อก 'move' 1 บล็อกค่ะ)",
+      gridW: 3,
+      gridH: 3,
+      start: { x: 0, y: 1, dir: 'E' },
+      target: { x: 1, y: 1 },
+      obstacles: [],
+      targetEmoji: '🐠',
+      toolbox: ['move'],
+      method: "คอมพิวเตอร์ทำงานเรียงลำดับจากบนลงล่าง การใส่ 'เดินหน้า' 1 ครั้ง ทำให้หุ่นยนต์ก้าวไปข้างหน้า 1 ช่องเพื่อเก็บปลาการ์ตูนทันทีค่ะ",
+      principle: "ลำดับการทำงาน (Sequencing): เป็นทักษะปูพื้นฐานแรกเพื่อเรียงร้อยขั้นตอนการแก้ปัญหาทีละบล็อก"
+    },
+    {
+      id: 2,
+      title: "บทเรียนที่ 2: ก้าวสองพารู้จักช่อง 🤖",
+      desc: "ขยับเป้าหมายให้ไกลออกไป! เขียนโค้ดพาหุ่นยนต์เดิน 2 ช่องเพื่อเก็บปลาการ์ตูน 🐠 (ใช้บล็อก 'move' 2 บล็อกต่อกันค่ะ)",
       gridW: 3,
       gridH: 3,
       start: { x: 0, y: 1, dir: 'E' },
@@ -580,27 +672,69 @@
       obstacles: [],
       targetEmoji: '🐠',
       toolbox: ['move'],
-      method: "ลำดับขั้นตอน (Sequence) เป็นโครงสร้างแรกในโค้ดดิ้ง โดยคอมพิวเตอร์จะทำงานทีละบล็อกจากบนลงล่าง การใส่ 'เดินหน้า' 2 ครั้ง ทำให้หุ่นเดินไปข้างหน้า 2 ช่องจนถึงปลาพอดีค่ะ",
-      principle: "ลำดับการทำงาน (Sequencing): คือการเรียงลำดับขั้นตอนก่อนหลังอย่างถูกต้อง เพื่อให้งานสำเร็จลุล่วงตรงตามเป้าหมาย"
-    },
-    {
-      id: 2,
-      title: "บทเรียนที่ 2: เลี้ยวลดคดเคี้ยว ↪️",
-      desc: "หุ่นยนต์ต้องเลี้ยวเพื่อหลบปะการังขวางทางไปเก็บดาวนำโชค 🌟! วางลำดับเลี้ยวขวาเลี้ยวซ้ายให้ดีนะคะ",
-      gridW: 4,
-      gridH: 4,
-      start: { x: 0, y: 2, dir: 'E' },
-      target: { x: 2, y: 1 },
-      obstacles: ['0,1', '1,3', '2,2'],
-      targetEmoji: '🌟',
-      toolbox: ['move', 'turn-right', 'turn-left'],
-      method: "หุ่นยนต์ต้อง: เดินหน้า (ไปช่อง 1,2) -> เลี้ยวซ้าย (หันขึ้นเหนือ) -> เดินหน้า (ไปช่อง 1,1) -> เลี้ยวขวา (หันไปทางขวา) -> เดินหน้า (ไปช่อง 2,1) เพื่อพบดาวสำเร็จค่ะ",
-      principle: "การควบคุมทิศทาง (Spatial Awareness): หุ่นยนต์หันหน้าไปทิศใด การเลี้ยวซ้าย/ขวาจะยึดตามตัวหุ่นยนต์เสมอ"
+      method: "เรียงบล็อก 'เดินหน้า' สองบล็อกต่อกัน หุ่นยนต์จะก้าวสไลด์ทีละ 1 ช่องจนถึงปลายทาง 2 ช่องพอดีค่ะ",
+      principle: "ขั้นตอนเรียงแถว (Linear Sequences): การสั่งคำสั่งเดียวกันซ้อนกันตามความยาวระยะทางที่เหมาะสม"
     },
     {
       id: 3,
-      title: "บทเรียนที่ 3: จอมขยันทำซ้ำ 🔁",
-      desc: "เดินทางตรง 4 ก้าวเพื่อเก็บแบตเตอรี่ 🔋! แนะนำให้ใช้บล็อก 'repeat 4' เพื่อวนซ้ำก้าวเดินแทนการใส่เดินทีละก้าวค่ะ",
+      title: "บทเรียนที่ 3: รู้จักเลี้ยวซ้ายเลี้ยวขวา ↩️",
+      desc: "เดินแล้วหักเลี้ยวขึ้นบนเพื่อเก็บดาวนำโชค 🌟! วางแผนเดินแล้วเลี้ยวซ้ายให้ดีนะคะ",
+      gridW: 3,
+      gridH: 3,
+      start: { x: 0, y: 2, dir: 'E' },
+      target: { x: 1, y: 1 },
+      obstacles: [],
+      targetEmoji: '🌟',
+      toolbox: ['move', 'turn-left', 'turn-right'],
+      method: "ลำดับคือ: เดินหน้า -> เลี้ยวซ้าย (หันหน้าขึ้นทิศเหนือ) -> เดินหน้า ก็จะเหยียบช่องดาวได้สำเร็จค่ะ",
+      principle: "การหมุนทิศ (Turns): การกำหนดทิศทางให้กับโรบอตให้หมุนหัว 90 องศาเพื่อเดินเส้นทางใหม่"
+    },
+    {
+      id: 4,
+      title: "บทเรียนที่ 4: ซิกแซกสลับทาง ↪️",
+      desc: "ทางเดินโค้งและซิกแซก! เลี้ยวสองครั้งเพื่ออ้อมไปเก็บดาวนำโชค 🌟 นะคะน้ำฟ้า",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 3, dir: 'E' },
+      target: { x: 2, y: 1 },
+      obstacles: ['0,1', '1,3'],
+      targetEmoji: '🌟',
+      toolbox: ['move', 'turn-left', 'turn-right'],
+      method: "ลำดับบล็อกคือ: เดินหน้า -> เลี้ยวซ้าย -> เดินหน้า -> เดินหน้า -> เลี้ยวขวา -> เดินหน้า จะเดินเป็นรูปโค้งสลับไปชนดาวพอดีค่ะ",
+      principle: "การจัดทิศทางหลบโค้ง (Directional Adjustments): ผสมการเดินหน้าและเลี้ยวช่วยควบคุมการเดินคดเคี้ยวตามรูปห้องจำลอง"
+    },
+    {
+      id: 5,
+      title: "บทเรียนที่ 5: อ้อมแนวปะการังขวางทาง 🪸",
+      desc: "มีบล็อกปะการัง 🪸 กีดขวางทางตรง! จงเขียนโค้ดพาหุ่นอ้อมขึ้นบนแล้วอ้อมลงมาเก็บดาว 🌟 ค่ะ",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 2, dir: 'E' },
+      target: { x: 2, y: 2 },
+      obstacles: ['1,2', '0,0', '3,3'],
+      targetEmoji: '🌟',
+      toolbox: ['move', 'turn-left', 'turn-right'],
+      method: "วิธีเดิน: เลี้ยวซ้าย -> เดินหน้า -> เลี้ยวขวา -> เดินหน้า -> เดินหน้า -> เลี้ยวขวา -> เดินหน้า เพื่อผ่านหลบแนวปะการังสีเทาที่บล็อกไว้ค่ะ",
+      principle: "การหลีกเลี่ยงสิ่งกีดขวาง (Obstacle Avoidance): ออกแบบชุดคำสั่งอ้อมจุดพังเพื่อให้งานลุล่วงอย่างปลอดภัย"
+    },
+    {
+      id: 6,
+      title: "บทเรียนที่ 6: ลูปขยันช่วยย่นระยะ 🔁",
+      desc: "เดินทางตรง 3 ช่องเพื่อเก็บแบตเตอรี่ 🔋! ลองใช้บล็อกวนซ้ำ 'repeat 3' ครอบบล็อกเดินหน้านะคะ",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 1, dir: 'E' },
+      target: { x: 3, y: 1 },
+      obstacles: [],
+      targetEmoji: '🔋',
+      toolbox: ['move', 'loop-start-3'],
+      method: "ลากบล็อก repeat 3 ครอบบล็อก move. หุ่นยนต์จะเดินวน 3 ก้าวสะดวกรวดเร็วโดยไม่ต้องวางบล็อกเดินซ้ำกันค่ะ",
+      principle: "ความหมายของลูป (Looping Concept): ลดความอ้วนของโค้ดด้วยการใช้กรอบจำกัดจำนวนรอบสั่งรันคำสั่งเดิมซ้ำๆ"
+    },
+    {
+      id: 7,
+      title: "บทเรียนที่ 7: ลูปทำซ้ำยาว 4 รอบ 🔁",
+      desc: "ระยะทางไกลขึ้น! ก้าวเดินตรง 4 ก้าวเพื่อเก็บแบตเตอรี่ 🔋 วางแผนครอบลูปทำซ้ำ 4 รอบด้วยนะคะ",
       gridW: 5,
       gridH: 5,
       start: { x: 0, y: 2, dir: 'E' },
@@ -608,13 +742,41 @@
       obstacles: ['2,1', '2,3'],
       targetEmoji: '🔋',
       toolbox: ['move', 'loop-start-4'],
-      method: "ใส่บล็อก: repeat 4 ครอบบล็อก move โค้ดจะสั่งเดินหน้าวนทำซ้ำให้ 4 รอบทันที ทำให้ได้โค้ดที่สั้นและกระชับค่ะ",
-      principle: "การวนลูปทำซ้ำ (Loops): เป็นคำสั่งวนลูปประหยัดเนื้อที่โค้ด เพื่อสั่งงานคำสั่งเดิมวนทำซ้ำๆ ตามจำนวนรอบที่ตั้ง"
+      method: "สวมขอบเขต repeat 4 ครอบบล็อก move. หุ่นยนต์จะก้าวตรงฉลุย 4 รอบผ่านช่องแร่จนไปเหยียบแบตเตอรี่พอดีค่ะ",
+      principle: "รอบการวนซ้ำทวีคูณ (Counted Loops): การคำนวณจำนวนก้าวและตั้งเป็นค่ารอบการทำซ้ำแบบคงที่"
     },
     {
-      id: 4,
-      title: "บทเรียนที่ 4: ลูปปั้นบันได 📶",
-      desc: "หุ่นยนต์ต้องการขึ้นขั้นบันไดไปรับอัญมณี 💎! ลองใส่บล็อก repeat 3 แล้วคลิกปุ่ม '+' ในร่องเพื่อยัดโค้ดบันไดข้างในนะคะ",
+      id: 8,
+      title: "บทเรียนที่ 8: เดินตรงแล้วหักเลี้ยวทำซ้ำ 🔁",
+      desc: "ทางตรงแล้วหักขึ้นบน! สั่งเดินหน้าตรง 2 ก้าว เลี้ยวซ้าย แล้วเดินหน้าต่อ 2 ก้าว ลองใช้ลูป repeat 2 ช่วยดูนะคะ",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 3, dir: 'E' },
+      target: { x: 2, y: 1 },
+      obstacles: ['1,3', '3,1'],
+      targetEmoji: '🔋',
+      toolbox: ['move', 'turn-left', 'turn-right', 'loop-start-2'],
+      method: "เรียงโค้ด: repeat 2 [move] -> turn-left -> repeat 2 [move]. หุ่นยนต์จะก้าวเดินโค้งตามทางหักมุมฉากได้ง่ายและสั้นค่ะ",
+      principle: "ลูปขนานขอบเขต (Sequential Loops): การวางบล็อกลูปทำซ้ำสลับกับคำสั่งหมุนทิศตามจังหวะเดิน"
+    },
+    {
+      id: 9,
+      title: "บทเรียนที่ 9: ปีนขึ้นบันไดเตี้ย 2 ชั้น 📶",
+      desc: "เป้าหมายอยู่เยื้องขึ้นไปบนยอดขั้นบันได 2 ขั้น! ครอบลูป repeat 2 และใส่โค้ดเดินขั้นบันไดข้างในนะคะ",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 3, dir: 'N' },
+      target: { x: 2, y: 1 },
+      obstacles: ['0,0', '1,0', '0,1', '3,2', '3,3'],
+      targetEmoji: '💎',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2'],
+      method: "ใส่โค้ด: repeat 2 ครอบ [move -> turn-right -> move -> turn-left]. หุ่นยนต์จะก้าวขึ้นและเยื้องไปข้างขวาสองระดับอย่างมั่นคงค่ะ",
+      principle: "การค้นหารูปแบบขั้นตอนซ้ำ (Pattern Recognition): สังเกตรูปแบบเดินแบบขั้นบันได และนำมารวบยอดเป็นลูปทำซ้ำเดียว"
+    },
+    {
+      id: 10,
+      title: "บทเรียนที่ 10: ปีนขึ้นบันไดมาตรฐาน 3 ชั้น 📶",
+      desc: "บันไดสูงขึ้นเป็น 3 ขั้น! ขยับลูปเป็น repeat 3 และบรรจุโค้ดเดินบันไดเช่นเดิมเพื่อเก็บอัญมณี 💎 ค่ะ",
       gridW: 4,
       gridH: 4,
       start: { x: 0, y: 3, dir: 'N' },
@@ -622,36 +784,89 @@
       obstacles: ['0,0', '1,0', '2,0', '0,1', '1,1', '3,2', '3,3'],
       targetEmoji: '💎',
       toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-3'],
-      method: "ใส่บล็อกวนซ้ำ 3 ครั้งครอบ: เดินหน้า -> เลี้ยวขวา -> เดินหน้า -> เลี้ยวซ้าย. โรบอตจะก้าวขึ้นและเยื้องขวาเป็นบันได 3 ขั้นไปเก็บบนยอดสุดสำเร็จค่ะ",
-      principle: "ลูปซ้ำแบบโครงสร้างรูปธรรม (Pattern Recognition): คือการมองหารูปแบบเส้นทางที่ซ้ำเดิม แล้วนำมาสรุปย่อเป็นชุดคำสั่งวนลูปเดียว"
+      method: "ใส่โค้ด: repeat 3 ครอบ [move -> turn-right -> move -> turn-left]. ยานจะก้าวสลับซิกแซกอย่างสมมาตรสามครั้งปีนขึ้นยอดพอดีค่ะ",
+      principle: "การขยายขนาดลูปการทำซ้ำ (Scale of Loops): การนำวิธีแก้ปัญหาเดิมมาใช้ซ้ำโดยปรับขนาดรอบวนขยายวงตามขนาดโจทย์"
     },
     {
-      id: 5,
-      title: "บทเรียนที่ 5: เขาวงกตพรางตา 🌀",
-      desc: "ขวางทางด้วยเลี้ยวซิกแซก! เขียนโค้ดพาหุ่นยนต์อ้อมไปหาน้องปลา 🐠 วางแผนใช้บล็อก repeat 2 ครอบการก้าวเพื่อประหยัดจำนวนบล็อกกันค่ะ",
+      id: 11,
+      title: "บทเรียนที่ 11: วิ่งอ้อมกรอบทวนทิศทาง 🔄",
+      desc: "เดินเป็นรูปตัวยู (U-shape) รอบขอบนอกเพื่อเก็บอัญมณี 💎! ลองวางแผนใช้ลูป repeat 3 และคำสั่งภายนอกนะคะ",
+      gridW: 3,
+      gridH: 3,
+      start: { x: 0, y: 0, dir: 'E' },
+      target: { x: 0, y: 1 },
+      obstacles: ['1,1'],
+      targetEmoji: '💎',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-3'],
+      method: "ลำดับบล็อกคือ: repeat 3 [move -> move -> turn-right] แล้วสั่งจบด้วย move. หุ่นยนต์จะอ้อมขอบนอกเป็นวงเลี้ยวกระเก็บดาวสำเร็จค่ะ",
+      principle: "ลูปประสานโครงสร้างปิด (Loop Boundary Actions): การใช้คำสั่งทำซ้ำส่วนใหญ่อ้อมทาง และทิ้งท้ายจุดขยับสั้นเสริมให้เหยียบดาวพอดี"
+    },
+    {
+      id: 12,
+      title: "บทเรียนที่ 12: ซิกแซกซ้อนกระโดดข้ามหลุม 🦖",
+      desc: "พาโรบอตข้ามสิ่งกีดขวางซิกแซกตัวยาวในตาราง 5x5 ช่องเพื่อพบไดโนเสาร์น้อย 🦖! วางแผนลูปทำซ้ำช่วยลดจำนวนบล็อกกันค่ะ",
       gridW: 5,
       gridH: 5,
       start: { x: 0, y: 4, dir: 'N' },
       target: { x: 4, y: 0 },
       obstacles: ['1,4', '2,4', '3,4', '1,3', '3,3', '4,3', '0,1', '1,1', '2,1', '3,1'],
-      targetEmoji: '🐠',
+      targetEmoji: '🦖',
       toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2'],
-      method: "สูตรสำเร็จ: repeat 2 [move] -> turn-right -> repeat 2 [move] -> turn-left -> repeat 2 [move] -> turn-right -> repeat 2 [move].",
-      principle: "ทักษะการคิดเชิงวิเคราะห์ (Decomposition): ย่อยโจทย์ใหญ่ที่เป็นโค้ดเส้นยาว ให้กลายเป็นโค้ดสั้นๆ แล้วนำมาประกอบร่างกัน"
+      method: "ใส่โค้ด: repeat 2 ครอบ [repeat 2 [move] -> turn-right -> repeat 2 [move] -> turn-left] หุ่นจะเดินเป็นบันไดกว้างเฉียงขวางข้ามตารางอย่างสวยงามค่ะ",
+      principle: "ลูปทำซ้ำซ้อนลูปย่อย (Nested Loops Structure): การนำลูปเล็กมาครอบด้วยลูปใหญ่สำหรับการวนรอบแนวซับซ้อนทวีคูณ"
     },
     {
-      id: 6,
-      title: "บทเรียนที่ 6: ยอดนักเขียนโปรแกรม 🏆",
-      desc: "ด่านท้าทายสุดท้ายเพื่อเกียรติบัตร! เขียนโค้ดพาน้องหุ่นยนต์เดินฝ่าช่องแคบไปรับถ้วยรางวัลทองคำ 🏆 ให้ได้ค่ะ!",
+      id: 13,
+      title: "บทเรียนที่ 13: อ้อมสนามรอบนอก 🛸",
+      desc: "เดินอ้อมพื้นที่กว้างขวางตาราง 5x5 ไปขอบขวาบนสุดเพื่อขึ้นยานอวกาศ 🛸! (ใช้ขีดความสามารถการทำซ้ำ 4 รอบและ 2 รอบค่ะ)",
+      gridW: 5,
+      gridH: 5,
+      start: { x: 0, y: 4, dir: 'N' },
+      target: { x: 4, y: 4 },
+      obstacles: ['1,1', '2,2', '3,3', '1,2', '2,1', '3,2', '2,3'],
+      targetEmoji: '🛸',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-4'],
+      method: "ลำดับบล็อกคือ: repeat 2 [repeat 4 [move] -> turn-right] -> repeat 4 [move]. ยานจะเคลื่อนเป็นแนวสี่เหลี่ยมผืนผ้าขอบนอกจนพบเป้าหมายค่ะ",
+      principle: "การจัดลูปขนานสลับขอบเขต (Mixed Loop Sequence): การขีดเขียนวางผังงานด้วยลูปขนาดสั้นและยาวคู่กันอย่างอิสระ"
+    },
+    {
+      id: 14,
+      title: "บทเรียนที่ 14: เขาวงกตตัวเอสคดเคี้ยว 🏁",
+      desc: "ด่านมหาโหดตาราง 6x6 ขี่ขดลัดเลี้ยวขดซิกแซกโค้งแนวนอนเพื่อคว้าธงชัย 🏁! คิดวางแผนการเดินหน้าทำซ้ำทีละระดับนะคะ",
       gridW: 6,
       gridH: 6,
       start: { x: 0, y: 5, dir: 'N' },
-      target: { x: 5, y: 0 },
-      obstacles: ['1,5', '2,5', '3,5', '4,5', '1,4', '3,4', '5,4', '1,3', '3,3', '5,3', '1,2', '3,2', '4,2', '1,1', '3,1'],
+      target: { x: 4, y: 0 },
+      obstacles: [
+        '1,5', '2,5', '3,5', '4,5',
+        '1,4', '3,4', '5,4',
+        '1,3', '3,3', '5,3',
+        '1,2', '3,2', '4,2',
+        '1,1', '3,1', '5,1'
+      ],
+      targetEmoji: '🏁',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-5'],
+      method: "ลำดับโค้ด: repeat 5 [move] -> turn-right -> repeat 2 [move] -> turn-right -> repeat 5 [move] -> turn-left -> repeat 2 [move] -> turn-left -> repeat 5 [move] ดิ่งหัวขดจนถึงธงพอดีค่ะ",
+      principle: "การคำนวณแบ่งชุดระบบย่อย (Decomposition for Complex Maze): แบ่งเส้นทางการเดินซับซ้อนให้กลายเป็นส่วนขนาน 3 ลำดับตรงและทางเลี้ยวเชื่อม"
+    },
+    {
+      id: 15,
+      title: "บทเรียนที่ 15: มหาวิหารแห่งรหัสลับก้นหอย 🏆👑",
+      desc: "ด่านสุดท้ายรับเกียรติบัตรยอดนักวิเคราะห์! เจาะทะลวงและเดินขดวนตามเข็มนาฬิกาเข้าสู่แกนกลางมหาวิหารก้นหอยเพื่อรับถ้วยรางวัลทองคำ 🏆!",
+      gridW: 6,
+      gridH: 6,
+      start: { x: 0, y: 5, dir: 'E' },
+      target: { x: 3, y: 3 },
+      obstacles: [
+        '1,1', '2,1', '3,1', '4,1',
+        '1,2', '1,3', '1,4',
+        '4,2', '4,3', '4,4',
+        '2,4', '3,4'
+      ],
       targetEmoji: '🏆',
-      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-3'],
-      method: "เส้นทางคือ: repeat 3 [move] -> turn-right -> repeat 2 [move] -> turn-right -> repeat 2 [move] -> turn-left -> repeat 2 [move] -> turn-left -> repeat 4 [move] (หรือจัดลูปทับซ้อนอื่นๆ)",
-      principle: "การวางแผนเชิงตรรกศาสตร์ (Logical Planning): ใช้ความคิดสร้างสรรค์ร่วมกับหลักเหตุผล เพื่อออกแบบโปรแกรมที่ทำงานได้อย่างรวดเร็วและไม่มีจุดผิดพลาด"
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-3', 'loop-start-4', 'loop-start-5'],
+      method: "รหัสปลดล็อคก้นหอย: repeat 5 [move] -> turn-left -> repeat 5 [move] -> turn-left -> repeat 4 [move] -> turn-left -> repeat 4 [move] -> turn-left -> repeat 3 [move] -> turn-left -> repeat 3 [move] -> turn-left -> repeat 2 [move] -> turn-left -> repeat 2 [move] -> turn-left -> move.",
+      principle: "สุดยอดอัลกอริทึม (Ultimate Algorithm Formulation): ปริศนาก้นหอยสอนเรื่องความสมมาตรและการลดขนาดสัดส่วนทีละรอบงานอย่างสมบูรณ์แบบ!"
     }
   ];
 
@@ -694,7 +909,7 @@
         console.warn('Synth tone failed:', e);
       }
     },
-    click() { this.tone(400, 0.05); },
+    click() { this.tone(450, 0.05); },
     correct() {
       this.tone(523, 0.1);
       setTimeout(() => this.tone(784, 0.15), 80);
@@ -709,6 +924,24 @@
       });
     }
   };
+
+  // Sparkles generator in background
+  function initSparkles() {
+    const container = document.getElementById('sparkle-container');
+    if (!container) return;
+    container.innerHTML = '';
+    const emojis = ['🤖', '💻', '🌟', '💎', '💡', '🏆', '⚙️', '✨'];
+    for (let i = 0; i < 18; i++) {
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      s.innerText = emojis[i % emojis.length];
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.fontSize = (Math.random() * 0.8 + 1) + 'rem';
+      s.style.animationDelay = Math.random() * 10 + 's';
+      s.style.animationDuration = (Math.random() * 6 + 8) + 's';
+      container.appendChild(s);
+    }
+  }
 
   // Web Speech Text to Speech in Thai
   function speakText(text) {
@@ -749,6 +982,10 @@
         cell.className = 'grid-cell';
         cell.id = `cell-${x}-${y}`;
         
+        // Checkerboard styling
+        const isEven = (x + y) % 2 === 0;
+        cell.classList.add(isEven ? 'even-cell' : 'odd-cell');
+
         // Add obstacles
         if (lvl.obstacles.includes(`${x},${y}`)) {
           cell.classList.add('obstacle');
@@ -772,7 +1009,6 @@
 
   // Render robot position and heading direction
   function renderRobot() {
-    // Remove old robot if exists
     const oldRob = document.querySelector('.robot');
     if (oldRob) oldRob.remove();
 
@@ -975,7 +1211,6 @@
   }
 
   function renderWorkspace() {
-    // Update insertion point indicator UI
     const bar = document.getElementById('active-indicator-bar');
     const txt = document.getElementById('indicator-text');
     const resetBtn = document.getElementById('btn-reset-insertion');
@@ -986,7 +1221,7 @@
       bar.style.background = '#fef3c7';
       bar.style.borderColor = '#f59e0b';
     } else {
-      txt.innerText = `📍 กำลังเพิ่มโค้ดที่: ส่วนนอกสุด`;
+      txt.innerText = `📍 กำลังเพิ่มโค้ดที่: ด้านนอกสุด`;
       resetBtn.style.display = 'none';
       bar.style.background = '#eff6ff';
       bar.style.borderColor = '#dbeafe';
@@ -1022,7 +1257,6 @@
     document.getElementById('btn-clear-code').disabled = true;
     
     const lvl = LEVELS[currentLevelIdx];
-    // Reset robot position to start
     robotState = { ...lvl.start };
     renderRobot();
 
@@ -1046,7 +1280,8 @@
         speakText('อุ๊ย! หุ่นยนต์ชนปะการังหรือออกนอกแผนที่แล้วค่ะ ลองเขียนโค้ดใหม่นะคะ');
         break;
       } else {
-        synth.tone(350, 0.08);
+        // High pitched cute robot stepper click tone
+        synth.tone(600, 0.05, 'triangle');
       }
 
       // Check target reached
@@ -1055,11 +1290,9 @@
         break;
       }
 
-      // 600ms delay per animation step
-      await new Promise(resolve => setTimeout(resolve, 600));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    // Clear active highlights
     document.querySelectorAll('.scratch-block, .scratch-loop-container').forEach(b => b.classList.remove('active-block'));
 
     if (success) {
@@ -1088,7 +1321,6 @@
       else if (robotState.dir === 'S') nextY++;
       else if (robotState.dir === 'W') nextX--;
 
-      // Check boundaries and obstacles
       if (nextX < 0 || nextX >= lvl.gridW || nextY < 0 || nextY >= lvl.gridH) {
         return true; // Crash
       }
@@ -1130,6 +1362,8 @@
     
     document.getElementById('lesson-chapter-title').innerText = lvl.title;
     document.getElementById('lesson-desc').innerText = lvl.desc;
+    document.getElementById('game-title-hud').innerText = `🤖 บทเรียนที่ ${currentLevelIdx + 1}/15`;
+    document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
     
     workspaceCode = [];
     activeContainer = null; // reset insertion pointer
@@ -1145,7 +1379,7 @@
     
     // Save scores
     document.getElementById('summary-score').innerText = score;
-    const stars = score >= 50 ? '⭐⭐⭐' : score >= 30 ? '⭐⭐' : score >= 10 ? '⭐' : '💪';
+    const stars = score >= 120 ? '⭐⭐⭐' : score >= 80 ? '⭐⭐' : score >= 40 ? '⭐' : '💪';
     document.getElementById('stars-display').innerText = stars;
     
     // Certificate prefill
@@ -1205,6 +1439,8 @@
   }
 
   function initGame() {
+    initSparkles();
+    
     const savedName = localStorage.getItem('tutorStudentName') || 'น้องน้ำฟ้า';
     document.getElementById('input-name').value = savedName;
 
@@ -1255,6 +1491,16 @@
       resetInsertionPoint();
     });
 
+    // Sound toggle
+    const soundToggleBtn = document.getElementById('btn-toggle-sound');
+    soundToggleBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
+      if (!soundOn) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
     // Speak Instruction Button
     const speakInstructionBtn = document.getElementById('btn-speak-instruction');
     if (speakInstructionBtn) {
@@ -1265,16 +1511,6 @@
         }
       });
     }
-
-    // Sound toggle
-    const soundToggleBtn = document.getElementById('btn-toggle-sound');
-    soundToggleBtn.addEventListener('click', () => {
-      soundOn = !soundOn;
-      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
-      if (!soundOn) {
-        window.speechSynthesis.cancel();
-      }
-    });
 
     // Next Level click
     document.getElementById('btn-next').addEventListener('click', () => {

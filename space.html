@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นักสำรวจอวกาศตัวน้อย | สำหรับ น้องน้ำฟ้า 💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-gate.js"></script>
+<script src="firebase-helpers.js"></script>
+<style>
+  :root {
+    --cosmic-dark: #0b0f19;
+    --cosmic-blue: #1e293b;
+    --neon-blue: #38bdf8;
+    --neon-purple: #c084fc;
+    --neon-pink: #f472b6;
+    --sun-yellow: #facc15;
+    --star-gold: #fbbf24;
+    --text-light: #f8fafc;
+    --text-muted: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Prompt', 'Itim', sans-serif;
+    background: linear-gradient(135deg, #090d16 0%, #111827 50%, #1e1b4b 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: var(--text-light);
+    overflow-x: hidden;
+  }
+
+  .screen { display: none; width: 100%; max-width: 720px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  /* Stars Background Effect */
+  .stars-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: 
+      radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0)),
+      radial-gradient(1.5px 1.5px at 40px 70px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 90px 150px, #ddd, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 150px 240px, #fff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 220px 350px, #fff, rgba(0,0,0,0));
+    background-size: 280px 280px;
+    opacity: 0.45;
+  }
+
+  .card {
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(56, 189, 248, 0.15);
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+    border: 2px solid rgba(56, 189, 248, 0.25);
+    backdrop-filter: blur(10px);
+  }
+
+  h1 { font-size: 1.8rem; color: var(--neon-blue); margin-bottom: 6px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+  h2 { font-size: 1.4rem; color: var(--neon-purple); text-shadow: 0 0 8px rgba(192, 132, 252, 0.3); }
+  .subtitle { color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem; }
+
+  /* Spacesuit Selection */
+  .suit-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .suit-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 2px dashed var(--neon-purple);
+    border-radius: 18px;
+    padding: 12px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .suit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(192, 132, 252, 0.25);
+  }
+  .suit-card.selected {
+    background: rgba(192, 132, 252, 0.25);
+    border: 3px solid var(--neon-blue);
+    transform: scale(1.05);
+    box-shadow: 0 0 12px var(--neon-blue);
+  }
+  .suit-emoji { font-size: 2.8rem; margin-bottom: 4px; filter: drop-shadow(0 0 4px rgba(255,255,255,0.4)); }
+  .suit-name { font-weight: 700; font-size: 0.9rem; color: var(--text-light); }
+
+  input.reg-input {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    border: 2px solid var(--neon-blue);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-light);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--neon-blue) 0%, #0284c7 100%);
+    box-shadow: 0 6px 16px rgba(56, 189, 248, 0.35);
+    transition: all 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56, 189, 248, 0.5); }
+  
+  .btn-amber {
+    background: linear-gradient(135deg, var(--star-gold) 0%, var(--sun-yellow) 100%);
+    color: #3b2300;
+    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
+  }
+  .btn-amber:hover { box-shadow: 0 8px 20px rgba(251, 191, 36, 0.45); }
+  
+  .btn-pink {
+    background: linear-gradient(135deg, var(--neon-pink) 0%, #db2777 100%);
+    box-shadow: 0 6px 16px rgba(244, 114, 182, 0.3);
+  }
+  .btn-pink:hover { box-shadow: 0 8px 20px rgba(244, 114, 182, 0.4); }
+  
+  .hud {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 20px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.12);
+    border: 2px solid rgba(56, 189, 248, 0.2);
+  }
+  .hud-title { font-weight: 700; color: var(--neon-blue); }
+  .hud-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    background: rgba(30, 41, 59, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: rgba(56, 189, 248, 0.25); }
+
+  /* Solar Orbit Trail Map */
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 24px;
+    padding: 24px 16px;
+    margin-bottom: 16px;
+    border: 2px solid rgba(192, 132, 252, 0.3);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    overflow-x: auto;
+  }
+  .orbit-line {
+    position: absolute;
+    top: 55%;
+    left: 40px;
+    right: 40px;
+    height: 4px;
+    background: transparent;
+    transform: translateY(-50%);
+    z-index: 1;
+    border-bottom: 2px dashed rgba(56, 189, 248, 0.4);
+  }
+  .checkpoints-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    min-width: 680px;
+    padding: 20px 0;
+    z-index: 2;
+  }
+  .checkpoint-dot-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .checkpoint-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(30, 41, 59, 0.9);
+    border: 2.5px solid var(--neon-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    z-index: 2;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+  .checkpoint-dot.completed {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  }
+  .checkpoint-dot.active {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: var(--star-gold);
+    box-shadow: 0 0 16px var(--star-gold);
+    transform: scale(1.18);
+  }
+  .checkpoint-dot.locked {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.3);
+    filter: grayscale(1);
+    opacity: 0.5;
+  }
+  .checkpoint-label {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: rgba(15, 23, 42, 0.6);
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
+  .shuttle-avatar {
+    position: absolute;
+    top: -34px;
+    font-size: 1.8rem;
+    z-index: 3;
+    animation: spaceFloat 1s infinite alternate ease-in-out;
+    filter: drop-shadow(0 0 5px var(--neon-blue));
+  }
+  @keyframes spaceFloat {
+    0% { transform: translateY(0) rotate(5deg); }
+    100% { transform: translateY(-8px) rotate(-5deg); }
+  }
+
+  /* Game Main Scene */
+  .scene {
+    width: 100%;
+    max-width: 720px;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+    border: 2px solid rgba(56, 189, 248, 0.2);
+  }
+  .guide-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .guide-avatar { font-size: 3.5rem; margin-bottom: 4px; filter: drop-shadow(0 0 5px var(--neon-pink)); }
+  .guide-name { font-size: 0.95rem; font-weight: 700; color: var(--neon-pink); background: rgba(244, 114, 182, 0.15); padding: 2px 14px; border-radius: 20px; border: 1px solid rgba(244, 114, 182, 0.3); }
+
+  .question-bubble {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 20px;
+    padding: 20px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    position: relative;
+    border-left: 5px solid var(--neon-blue);
+    text-align: left;
+    line-height: 1.6;
+  }
+  .btn-voice {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--neon-blue);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-blue);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .choices-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media(min-width: 500px) {
+    .choices-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .choice-btn {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 18px;
+    border: 2px solid rgba(56, 189, 248, 0.4);
+    background: rgba(30, 41, 59, 0.5);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .choice-btn:hover:not(:disabled) { background: rgba(56, 189, 248, 0.15); border-color: var(--neon-blue); transform: translateY(-2px); }
+  .choice-btn.correct { background: rgba(34, 197, 94, 0.35); border-color: rgb(34, 197, 94); color: #fff; text-shadow: 0 0 5px rgba(34, 197, 94, 0.6); }
+  .choice-btn.wrong { background: rgba(239, 68, 68, 0.35); border-color: rgb(239, 68, 68); color: #fff; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Explanation overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #0f172a;
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    border: 3px solid var(--neon-blue);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+  }
+  .modal .result-icon { font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4)); }
+  .exp-step { text-align: left; margin-bottom: 14px; background: rgba(30, 41, 59, 0.6); border-radius: 14px; padding: 12px 16px; border: 1.5px solid rgba(56, 189, 248, 0.2); }
+  .exp-step-title { display: block; font-weight: 700; color: var(--neon-blue); margin-bottom: 4px; font-size: 0.9rem; }
+  .exp-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-light); }
+
+  .stars { font-size: 2.6rem; margin: 12px 0; }
+  
+  /* Certificate printable styling */
+  .cert-box {
+    border: 8px double var(--neon-blue);
+    border-radius: 20px;
+    padding: 30px 20px;
+    margin: 20px 0;
+    background: rgba(15, 23, 42, 0.95);
+    position: relative;
+    overflow: hidden;
+    border-color: var(--neon-purple);
+  }
+  .cert-box::before {
+    content: "🚀";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-box::after {
+    content: "🪐";
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-title { font-family: 'Itim', cursive; color: var(--neon-blue); font-size: 2rem; font-weight: bold; text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
+  .cert-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--neon-purple);
+    border: none;
+    border-bottom: 2px solid var(--neon-blue);
+    text-align: center;
+    background: transparent;
+    width: 80%;
+    font-family: 'Prompt';
+    padding: 4px;
+    outline: none;
+    color: #f472b6;
+  }
+  .cert-body { margin-top: 14px; font-size: 1.1rem; line-height: 1.6; color: var(--text-light); }
+  
+  .leaderboard { text-align: left; margin-top: 20px; background: rgba(30, 41, 59, 0.4); padding: 16px; border-radius: 16px; border: 1.5px dashed rgba(192, 132, 252, 0.4); }
+  .leaderboard h2 { font-size: 1.1rem; color: var(--neon-purple); border-bottom: 2px solid rgba(192, 132, 252, 0.2); padding-bottom: 6px; margin-bottom: 10px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.15); font-size: 0.95rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; border: 4px double var(--neon-purple); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Stars Background -->
+  <div class="stars-background"></div>
+
+  <!-- Screen 1: Registration and Spacesuit Selection -->
+  <div id="screen-register" class="screen active">
+    <div class="card">
+      <div style="font-size:3.8rem; margin-bottom: 10px;">🚀🌌🪐</div>
+      <h1>นักสำรวจอวกาศตัวน้อย</h1>
+      <p class="subtitle">พุ่งทะยานสู่ระบบสุริยะ เรียนรู้เรื่องดวงอาทิตย์ โลก ดวงจันทร์ และดาวเคราะห์ทั้ง 8 ดวง!</p>
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--neon-blue);">1. ใส่ชื่อกัปตันอวกาศตรงนี้ค่ะ:</p>
+      <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ" value="น้องน้ำฟ้า">
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--neon-purple);">2. เลือกชุดอวกาศของกัปตัน:</p>
+      <div class="suit-grid">
+        <div class="suit-card selected" data-id="pink" data-emoji="👩‍🚀" data-name="กัปตันสีชมพู">
+          <div class="suit-emoji">👩‍🚀</div>
+          <div class="suit-name">ชุดอวกาศชมพู</div>
+        </div>
+        <div class="suit-card" data-id="blue" data-emoji="👨‍🚀" data-name="กัปตันสีฟ้า">
+          <div class="suit-emoji">👨‍🚀</div>
+          <div class="suit-name">ชุดอวกาศฟ้า</div>
+        </div>
+        <div class="suit-card" data-id="gold" data-emoji="🚀" data-name="กัปตันกระสวยสีทอง">
+          <div class="suit-emoji">🚀</div>
+          <div class="suit-name">กระสวยสีทอง</div>
+        </div>
+        <div class="suit-card" data-id="alien" data-emoji="👾" data-name="เอเลี่ยนน้อยเป็นมิตร">
+          <div class="suit-emoji">👾</div>
+          <div class="suit-name">เอเลี่ยนน้อย</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-pink" id="btn-start" style="width: 100%; max-width: 320px; font-size: 1.2rem; margin-top: 10px;">ปล่อยยานอวกาศพุ่งทะยาน 🚀</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Game Screen -->
+  <div id="screen-game" class="screen">
+    <!-- HUD Header -->
+    <div class="hud">
+      <span class="hud-title" id="game-title-hud">🚀 ด่านสำรวจอวกาศ</span>
+      <div class="hud-right">
+        <span id="hud-score" style="font-weight: 700; color: var(--neon-blue);">คะแนน: 0</span>
+        <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
+      </div>
+    </div>
+
+    <!-- Orbital Map Checkpoints -->
+    <div class="map-container">
+      <div class="orbit-line"></div>
+      <div class="checkpoints-wrapper" id="checkpoints-wrapper">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Main Game Card -->
+    <div class="scene">
+      <div class="guide-display">
+        <div class="guide-avatar" id="guide-avatar">👩‍🚀</div>
+        <div class="guide-name" id="guide-name">กัปตันสีชมพู</div>
+      </div>
+      
+      <div class="question-bubble">
+        <button class="btn-voice" id="btn-speak">🔊</button>
+        <span id="question-text">กัปตันน้ำฟ้าคะ ยานกำลังจะเข้าสู่วงโคจรแล้ว...</span>
+      </div>
+      
+      <div class="choices-grid" id="choices-grid">
+        <!-- Choice buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Explanation Modal Overlay -->
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <h2 id="result-title" style="margin-bottom: 12px; color: var(--neon-blue);">ถูกต้องยอดเยี่ยมมากกัปตัน!</h2>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🛰️ สรุปเหตุผลอวกาศ</span>
+        <div class="exp-text" id="exp-method">-</div>
+      </div>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🌌 ความรู้ระบบสุริยะ</span>
+        <div class="exp-text" id="exp-principle">-</div>
+      </div>
+      
+      <button class="btn btn-pink" id="btn-next" style="padding: 10px 30px;">บินไปดาวถัดไป 🚀</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Summary & Certificate Screen -->
+  <div id="screen-summary" class="screen">
+    <div class="card" id="print-area">
+      <div style="font-size:3.5rem;">🌌🏆👩‍🚀</div>
+      <h1 style="color:var(--neon-blue); margin-bottom: 5px;">สำรวจระบบสุริยะสำเร็จแล้ว!</h1>
+      <p style="color: var(--neon-purple); font-weight: 700;">กัปตันน้ำฟ้านำยานสำรวจอวกาศครบ 10 ด่านอย่างสมเกียรติ</p>
+      
+      <div class="stars" id="stars-display">⭐⭐⭐</div>
+      <p style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-light);">
+        ได้คะแนนรวม <span id="summary-score" style="font-weight:700; color:var(--neon-blue);">0</span> คะแนน (ตอบถูกต้อง <span id="summary-correct">0</span>/10 ด่าน)
+      </p>
+
+      <!-- Printable Certificate -->
+      <div class="cert-box">
+        <div class="cert-title">เกียรติบัตรนักบินอวกาศน้อย</div>
+        <p style="margin: 8px 0; font-size: 0.95rem; color: var(--text-muted);">เกียรติบัตรฉบับนี้มอบให้เพื่อแสดงว่า</p>
+        <input type="text" id="cert-name" class="cert-name" readonly value="น้องน้ำฟ้า">
+        <div class="cert-body">
+          ได้เดินทางสำรวจ <strong>"ระบบสุริยะแสนสนุก"</strong> ผ่านอุปสรรคดาวเคราะห์และแก๊สยักษ์<br>
+          มีความรู้ความเข้าใจดาราศาสตร์เบื้องต้น พืชระบบดวงดาว วิทยาศาสตร์อวกาศ ป.2 ดีเยี่ยม!
+        </div>
+        <p style="margin-top: 16px; font-size: 0.9rem; color: var(--neon-purple);">
+          หัวหน้ากัปตันอวกาศ: <span id="cert-witness" style="font-weight: 700;">กัปตันสีชมพู 👩‍🚀</span>
+        </p>
+        <p style="margin-top: 4px; font-size: 0.85rem; color: var(--text-muted);">
+          วันที่อนุมัติเกียรติบัตร: <span id="cert-date">-</span>
+        </p>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="leaderboard">
+        <h2>🏅 นักบินอวกาศยอดเยี่ยม (5 อันดับสูงสุด)</h2>
+        <div id="leaderboard-list">
+          <!-- Leaderboard Rows -->
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center; width:100%;">
+      <button class="btn btn-pink" id="btn-print">🖨️ พิมพ์เกียรติบัตร</button>
+      <button class="btn btn-amber" id="btn-again">🔄 เริ่มสำรวจรอบใหม่</button>
+      <button class="btn btn-blue" id="btn-home" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">🏡 กลับหน้าหลัก</button>
+    </div>
+  </div>
+
+<script>
+  const LEADERBOARD_KEY = 'space_leaderboard';
+  const TOTAL_QUESTIONS = 10;
+
+  // Astronaut suit options
+  const SUITS = {
+    pink: { emoji: '👩‍🚀', name: 'กัปตันสีชมพู', msg: 'กัปตันน้ำฟ้าคะ ยานชุดสีชมพูของพวกเราพร้อมพุ่งชนความรู้อวกาศแล้วค่ะ!' },
+    blue: { emoji: '👨‍🚀', name: 'กัปตันสีฟ้า', msg: 'พร้อมปฏิบัติภารกิจกัปตันน้ำฟ้า! ยานสีฟ้ากำลังคำนวณวงโคจรระบบสุริยะครับ!' },
+    gold: { emoji: '🚀', name: 'กัปตันกระสวยสีทอง', msg: 'ฟิ้วว! กระสวยสีทองเร่งเครื่องยนต์ไอพ่นเต็มร้อย พร้อมออกสำรวจแล้วค่ะ!' },
+    alien: { emoji: '👾', name: 'เอเลี่ยนน้อยเป็นมิตร', msg: 'กิ๊งก่อง! ปิ๊บๆ! เอเลี่ยนต่างดาวพร้อมต้อนรับน้ำฟ้าไปเล่นที่ดาวของพวกเราแล้วน้า!' }
+  };
+
+  // 10 Space Trekking checkpoints (Astronomy & Solar System Grade 2)
+  const QUESTIONS = [
+    {
+      id: 1,
+      emoji: '☀️',
+      label: 'ดวงอาทิตย์',
+      title: "ด่านที่ 1: ดวงอาทิตย์ศูนย์กลางระบบสุริยะ ☀️",
+      scenario: "ยานอวกาศของเรากำลังแล่นผ่านสถานีตรวจวัดความร้อน น้องน้ำฟ้าคิดว่า 'ดวงอาทิตย์' ที่เป็นจุดศูนย์กลางของระบบสุริยะ เป็นดาวประเภทใดคะ?",
+      choices: ["ดาวฤกษ์ (มีแสงในตัวเอง)", "ดาวเคราะห์ (ไม่มีแสงในตัวเอง)", "ดาวหาง (มีหางเป็นน้ำแข็ง)", "ดาวเทียม (มนุษย์สร้างขึ้น)"],
+      answer: "ดาวฤกษ์ (มีแสงในตัวเอง)",
+      speakPrompt: "ด่านที่หนึ่ง ดวงอาทิตย์ศูนย์กลางระบบสุริยะ ดวงอาทิตย์ที่เป็นจุดศูนย์กลางของระบบสุริยะ เป็นดาวประเภทใดคะ",
+      method: "ดวงอาทิตย์เป็น ดาวฤกษ์ (Star) ซึ่งเป็นจุดศูนย์กลางระบบสุริยะ มีมวลมหาศาล ร้อนจัด และคอยส่องแสงสว่างกับความอบอุ่นให้โลกของเราค่ะ",
+      principle: "ดาวฤกษ์ คือ ดาวที่มีแสงสว่างในตัวเอง (เช่น ดวงอาทิตย์) ส่วนดาวเคราะห์จะไม่มีแสงในตัวเอง (เช่น โลก ดาวพุธ ดาวศุกร์)"
+    },
+    {
+      id: 2,
+      emoji: '☄️',
+      label: 'ดาวพุธ',
+      title: "ด่านที่ 2: ดาวพุธเตาไฟแช่แข็ง ☄️",
+      scenario: "กัปตันคะ ยานเดินทางมาถึงดาวเคราะห์ที่อยู่ใกล้ดวงอาทิตย์มากที่สุด ซึ่งด้านที่โดนแดดจะร้อนมากแต่ด้านหลังจะหนาวจัดจนมีฉายาว่า 'เตาไฟแช่แข็ง' ดาวดวงนี้คือดาวอะไรคะ?",
+      choices: ["ดาวพุธ (Mercury)", "ดาวศุกร์ (Venus)", "ดาวพฤหัสบดี (Jupiter)", "ดาวอังคาร (Mars)"],
+      answer: "ดาวพุธ (Mercury)",
+      speakPrompt: "ด่านที่สอง ดาวพุธเตาไฟแช่แข็ง ดาวเคราะห์ที่อยู่ใกล้ดวงอาทิตย์มากที่สุดและมีฉายาว่า เตาไฟแช่แข็ง คือดาวดวงใดคะ",
+      method: "ดาวพุธ (Mercury) อยู่ใกล้ดวงอาทิตย์ที่สุด และไม่มีชั้นบรรยากาศคอยเก็บความร้อน ทำให้ด้านที่หันหาดวงอาทิตย์ร้อนจัด (เตาไฟ) และอีกด้านหนาวจัด (แช่แข็ง) ค่ะ",
+      principle: "ดาวพุธเป็นดาวเคราะห์ขนาดเล็กที่สุดในระบบสุริยะชั้นใน ไม่มีดวงจันทร์บริวาร และเป็นดวงดาวที่ไร้บรรยากาศ"
+    },
+    {
+      id: 3,
+      emoji: '🌟',
+      label: 'ดาวศุกร์',
+      title: "ด่านที่ 3: ดาวศุกร์ดาวที่ร้อนที่สุด 🌟",
+      scenario: "ยานอวกาศตรวจพบว่า 'ดาวศุกร์' เป็นดาวเคราะห์ที่ร้อนที่สุดในระบบสุริยะ (สูงถึง 470°C) ทั้งๆ ที่ไม่ได้อยู่ใกล้ดวงอาทิตย์ที่สุด เหตุใดดาวศุกร์ถึงร้อนขนาดนี้คะ?",
+      choices: [
+        "เพราะมีแก๊สคาร์บอนเรือนกระจกหนาแน่นคอยกักเก็บความร้อน",
+        "เพราะมีดวงอาทิตย์สองดวงคอยส่องแสง",
+        "เพราะดาวศุกร์ทำมาจากไฟร้อนทั้งหมด",
+        "เพราะไม่มีชั้นบรรยากาศมาช่วยป้องกันลมสุริยะ"
+      ],
+      answer: "เพราะมีแก๊สคาร์บอนเรือนกระจกหนาแน่นคอยกักเก็บความร้อน",
+      speakPrompt: "ด่านที่สาม ดาวศุกร์ดาวที่ร้อนที่สุด เหตุใดดาวศุกร์ถึงร้อนที่สุดในระบบสุริยะคะ",
+      method: "ดาวศุกร์มีชั้นบรรยากาศหนาแน่นที่เต็มไปด้วยแก๊สคาร์บอนไดออกไซด์ เกิดเอฟเฟกต์เรือนกระจกกักเก็บความร้อนเอาไว้จนระบายไม่ได้ ทำให้ร้อนกว่าดาวพุธค่ะ",
+      principle: "ดาวศุกร์ (Venus) เป็นดาวเคราะห์ฝาแฝดกับโลกเพราะขนาดใกล้เคียงกัน แต่สภาพแวดล้อมร้อนระอุและแห้งแล้งมาก"
+    },
+    {
+      id: 4,
+      emoji: '🌍',
+      label: 'โลก',
+      title: "ด่านที่ 4: โลกบ้านแสนอบอุ่น 🌍",
+      scenario: "ยานของพวกเราแล่นกลับมามองดูโลกสีน้ำเงินสวยงาม น้องน้ำฟ้าคิดว่า ปัจจัยสำคัญที่สุดข้อใดที่ทำให้ 'โลก' มีสิ่งมีชีวิตอาศัยอยู่ แต่ดาวดวงอื่นไม่มีคะ?",
+      choices: [
+        "มีน้ำในสถานะของเหลว อากาศหายใจ และอุณหภูมิที่พอดี",
+        "มีทองคำและเพชรพลอยจำนวนมากใต้ดิน",
+        "มีภูเขาน้ำแข็งล้อมรอบดวงดาวทั้งหมด",
+        "มีวงแหวนคริสตัลเรืองแสงช่วยส่องทาง"
+      ],
+      answer: "มีน้ำในสถานะของเหลว อากาศหายใจ และอุณหภูมิที่พอดี",
+      speakPrompt: "ด่านที่สี่ โลกบ้านแสนอบอุ่น ปัจจัยสำคัญที่สุดข้อใดที่ทำให้ โลก มีสิ่งมีชีวิตอาศัยอยู่คะ",
+      method: "โลกอยู่ห่างดวงอาทิตย์เป็นระยะที่เหมาะสม (Goldilocks Zone) จึงมีอุณหภูมิพอดี มีน้ำสำหรับดื่มกิน และมีออกซิเจนในบรรยากาศให้หายใจค่ะ",
+      principle: "โลก (Earth) เป็นดาวเคราะห์ดวงเดียวในระบบสุริยะปัจจุบันที่ยืนยันว่ามีสิ่งมีชีวิต มีน้ำปกคลุมพื้นที่ถึง 3 ใน 4 ส่วนของดาว"
+    },
+    {
+      id: 5,
+      emoji: '🌕',
+      label: 'ดวงจันทร์',
+      title: "ด่านที่ 5: แสงสะท้อนของดวงจันทร์ 🌕",
+      scenario: "เราพบดวงจันทร์บริวารดวงกลมโตของโลก น้องน้ำฟ้ารู้ไหมคะว่าดวงจันทร์ไม่มีแสงในตัวเอง แต่ทำไมเราถึงเห็นดวงจันทร์ส่องแสงสว่างนวลในตอนกลางคืนได้คะ?",
+      choices: [
+        "เพราะดวงจันทร์สะท้อนแสงจากดวงอาทิตย์มาเข้าตาเรา",
+        "เพราะผิวดวงจันทร์ทาสีสะท้อนแสงนีออนเอาไว้",
+        "เพราะมีสปอตไลต์ของเอเลี่ยนส่องออกมาจากหลุม",
+        "เพราะดวงจันทร์เป็นดาวฤกษ์ดวงเล็กๆ"
+      ],
+      answer: "เพราะดวงจันทร์สะท้อนแสงจากดวงอาทิตย์มาเข้าตาเรา",
+      speakPrompt: "ด่านที่ห้า แสงสะท้อนของดวงจันทร์ ทำไมเราถึงเห็นดวงจันทร์ส่องแสงสว่างนวลในตอนกลางคืนได้คะ",
+      method: "ดวงจันทร์ไม่มีแสงในตัวเองเหมือนโลก แต่มีพื้นผิวที่เป็นหินคอยสะท้อนแสงสว่างส่องมาจากดวงอาทิตย์ แล้วส่งมายังโลกทำให้เราเห็นแสงนวลค่ะ",
+      principle: "ดวงจันทร์ (The Moon) เป็นดาวบริวารของโลก หมุนรอบตัวเองและโคจรรอบโลก ใช้เวลาประมาณ 30 วัน เกิดเป็นปรากฏการณ์ข้างขึ้นข้างแรม"
+    },
+    {
+      id: 6,
+      emoji: '🔴',
+      label: 'ดาวอังคาร',
+      title: "ด่านที่ 6: ดาวอังคารดาวเคราะห์สีแดง 🔴",
+      scenario: "พวกเราจอดเทียบข้างดาวอังคารที่มีสีส้มแดงเด่นชัด น้องน้ำฟ้าคิดว่าสีส้มแดงบนพื้นผิวดาวอังคารส่วนใหญ่เกิดมาจากสิ่งใดคะ?",
+      choices: ["สนิมเหล็กหรือเหล็กออกไซด์บนฝุ่นหิน", "ลาวาร้อนที่พ่นสีแดงออกมา", "ดินน้ำมันสีแดงของเอเลี่ยน", "หญ้าป่าสีแดงขึ้นทั่วดาว"],
+      answer: "สนิมเหล็กหรือเหล็กออกไซด์บนฝุ่นหิน",
+      speakPrompt: "ด่านที่หก ดาวอังคารดาวเคราะห์สีแดง สีส้มแดงบนพื้นผิวดาวอังคารส่วนใหญ่เกิดมาจากสิ่งใดคะ",
+      method: "หินและฝุ่นดินบนดาวอังคารมีแร่เหล็กประกอบอยู่สูงมาก เมื่อทำปฏิกิริยาเคมีจึงเกิดเป็น สนิมเหล็ก (Iron Oxide) สีแดงอิฐปกคลุมดาวทั้งดวงค่ะ",
+      principle: "ดาวอังคาร (Mars) เป็นดาวเคราะห์หินดวงสุดท้ายของวงโคจรชั้นใน มีขนาดเล็กกว่าโลกครึ่งหนึ่ง และมีภูเขาไฟ Olympus Mons สูงที่สุดในระบบสุริยะ"
+    },
+    {
+      id: 7,
+      emoji: '🌀',
+      label: 'ดาวพฤหัสบดี',
+      title: "ด่านที่ 7: จุดแดงใหญ่ดาวพฤหัส 🌀",
+      scenario: "กัปตันคะ ยานแล่นมาถึงดาวพฤหัสบดีซึ่งเป็นดาวเคราะห์แก๊สยักษ์ใหญ่โตที่สุด บนพื้นผิวตรวจพบ 'จุดแดงใหญ่' ขนาดมหึมา มันคืออะไรคะ?",
+      choices: [
+        "พายุหมุนขนาดยักษ์ที่หมุนวนมาหลายร้อยปี",
+        "แผ่นดินไหวขนาดใหญ่ของดาวเคราะห์หิน",
+        "ปล่องภูเขาไฟทองคำพ่นไฟสีแดง",
+        "มหาสมุทรน้ำร้อนที่เดือดอยู่ตลอดเวลา"
+      ],
+      answer: "พายุหมุนขนาดยักษ์ที่หมุนวนมาหลายร้อยปี",
+      speakPrompt: "ด่านที่เจ็ด จุดแดงใหญ่ดาวพฤหัส บนพื้นผิวตรวจพบจุดแดงใหญ่ขนาดมหึมา มันคืออะไรคะ",
+      method: "ดาวพฤหัสบดีเป็นดาวเคราะห์แก๊ส ไม่มีแผ่นดินแข็ง และจุดแดงใหญ่ (Great Red Spot) ก็คือ พายุหมุนที่ทรงพลังขนาดกว้างใหญ่กว่าโลก หมุนมานานกว่า 300 ปีแล้วค่ะ",
+      principle: "ดาวพฤหัสบดี (Jupiter) มีมวลรวมกันมากกว่าดาวเคราะห์ทุกดวงรวมกัน มีแรงดึงดูดสูงมาก และมีดวงจันทร์บริวารมากกว่า 90 ดวง"
+    },
+    {
+      id: 8,
+      emoji: '🪐',
+      label: 'ดาวเสาร์',
+      title: "ด่านที่ 8: วงแหวนล้อมรอบของดาวเสาร์ 🪐",
+      scenario: "ยานแล่นผ่านวงแหวนแสนสวยงามของ 'ดาวเสาร์' วงแหวนประกายวิบวับเหล่านั้นส่วนใหญ่สร้างขึ้นมาจากวัสดุประเภทใดคะ?",
+      choices: [
+        "ก้อนน้ำแข็ง ฝุ่น และเศษหินอวกาศ",
+        "ควันไฟและมลพิษจากโรงงานเอเลี่ยน",
+        "สายรุ้งเจ็ดสีพันรอบดาวเคราะห์",
+        "แผ่นกระจกเงายักษ์สะท้อนแสงดวงอาทิตย์"
+      ],
+      answer: "ก้อนน้ำแข็ง ฝุ่น และเศษหินอวกาศ",
+      speakPrompt: "ด่านที่แปด วงแหวนล้อมรอบของดาวเสาร์ วงแหวนประกายเหล่านั้นส่วนใหญ่สร้างขึ้นมาจากวัสดุประเภทใดคะ",
+      method: "วงแหวนดาวเสาร์ไม่ได้เป็นของแข็งแผ่นเดียว แต่ประกอบด้วยเศษก้อนน้ำแข็ง เศษหิน และฝุ่นอวกาศจำนวนล้านล้านชิ้น โคจรขนานกันจนมองดูเหมือนแผ่นจานสวยงามค่ะ",
+      principle: "ดาวเสาร์ (Saturn) เป็นดาวเคราะห์ดวงที่ 6 มีความหนาแน่นต่ำมาก (น้อยกว่าน้ำ) หากมีอ่างน้ำใหญ่พอ ดาวเสาร์จะลอยน้ำได้"
+    },
+    {
+      id: 9,
+      emoji: '🔵',
+      label: 'ดาวยูเรนัส',
+      title: "ด่านที่ 9: ดาวเคราะห์ยักษ์น้ำแข็งสีน้ำเงิน 🔵",
+      scenario: "เราบินมาถึงดาวยูเรนัสและดาวเนปจูน ซึ่งมีสีฟ้าและน้ำเงินเข้มเพราะแก๊สชนิดใดในชั้นบรรยากาศที่ดูดกลืนแสงสีแดงไว้แล้วสะท้อนสีน้ำเงินออกมาคะ?",
+      choices: ["แก๊สมีเทน (Methane)", "แก๊สออกซิเจน (Oxygen)", "แก๊สฮีเลียม (Helium)", "แก๊สไฮโดรเจน (Hydrogen)"],
+      answer: "แก๊สมีเทน (Methane)",
+      speakPrompt: "ด่านที่เก้า ดาวเคราะห์ยักษ์น้ำแข็งสีน้ำเงิน ดาวยูเรนัสและดาวเนปจูนมีสีฟ้าเพราะแก๊สชนิดใดคะ",
+      method: "แก๊สมีเทน (Methane) ในชั้นบรรยากาศชั้นบนของดาวจะคอยดูดกลืนคลื่นแสงสีแดงจากดวงอาทิตย์เอาไว้ และปล่อยให้เฉพาะแสงโทนน้ำเงินสะท้อนกลับออกไปค่ะ",
+      principle: "ยูเรนัสและเนปจูนเป็นดาวเคราะห์ยักษ์น้ำแข็ง (Ice Giants) อยู่ไกลดวงอาทิตย์มากที่สุด อุณหภูมิพื้นผิวหนาวเย็นติดลบถึง -200 องศาเซลเซียส"
+    },
+    {
+      id: 10,
+      emoji: '🌓',
+      label: 'กลางวันกลางคืน',
+      title: "ด่านที่ 10: การเกิดกลางวันและกลางคืน 🌓",
+      scenario: "ก่อนนำยานจอดสู่โลก น้องน้ำฟ้ารู้ไหมคะว่า ปรากฏการณ์ 'กลางวันและกลางคืน' เกิดขึ้นเพราะการเคลื่อนที่ลักษณะใดดาราศาสตร์คะ?",
+      choices: [
+        "โลกหมุนรอบตัวเองไปเรื่อยๆ ในขณะโคจรรอบดวงอาทิตย์",
+        "ดวงอาทิตย์โคจรรอบโลกครึ่งวงกลมสลับดวงจันทร์",
+        "ดวงจันทร์โคจรมาบดบังดวงอาทิตย์ทุกๆ 12 ชั่วโมง",
+        "แกแล็กซีทางช้างเผือกปิดสวิตช์พลังงานไฟฟ้ากลางคืน"
+      ],
+      answer: "โลกหมุนรอบตัวเองไปเรื่อยๆ ในขณะโคจรรอบดวงอาทิตย์",
+      speakPrompt: "ด่านที่สิบ การเกิดกลางวันและกลางคืน ปรากฏการณ์กลางวันและกลางคืนเกิดขึ้นเพราะอะไรคะ",
+      method: "โลกหมุนรอบตัวเองครบรอบใช้เวลา 24 ชั่วโมง (1 วัน) ทำให้ส่วนที่หันเข้าหาแสงอาทิตย์เกิดกลางวัน และส่วนหลังที่มืดเกิดกลางคืนสลับกันเรื่อยๆ ค่ะ",
+      principle: "โลกหมุนรอบตัวเองทำให้เกิดกลางวันกลางคืน (24 ชม.) และโลกโคจรรอบดวงอาทิตย์ทำให้เกิดฤดูกาลต่างๆ (365 วัน หรือ 1 ปี)"
+    }
+  ];
+
+  let playerName = 'น้องน้ำฟ้า';
+  let soundOn = true;
+  let score = 0;
+  let correctCount = 0;
+  let currentIndex = 0;
+  let selectedSuitId = 'pink';
+
+  // Space Web Audio Synthesizer
+  const synth = {
+    ctx: null,
+    init() {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    },
+    tone(freq, dur, type = 'sine') {
+      if (!soundOn || !this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+      } catch (e) {
+        console.warn('Synth tone failed:', e);
+      }
+    },
+    correct() {
+      // Space beam rising tone
+      this.tone(600, 0.1, 'sine');
+      setTimeout(() => this.tone(900, 0.12, 'sine'), 80);
+      setTimeout(() => this.tone(1200, 0.2, 'sine'), 160);
+    },
+    wrong() {
+      // Descending warning pulse
+      this.tone(300, 0.2, 'triangle');
+      setTimeout(() => this.tone(180, 0.3, 'sawtooth'), 120);
+    },
+    victory() {
+      // Space telemetry fanfare
+      const melody = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
+      melody.forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.35, 'sine'), i * 100);
+      });
+    }
+  };
+
+  // Web Speech Text to Speech in Thai
+  function speakText(text) {
+    window.speechSynthesis.cancel();
+    if (!soundOn) return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.93;
+      utterance.pitch = 1.15;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+    }
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const scr = document.getElementById(id);
+    if (scr) scr.classList.add('active');
+  }
+
+  // Orbit trail visualization mapping
+  function renderOrbitMap() {
+    const wrapper = document.getElementById('checkpoints-wrapper');
+    wrapper.innerHTML = '';
+    
+    QUESTIONS.forEach((q, idx) => {
+      const dotWrapper = document.createElement('div');
+      dotWrapper.className = 'checkpoint-dot-wrapper';
+      
+      // Hiker walking icon on the active one
+      if (idx === currentIndex) {
+        const hiker = document.createElement('div');
+        hiker.className = 'shuttle-avatar';
+        hiker.innerText = '🚀👨‍🚀';
+        dotWrapper.appendChild(hiker);
+      }
+      
+      const dot = document.createElement('div');
+      dot.className = 'checkpoint-dot';
+      
+      // Class status
+      if (idx < currentIndex) {
+        dot.classList.add('completed');
+        dot.innerText = '✅';
+      } else if (idx === currentIndex) {
+        dot.classList.add('active');
+        dot.innerText = q.emoji;
+      } else {
+        dot.classList.add('locked');
+        dot.innerText = idx + 1;
+      }
+      
+      const label = document.createElement('span');
+      label.className = 'checkpoint-label';
+      label.innerText = q.label;
+      
+      dotWrapper.appendChild(dot);
+      dotWrapper.appendChild(label);
+      wrapper.appendChild(dotWrapper);
+    });
+
+    // Auto scroll map center
+    setTimeout(() => {
+      const activeDot = wrapper.querySelector('.checkpoint-dot.active');
+      if (activeDot) {
+        activeDot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }, 200);
+  }
+
+  function updateHUD() {
+    document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= TOTAL_QUESTIONS) {
+      endGame();
+      return;
+    }
+    
+    renderOrbitMap();
+    updateHUD();
+    
+    const q = QUESTIONS[currentIndex];
+    document.getElementById('question-text').innerText = q.scenario;
+    document.getElementById('game-title-hud').innerText = `🚀 ด่านที่ ${currentIndex + 1}/10`;
+
+    const grid = document.getElementById('choices-grid');
+    grid.innerHTML = '';
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.addEventListener('click', () => handleAnswer(choice, btn, q));
+      grid.appendChild(btn);
+    });
+
+    // Auto speak
+    setTimeout(() => {
+      speakText(q.speakPrompt);
+    }, 500);
+  }
+
+  function handleAnswer(selected, btnEl, q) {
+    const grid = document.getElementById('choices-grid');
+    const buttons = grid.querySelectorAll('.choice-btn');
+    
+    // Disable all choices and show correct
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (b.innerText === q.answer) {
+        b.classList.add('correct');
+      }
+    });
+
+    const isCorrect = selected === q.answer;
+    if (isCorrect) {
+      score += 10;
+      correctCount++;
+      synth.correct();
+    } else {
+      btnEl.classList.add('wrong');
+      synth.wrong();
+    }
+
+    setTimeout(() => showExplanation(isCorrect, q), 900);
+  }
+
+  function showExplanation(isCorrect, q) {
+    const suit = SUITS[selectedSuitId];
+    
+    document.getElementById('result-icon').innerText = isCorrect ? '🎉' : '💡';
+    document.getElementById('result-title').innerText = isCorrect 
+      ? `ถูกต้องค่ะกัปตันน้ำฟ้า ${suit.emoji}` 
+      : `ไม่เป็นไรค่ะมาเรียนรู้ดวงดาวกันนะ ${suit.emoji}`;
+      
+    document.getElementById('exp-method').innerText = q.method;
+    document.getElementById('exp-principle').innerText = q.principle;
+
+    // Speak explanation
+    const speakExplanation = (isCorrect ? 'ถูกต้องเก่งมากค่ะ! ' : 'มาวิเคราะห์ดาวเคราะห์กันนะคะ! ') + q.method;
+    speakText(speakExplanation);
+
+    document.getElementById('explanation-overlay').classList.add('active');
+  }
+
+  function endGame() {
+    synth.victory();
+    
+    // Set scores
+    document.getElementById('summary-score').innerText = score;
+    document.getElementById('summary-correct').innerText = correctCount;
+    
+    // Stars calculation
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    
+    // Certificate prefill
+    const nameToCert = playerName || 'น้องน้ำฟ้า';
+    document.getElementById('cert-name').value = nameToCert;
+    
+    const suit = SUITS[selectedSuitId];
+    document.getElementById('cert-witness').innerText = `${suit.name} ${suit.emoji}`;
+    
+    const today = new Date();
+    document.getElementById('cert-date').innerText = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Speak end of game
+    setTimeout(() => {
+      speakText(`ยินดีด้วยค่ะกัปตันน้ำฟ้า! สำรวจระบบสุริยะพิจารณาดาวเคราะห์สำเร็จลุล่วง ได้คะแนนทั้งหมด ${score} คะแนนค่ะ เก่งกาจที่สุดในแกแล็กซีเลยค่ะ`);
+    }, 400);
+
+    saveLeaderboard();
+    renderLeaderboard();
+    
+    showScreen('screen-summary');
+  }
+
+  function saveLeaderboard() {
+    const entry = { name: playerName, score, date: new Date().toLocaleDateString('th-TH') };
+    
+    // Save LocalStorage
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+
+    // Save Firebase
+    if (typeof fbSaveScore === 'function') {
+      fbSaveScore(LEADERBOARD_KEY, entry);
+    }
+  }
+
+  function renderLeaderboardList(list) {
+    const el = document.getElementById('leaderboard-list');
+    el.innerHTML = '';
+    
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div class="lb-row" style="justify-content:center;">ยังไม่มีนักสำรวจดวงดาวค่ะ จอดจานบินคนแรกกันเถอะ! 🚀</div>';
+      return;
+    }
+    
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <span style="font-weight: 700; color:var(--neon-blue);">${idx + 1}. 🚀 ${entry.name}</span>
+        <span style="color:var(--neon-purple); font-weight:700;">${entry.score} คะแนน (${entry.date || '-'})</span>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderLeaderboard() {
+    // Local storage fallback
+    const localList = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    renderLeaderboardList(localList);
+
+    // Firebase database load
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(LEADERBOARD_KEY, (cloudList) => {
+        if (cloudList && cloudList.length) {
+          renderLeaderboardList(cloudList);
+        }
+      });
+    }
+  }
+
+  function initGame() {
+    // Prefill name
+    const savedName = localStorage.getItem('tutorStudentName') || 'น้องน้ำฟ้า';
+    document.getElementById('input-name').value = savedName;
+
+    // Suit Card Click Selection
+    const suitCards = document.querySelectorAll('.suit-card');
+    suitCards.forEach(card => {
+      card.addEventListener('click', () => {
+        suitCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedSuitId = card.getAttribute('data-id');
+        
+        // Voice response
+        synth.init();
+        const suit = SUITS[selectedSuitId];
+        speakText(suit.msg);
+      });
+    });
+
+    // Start Button Click
+    document.getElementById('btn-start').addEventListener('click', () => {
+      playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+      localStorage.setItem('tutorStudentName', playerName); // Keep name synced
+      
+      const suit = SUITS[selectedSuitId];
+      document.getElementById('guide-avatar').innerText = suit.emoji;
+      document.getElementById('guide-name').innerText = suit.name;
+
+      synth.init();
+      
+      // Log visit to Firebase
+      if (typeof fbLogActivity === 'function') {
+        fbLogActivity(playerName, `นักสำรวจอวกาศตัวน้อย (อวกาศระบบสุริยะ ป.2) - ยาน: ${suit.name}`);
+      }
+
+      score = 0;
+      correctCount = 0;
+      currentIndex = 0;
+
+      showScreen('screen-game');
+      loadQuestion();
+    });
+
+    // Speak Question Button
+    document.getElementById('btn-speak').addEventListener('click', () => {
+      if (currentIndex < TOTAL_QUESTIONS) {
+        speakText(QUESTIONS[currentIndex].speakPrompt);
+      }
+    });
+
+    // Audio sound control toggle
+    const soundToggleBtn = document.getElementById('btn-toggle-sound');
+    soundToggleBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
+      if (!soundOn) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Next Question Button inside explanation overlay
+    document.getElementById('btn-next').addEventListener('click', () => {
+      document.getElementById('explanation-overlay').classList.remove('active');
+      window.speechSynthesis.cancel();
+      currentIndex++;
+      loadQuestion();
+    });
+
+    // Play again click
+    document.getElementById('btn-again').addEventListener('click', () => {
+      showScreen('screen-register');
+    });
+
+    // Print certificate
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Return to dashboard
+    document.getElementById('btn-home').addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      window.location.href = 'index.html';
+    });
+  }
+
+  // Start init
+  initGame();
+</script>
+</body>
+</html>

@@ -1410,6 +1410,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const spaceBtn = document.getElementById('btn-select-space');
+  if (spaceBtn) {
+    spaceBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('เตรียมตัวพุ่งทะยานสู่อวกาศกันเลยค่ะน้ำฟ้า! 🚀', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'space.html';
+      }, 1000);
+    });
+  }
+
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

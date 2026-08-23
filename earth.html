@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นักสำรวจใต้พิภพตัวน้อย | สำหรับ น้องน้ำฟ้า 💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-gate.js"></script>
+<script src="firebase-helpers.js"></script>
+<style>
+  :root {
+    --earth-dark: #2a0800;
+    --earth-medium: #7c2d12;
+    --earth-light: #fb923c;
+    --magma: #ef4444;
+    --gold: #fbbf24;
+    --text-light: #ffedd5;
+    --text-muted: #fed7aa;
+    --rock-grey: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Prompt', 'Itim', sans-serif;
+    background: linear-gradient(180deg, #431407 0%, #290800 50%, #1c0500 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: var(--text-light);
+    overflow-x: hidden;
+  }
+
+  /* Animated Falling Dust/Debris Effect */
+  .dust-container {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .dust {
+    position: absolute;
+    top: -20px;
+    background: rgba(251, 146, 60, 0.15);
+    border-radius: 2px;
+    animation: fall 8s infinite linear;
+  }
+  @keyframes fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0.1; }
+    50% { opacity: 0.5; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .screen { display: none; width: 100%; max-width: 720px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  .card {
+    background: rgba(67, 20, 7, 0.25);
+    border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(251, 146, 60, 0.15);
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+    border: 2px solid rgba(251, 146, 60, 0.3);
+    backdrop-filter: blur(12px);
+  }
+
+  h1 { font-size: 1.8rem; color: var(--earth-light); margin-bottom: 6px; text-shadow: 0 0 10px rgba(251, 146, 60, 0.4); }
+  h2 { font-size: 1.4rem; color: var(--gold); text-shadow: 0 0 8px rgba(251, 191, 36, 0.3); }
+  .subtitle { color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem; }
+
+  /* Drilling Crew Selection */
+  .drill-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .drill-card {
+    background: rgba(15, 23, 42, 0.55);
+    border: 2px dashed var(--earth-light);
+    border-radius: 18px;
+    padding: 12px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .drill-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(251, 146, 60, 0.25);
+  }
+  .drill-card.selected {
+    background: rgba(251, 146, 60, 0.25);
+    border: 3px solid var(--gold);
+    transform: scale(1.05);
+    box-shadow: 0 0 12px var(--gold);
+  }
+  .drill-emoji { font-size: 2.8rem; margin-bottom: 4px; filter: drop-shadow(0 0 4px rgba(255,255,255,0.4)); }
+  .drill-name { font-weight: 700; font-size: 0.85rem; color: var(--text-light); }
+
+  input.reg-input {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.1rem;
+    padding: 12px 18px;
+    border: 2px solid var(--earth-light);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    outline: none;
+    background: rgba(28, 5, 0, 0.9);
+    color: var(--text-light);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .btn {
+    font-family: 'Prompt', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--earth-medium) 0%, var(--earth-dark) 100%);
+    box-shadow: 0 6px 16px rgba(124, 45, 18, 0.35);
+    transition: all 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(124, 45, 18, 0.5); }
+  
+  .btn-amber {
+    background: linear-gradient(135deg, var(--gold) 0%, #ca8a04 100%);
+    color: #3b2300;
+    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.35);
+  }
+  .btn-amber:hover { box-shadow: 0 8px 20px rgba(251, 191, 36, 0.45); }
+  
+  .btn-magma {
+    background: linear-gradient(135deg, var(--magma) 0%, #991b1b 100%);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+  }
+  .btn-magma:hover { box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); }
+  
+  .hud {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 20px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(251, 146, 60, 0.12);
+    border: 2px solid rgba(251, 146, 60, 0.2);
+  }
+  .hud-title { font-weight: 700; color: var(--earth-light); }
+  .hud-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    background: rgba(15, 23, 42, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: rgba(251, 146, 60, 0.25); }
+
+  /* Vertical Subterranean Descent Map */
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    background: rgba(42, 8, 0, 0.7);
+    border-radius: 24px;
+    padding: 30px 20px;
+    margin-bottom: 16px;
+    border: 2px solid rgba(251, 146, 60, 0.3);
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.5);
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  .descent-line {
+    position: absolute;
+    left: 50%;
+    top: 30px;
+    bottom: 30px;
+    width: 4px;
+    background: transparent;
+    transform: translateX(-50%);
+    z-index: 1;
+    border-left: 2px dashed rgba(251, 146, 60, 0.45);
+  }
+  .checkpoints-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    z-index: 2;
+  }
+  .checkpoint-dot-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+  }
+  .checkpoint-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2.5px solid var(--earth-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    z-index: 2;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    color: var(--text-light);
+  }
+  .checkpoint-dot.completed {
+    background: rgba(124, 45, 18, 0.35);
+    border-color: var(--earth-light);
+    box-shadow: 0 0 10px rgba(251, 146, 60, 0.5);
+  }
+  .checkpoint-dot.active {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: var(--gold);
+    box-shadow: 0 0 16px var(--gold);
+    transform: scale(1.18);
+  }
+  .checkpoint-dot.locked {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.3);
+    filter: grayscale(1);
+    opacity: 0.5;
+  }
+  .checkpoint-label {
+    position: absolute;
+    left: calc(50% + 36px);
+    width: 120px;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-light);
+    background: rgba(124, 45, 18, 0.55);
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(251, 146, 60, 0.2);
+  }
+  /* Alternating left and right labels */
+  .checkpoint-dot-wrapper:nth-child(even) .checkpoint-label {
+    left: auto;
+    right: calc(50% + 36px);
+    text-align: right;
+  }
+  
+  .drill-avatar {
+    position: absolute;
+    left: calc(50% - 68px);
+    font-size: 1.8rem;
+    z-index: 3;
+    animation: drillFloat 0.8s infinite alternate ease-in-out;
+    filter: drop-shadow(0 0 5px var(--earth-light));
+  }
+  .checkpoint-dot-wrapper:nth-child(even) .drill-avatar {
+    left: auto;
+    right: calc(50% - 68px);
+  }
+  @keyframes drillFloat {
+    0% { transform: translateY(-4px) rotate(-3deg); }
+    100% { transform: translateY(4px) rotate(3deg); }
+  }
+
+  /* Game Main Scene */
+  .scene {
+    width: 100%;
+    max-width: 720px;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(124, 45, 18, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+    border: 2px solid rgba(251, 146, 60, 0.2);
+  }
+  .guide-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .guide-avatar { font-size: 3.5rem; margin-bottom: 4px; filter: drop-shadow(0 0 5px var(--earth-light)); }
+  .guide-name { font-size: 0.95rem; font-weight: 700; color: var(--earth-light); background: rgba(251, 146, 60, 0.15); padding: 2px 14px; border-radius: 20px; border: 1px solid rgba(251, 146, 60, 0.3); }
+
+  .question-bubble {
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 20px;
+    padding: 20px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    position: relative;
+    border-left: 5px solid var(--earth-light);
+    text-align: left;
+    line-height: 1.6;
+  }
+  .btn-voice {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--earth-light);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--earth-light);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .choices-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media(min-width: 500px) {
+    .choices-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .choice-btn {
+    font-family: 'Prompt', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 18px;
+    border: 2px solid rgba(251, 146, 60, 0.4);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .choice-btn:hover:not(:disabled) { background: rgba(251, 146, 60, 0.15); border-color: var(--earth-light); transform: translateY(-2px); }
+  .choice-btn.correct { background: rgba(34, 197, 94, 0.35); border-color: rgb(34, 197, 94); color: #fff; text-shadow: 0 0 5px rgba(34, 197, 94, 0.6); }
+  .choice-btn.wrong { background: rgba(239, 68, 68, 0.35); border-color: rgb(239, 68, 68); color: #fff; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Explanation overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #2a0800;
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    border: 3px solid var(--earth-light);
+    box-shadow: 0 0 25px rgba(251, 146, 60, 0.35);
+  }
+  .modal .result-icon { font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4)); }
+  .exp-step { text-align: left; margin-bottom: 14px; background: rgba(15, 23, 42, 0.6); border-radius: 14px; padding: 12px 16px; border: 1.5px solid rgba(251, 146, 60, 0.2); }
+  .exp-step-title { display: block; font-weight: 700; color: var(--earth-light); margin-bottom: 4px; font-size: 0.9rem; }
+  .exp-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-light); }
+
+  .stars { font-size: 2.6rem; margin: 12px 0; }
+  
+  /* Certificate printable styling */
+  .cert-box {
+    border: 8px double var(--earth-light);
+    border-radius: 20px;
+    padding: 30px 20px;
+    margin: 20px 0;
+    background: rgba(15, 23, 42, 0.95);
+    position: relative;
+    overflow: hidden;
+    border-color: var(--gold);
+  }
+  .cert-box::before {
+    content: "🦖";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-box::after {
+    content: "🌋";
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-title { font-family: 'Itim', cursive; color: var(--earth-light); font-size: 2rem; font-weight: bold; text-shadow: 0 0 8px rgba(251, 146, 60, 0.4); }
+  .cert-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    border: none;
+    border-bottom: 2px solid var(--earth-light);
+    text-align: center;
+    background: transparent;
+    width: 80%;
+    font-family: 'Prompt';
+    padding: 4px;
+    outline: none;
+    color: #fb923c;
+  }
+  .cert-body { margin-top: 14px; font-size: 1.1rem; line-height: 1.6; color: var(--text-light); }
+  
+  .leaderboard { text-align: left; margin-top: 20px; background: rgba(15, 23, 42, 0.4); padding: 16px; border-radius: 16px; border: 1.5px dashed rgba(251, 146, 60, 0.4); }
+  .leaderboard h2 { font-size: 1.1rem; color: var(--earth-light); border-bottom: 2px solid rgba(251, 146, 60, 0.2); padding-bottom: 6px; margin-bottom: 10px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.15); font-size: 0.95rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; border: 4px double var(--gold); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Animated Falling Dust Background -->
+  <div class="dust-container" id="dust-container"></div>
+
+  <!-- Screen 1: Registration and Drill Selection -->
+  <div id="screen-register" class="screen active">
+    <div class="card">
+      <div style="font-size:3.8rem; margin-bottom: 10px;">🪨🌋🦖</div>
+      <h1>นักสำรวจใต้พิภพตัวน้อย</h1>
+      <p class="subtitle">ขุดเจาะเจาะลึกทะลวงโลก เรียนรู้เรื่องดิน หิน ซากดึกดำบรรพ์ไดโนเสาร์ และชั้นเนื้อโลกแกนโลก!</p>
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--earth-light);">1. ใส่ชื่อหัวหน้านักเจาะดินตรงนี้ค่ะ:</p>
+      <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ" value="น้องน้ำฟ้า">
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--gold);">2. เลือกเครื่องจักรขุดขุดเจาะ:</p>
+      <div class="drill-grid">
+        <div class="drill-card selected" data-id="excavator" data-emoji="🚜" data-name="ช่างตักดินสีส้ม">
+          <div class="drill-emoji">🚜</div>
+          <div class="drill-name">รถขุดตักส้ม</div>
+        </div>
+        <div class="drill-card" data-id="drill" data-emoji="🚇" data-name="สว่านขุดเจาะแสนเร็ว">
+          <div class="drill-emoji">🚇</div>
+          <div class="drill-name">หัวเจาะแดง</div>
+        </div>
+        <div class="drill-card" data-id="mole" data-emoji="🦡" data-name="พี่ตัวตุ่นนักขุดรวดเร็ว">
+          <div class="drill-emoji">🦡</div>
+          <div class="drill-name">ตัวตุ่นขุดดิน</div>
+        </div>
+        <div class="drill-card" data-id="dino" data-emoji="🦖" data-name="ไดโนเสาร์ขุดกระดูก">
+          <div class="drill-emoji">🦖</div>
+          <div class="drill-name">ไดโนน้อยขุด</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-start" style="width: 100%; max-width: 320px; font-size: 1.2rem; margin-top: 10px;">ติดเครื่องสว่านยนต์ทะลวงโลก 🚜</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: Game Screen -->
+  <div id="screen-game" class="screen">
+    <!-- HUD Header -->
+    <div class="hud">
+      <span class="hud-title" id="game-title-hud">🪨 ด่านสำรวจใต้พิภพ</span>
+      <div class="hud-right">
+        <span id="hud-score" style="font-weight: 700; color: var(--earth-light);">คะแนน: 0</span>
+        <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
+      </div>
+    </div>
+
+    <!-- Vertical Descent Orbit-styled Map -->
+    <div class="map-container" id="map-container">
+      <div class="descent-line"></div>
+      <div class="checkpoints-wrapper" id="checkpoints-wrapper">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Main Game Card -->
+    <div class="scene">
+      <div class="guide-display">
+        <div class="guide-avatar" id="guide-avatar">🚜</div>
+        <div class="guide-name" id="guide-name">ช่างตักดินสีส้ม</div>
+      </div>
+      
+      <div class="question-bubble">
+        <button class="btn-voice" id="btn-speak">🔊</button>
+        <span id="question-text">พร้อมเจาะลึกหรือยังคะกัปตันน้ำฟ้า...</span>
+      </div>
+      
+      <div class="choices-grid" id="choices-grid">
+        <!-- Choice buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Explanation Modal Overlay -->
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <h2 id="result-title" style="margin-bottom: 12px; color: var(--earth-light);">ถูกต้องยอดเยี่ยมมากกัปตัน!</h2>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🪨 สรุปเฉลยโลกใต้พิภพ</span>
+        <div class="exp-text" id="exp-method">-</div>
+      </div>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🌋 ความรู้ธรณีวิทยาปฐพี</span>
+        <div class="exp-text" id="exp-principle">-</div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-next" style="padding: 10px 30px;">เจาะลึกด่านถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Summary & Certificate Screen -->
+  <div id="screen-summary" class="screen">
+    <div class="card" id="print-area">
+      <div style="font-size:3.5rem;">🦖🏆🌋</div>
+      <h1 style="color:var(--earth-light); margin-bottom: 5px;">เจาะลึกแกนโลกสำเร็จแล้ว!</h1>
+      <p style="color: var(--text-muted); font-weight: 700;">กัปตันน้ำฟ้านำรถขุดเจาะสำเร็จลึกครบ 10 ด่านถึงใจกลางโลก</p>
+      
+      <div class="stars" id="stars-display">⭐⭐⭐</div>
+      <p style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-light);">
+        ได้คะแนนรวม <span id="summary-score" style="font-weight:700; color:var(--earth-light);">0</span> คะแนน (ตอบถูกต้อง <span id="summary-correct">0</span>/10 ด่าน)
+      </p>
+
+      <!-- Printable Certificate -->
+      <div class="cert-box">
+        <div class="cert-title">เกียรติบัตรนักธรณีวิทยาจิ๋ว</div>
+        <p style="margin: 8px 0; font-size: 0.95rem; color: var(--text-muted);">เกียรติบัตรฉบับนี้มอบให้เพื่อแสดงว่า</p>
+        <input type="text" id="cert-name" class="cert-name" readonly value="น้องน้ำฟ้า">
+        <div class="cert-body">
+          ได้ขุดเจาะสำรวจ <strong>"โครงสร้างใต้พิภพโลก"</strong> ตั้งแต่ดินหน้าพืช ซากดึกดำบรรพ์ จนถึงแกนกลางโลก<br>
+          มีความรู้ความเข้าใจสมบัติของหิน ดินแต่ละประเภท และชั้นโครงสร้างโลก ป.2 เป็นอย่างดีเยี่ยม!
+        </div>
+        <p style="margin-top: 16px; font-size: 0.9rem; color: var(--gold);">
+          พยานผู้ร่วมทางใต้โลก: <span id="cert-witness" style="font-weight: 700;">ช่างตักดินสีส้ม 🚜</span>
+        </p>
+        <p style="margin-top: 4px; font-size: 0.85rem; color: var(--text-muted);">
+          วันที่สลักเกียรติบัตร: <span id="cert-date">-</span>
+        </p>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="leaderboard">
+        <h2>🏅 นักเจาะดินฝีมือดี (5 อันดับสูงสุด)</h2>
+        <div id="leaderboard-list">
+          <!-- Leaderboard Rows -->
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center; width:100%;">
+      <button class="btn btn-amber" id="btn-print">🖨️ พิมพ์เกียรติบัตร</button>
+      <button class="btn btn-magma" id="btn-again">🔄 เริ่มขุดเจาะรอบใหม่</button>
+      <button class="btn btn-blue" id="btn-home" style="background: linear-gradient(135deg, var(--earth-medium) 0%, var(--earth-dark) 100%);">🏡 กลับหน้าหลัก</button>
+    </div>
+  </div>
+
+<script>
+  const LEADERBOARD_KEY = 'earth_leaderboard';
+  const TOTAL_QUESTIONS = 10;
+
+  // Drilling Crews
+  const CREWS = {
+    excavator: { emoji: '🚜', name: 'ช่างตักดินสีส้ม', msg: 'กริ๊งๆ! รถขุดส้มตักไฮดรอลิกส์พร้อมขุดดินหาความรู้แล้วค่ะกัปตันน้ำฟ้า!' },
+    drill: { emoji: '🚇', name: 'สว่านขุดเจาะแดง', msg: 'ครืนๆ! สว่านเลเซอร์สีแดงหมุนเร่งเครื่องยนต์เต็มสูบ พร้อมเจาะลึกแล้วกัปตันน้ำฟ้า!' },
+    mole: { emoji: '🦡', name: 'ตัวตุ่นขุดดิน', msg: 'สวัสดีจ้า! ตุ่นน้อยเตรียมดินใส่เป้และไฟฉายติดหัว พร้อมลุยนำทางน้ำฟ้าแล้วน้า!' },
+    dino: { emoji: '🦖', name: 'ไดโนน้อยขุด', msg: 'ก๊าซซซ! ไดโนเสาร์น้อยเตรียมเล็บคมกริบ พร้อมช่วยขุดค้นหาฟอสซิลโบราณกับน้ำฟ้าแล้ว!' }
+  };
+
+  // 10 Subterranean Earth Science Questions (Grade 2)
+  const QUESTIONS = [
+    {
+      id: 1,
+      emoji: '🍂',
+      label: 'ส่วนประกอบดิน',
+      title: "ด่านที่ 1: ส่วนประกอบของดิน 🍂🪨",
+      scenario: "เมื่อน้องน้ำฟ้านำช้อนตักดินในสวนป่าขึ้นมาสังเกต น้องคิดว่า 'ดินธรรมชาติ' ประกอบด้วยสิ่งใดรวมอยู่ด้วยกันคะ?",
+      choices: [
+        "เศษหิน น้ำ อากาศ และซากพืชซากสัตว์ (ฮิวมัส)",
+        "เศษพลาสติก เศษกระดาษ และน้ำบริสุทธิ์",
+        "แร่ทองคำเหลว เพชรพลอย และฟองแก๊ส",
+        "เศษแก้ว ทรายสีน้ำเงิน และสารเคมีเร่งโต"
+      ],
+      answer: "เศษหิน น้ำ อากาศ และซากพืชซากสัตว์ (ฮิวมัส)",
+      speakPrompt: "ด่านที่หนึ่ง ส่วนประกอบของดิน เมื่อน้องน้ำฟ้านำช้อนตักดินในสวนป่าขึ้นมาสังเกต น้องคิดว่า ดินธรรมชาติ ประกอบด้วยสิ่งใดรวมอยู่ด้วยกันคะ",
+      method: "ดินธรรมชาติประกอบด้วย อนินทรียวัตถุ (เศษหินแร่ธาตุผุพัง 45%), น้ำ (25%), อากาศ (25%) และ ซากพืชซากสัตว์ผุพัง (ฮิวมัส 5%) ผสมผสานกันอยู่ค่ะ",
+      principle: "ดิน (Soil) เกิดจากหินแร่ธาตุผุกร่อนสลายตัวผสมกับอินทรียวัตถุผุพังจากพืชและสัตว์ที่ล้มตายลงไป"
+    },
+    {
+      id: 2,
+      emoji: '🌾',
+      label: 'ดินเหนียวปลูกข้าว',
+      title: "ด่านที่ 2: ดินเหนียวกักเก็บน้ำ 🌾",
+      scenario: "ถ้าพวกเราจะช่วยคุณชาวนาปลูกข้าวที่ต้องมี 'น้ำขังเฉอะแฉะในนาตลอดเวลา' น้องน้ำฟ้าควรปลูกข้าวในดินชนิดใดคะ?",
+      choices: ["ดินเหนียว (Clay)", "ดินทราย (Sand)", "ดินร่วนปนทราย", "ดินทรายแก้ว"],
+      answer: "ดินเหนียว (Clay)",
+      speakPrompt: "ด่านที่สอง ดินเหนียวกักเก็บน้ำ ถ้าพวกเราจะช่วยคุณชาวนาปลูกข้าวที่ต้องมีน้ำขังเฉอะแฉะในนาตลอดเวลา น้องน้ำฟ้าควรปลูกข้าวในดินชนิดใดคะ",
+      method: "ดินเหนียว (Clay) มีเนื้อดินละเอียดที่สุด เม็ดดินเชื่อมติดแน่นจนน้ำซึมผ่านได้ยากมาก จึงกักขังน้ำได้ดี เหมาะกับพืชที่ชอบน้ำมากเช่นข้าวและบัวค่ะ",
+      principle: "ดินแบ่งตามการอุ้มน้ำ: ดินเหนียว (อุ้มน้ำได้ดีมาก), ดินร่วน (อุ้มน้ำพอดี), ดินทราย (น้ำซึมผ่านอย่างรวดเร็วไม่เก็บน้ำ)"
+    },
+    {
+      id: 3,
+      emoji: '🪱',
+      label: 'ไส้เดือนพรวนดิน',
+      title: "ด่านที่ 3: ไส้เดือนดินยอดนักพรวน 🪱",
+      scenario: "พวกเราขุดรูเจอ 'ไส้เดือนดิน' ตัวดึ๋งๆ สัตว์ไร้กระดูกสันหลังใต้ดินตัวนี้มีประโยชน์ต่อดินและพืชอย่างไรคะ?",
+      choices: [
+        "ช่วยขุดรูทำให้ดินร่วนซุยและมูลเป็นปุ๋ยบำรุงพืช",
+        "ช่วยกำจัดวัชพืชและดูดกินใบไม้สดทั้งหมด",
+        "ช่วยส่องไฟนำทางรากพืชให้งอกลงลึก",
+        "ช่วยทำให้ดินจับตัวเป็นหินแข็งเกร็ง"
+      ],
+      answer: "ช่วยขุดรูทำให้ดินร่วนซุยและมูลเป็นปุ๋ยบำรุงพืช",
+      speakPrompt: "ด่านที่สาม ไส้เดือนดินยอดนักพรวน ไส้เดือนดินตัวนี้มีประโยชน์ต่อดินและพืชอย่างไรคะ",
+      method: "ไส้เดือนชอนไชใต้ดินช่วยทำให้ ดินร่วนซุย มีช่องอากาศให้น้ำและรากหายใจสะดวกรวมถึง มูลไส้เดือน (Castings) ก็คือ ปุ๋ยธรรมชาติชั้นยอดที่ช่วยให้พืชเจริญเติบโตดีค่ะ",
+      principle: "สัตว์ในดินเช่น ไส้เดือนดิน ช่วยทำหน้าที่เป็นผู้ย่อยสลายสารอินทรียวัตถุและปรับปรุงสภาพดินทางชีวภาพ"
+    },
+    {
+      id: 4,
+      emoji: '🌳',
+      label: 'รากไม้ป้องกันดิน',
+      title: "ด่านที่ 4: รากไม้ยึดเกาะเม็ดดิน 🌳",
+      scenario: "ขุดดินผ่านแนวรากพืชหนาแน่น น้องน้ำฟ้ารู้ไหมคะว่ารากต้นไม้ใหญ่นอกจากหาอาหารแล้ว มีส่วนช่วยผืนดินอย่างไรเมื่อฝนตกกระหน่ำคะ?",
+      choices: [
+        "ช่วยแผ่โครงตาข่ายยึดดินป้องกันหน้าดินพังทลาย",
+        "ช่วยทำให้น้ำฝนระเหยหายไปหมดทันที",
+        "ช่วยย่อยก้อนหินให้ระเบิดกระจัดกระจาย",
+        "ช่วยดักกรองไม่ให้หนอนชอนไชดินเข้ามา"
+      ],
+      answer: "ช่วยแผ่โครงตาข่ายยึดดินป้องกันหน้าดินพังทลาย",
+      speakPrompt: "ด่านที่สี่ รากไม้ป้องกันดิน รากต้นไม้ใหญ่นอกจากหาอาหารแล้ว มีส่วนช่วยผืนดินอย่างไรเมื่อฝนตกกระหน่ำคะ",
+      method: "รากต้นไม้แผ่เป็นตาข่ายยึดเม็ดดินให้เหนียวแน่น ช่วยชะลอความแรงของน้ำป่าและ ป้องกันหน้าดินพังถล่ม (Soil Erosion) เวลาเกิดอุทกภัยดินถล่มค่ะ",
+      principle: "การตัดไม้ทำลายป่าทำให้หน้าดินไม่มีรากพืชเกาะเกี่ยว เมื่อเกิดฝนตกหนักจึงเกิดเหตุดินโคลนถล่มได้ง่าย"
+    },
+    {
+      id: 5,
+      emoji: '🦖',
+      label: 'ฟอสซิลโบราณ',
+      title: "ด่านที่ 5: ซากดึกดำบรรพ์ฟอสซิล 🦖",
+      scenario: "สว่านเจาะโดนกระดูกไดโนเสาร์โบราณที่กลายสภาพเป็นก้อนหินแข็งฝังลึก ซากดึกดำบรรพ์ (Fossils) นี้มีประโยชน์ต่อการเรียนรู้อย่างไรคะ?",
+      choices: [
+        "ช่วยศึกษาเรื่องราวประวัติและสภาพแวดล้อมโลกในอดีต",
+        "ช่วยแปรรูปไปเป็นน้ำแร่สุขภาพดื่มแก้ปวดหลัง",
+        "ช่วยสร้างพลังงานไฟฟ้าทดแทนแสงแดด",
+        "ช่วยดึงดูดพลังงานจากแก่นโลกพ่นขึ้นมา"
+      ],
+      answer: "ช่วยศึกษาเรื่องราวประวัติและสภาพแวดล้อมโลกในอดีต",
+      speakPrompt: "ด่านที่ห้า ซากดึกดำบรรพ์ฟอสซิล ซากดึกดำบรรพ์นี้มีประโยชน์ต่อการเรียนรู้อย่างไรคะ",
+      method: "ฟอสซิลบอกใบ้ข้อมูลประวัติศาสตร์ว่า โลกเมื่อหลายล้านปีก่อนมีสิ่งมีชีวิตใดอาศัยอยู่ รูปร่างอย่างไร และสภาพภูมิอากาศในยุคนั้นเป็นแบบใดค่ะ",
+      principle: "ฟอสซิลเกิดจากการทับถมของซากพืชซากสัตว์ในชั้นหินตะกอนอย่างรวดเร็ว โครงร่างแข็งกลายเป็นหินรักษารูปร่างเดิมไว้"
+    },
+    {
+      id: 6,
+      emoji: '🪨',
+      label: 'สมบัติของหิน',
+      title: "ด่านที่ 6: สมบัติทางกายภาพของหิน 🪨",
+      scenario: "กัปตันหยิบก้อนหินใต้ดินสองก้อนมาเคาะตรวจวัด น้องน้ำฟ้าสามารถระบุคุณสมบัติภายนอก (สมบัติกายภาพ) ของหินข้อใดได้บ้างคะ?",
+      choices: [
+        "สี ลวดลาย ความแข็ง และเนื้อหยาบละเอียดของหิน",
+        "รสชาติความเค็ม กลิ่นหอม และความเร็วในการวิ่ง",
+        "ราคา ความสามารถในการพูดคุย และการเต้นระบำ",
+        "การหายใจเข้าออก และการเปลี่ยนรูปทรงตามสภาพอากาศ"
+      ],
+      answer: "สี ลวดลาย ความแข็ง และเนื้อหยาบละเอียดของหิน",
+      speakPrompt: "ด่านที่หก สมบัติของหิน น้องน้ำฟ้าสามารถระบุคุณสมบัติภายนอกของหินข้อใดได้บ้างคะ",
+      method: "หินมีคุณสมบัติต่างกันขึ้นกับแร่ธาตุ เช่น มี สี แตกต่างกัน, ลวดลายเป็นริ้ว, ความแข็ง (ทนต่อการขูดขีด), และเนื้อสัมผัสของหินที่มีความสากหรือเรียบลื่นต่างกันค่ะ",
+      principle: "การจำแนกหินดูจากคุณสมบัติเด่นภายนอก เช่น ความแข็ง (ทดสอบด้วยการขูดขีดกัน), สี, ลวดลาย, ความหนาแน่น และปฏิกิริยาเคมีกับกรด"
+    },
+    {
+      id: 7,
+      emoji: '🦇',
+      label: 'หินงอกหินย้อย',
+      title: "ด่านที่ 7: มหัศจรรย์หินงอกหินย้อย 🦇",
+      scenario: "พวกเราดำดิ่งมาถึงถ้ำหินปูนใต้ดิน และพบ 'หินปูนแท่งแหลมชี้ขึ้นมาจากพื้นถ้ำอย่างช้าๆ' แท่งหินที่ชี้จากพื้นขึ้นมาเรียกว่าอะไรคะ?",
+      choices: ["หินงอก (Stalagmites)", "หินย้อย (Stalactites)", "เสาหินปูนทราย", "ภูเขาน้ำแข็งถ้ำใต้ดิน"],
+      answer: "หินงอก (Stalagmites)",
+      speakPrompt: "ด่านที่เจ็ด มหัศจรรย์หินงอกหินย้อย แท่งหินปูนแหลมที่ชี้ขึ้นมาจากพื้นถ้ำเรียกว่าอะไรคะ",
+      method: "น้ำฝนผสมกรดละลายหินปูนหยดลงบนพื้นถ้ำ สะสมตัวสูงขึ้นแหลมชี้ขึ้นข้างบน เรียกว่า หินงอก (Stalagmites) ส่วนที่ย้อยมาจากเพดานแหลมลงมาเรียกว่า หินย้อย (Stalactites) ค่ะ",
+      principle: "สารละลายแคลเซียมคาร์บอเนตหยดละลอยน้ำสะสมตัวช้ามาก (ปีละไม่กี่มิลลิเมตร) หินย้อยชี้ลง หินงอกชี้ขึ้น เมื่อเจอกันเป็นเสาหินถ้ำ"
+    },
+    {
+      id: 8,
+      emoji: '🔨',
+      label: 'ประโยชน์ของหิน',
+      title: "ด่านที่ 8: ประโยชน์ของก้อนหิน 🔨",
+      scenario: "หินหลากหลายชนิดถูกขุดเจาะขึ้นไปใช้ประโยชน์ในอุตสาหกรรมและการก่อสร้าง ข้อใดคือนำหินไปใช้ประโยชน์ได้อย่างเหมาะสมคะ?",
+      choices: [
+        "ทำครกหิน สร้างตึกถนนลับมีด และทำเครื่องประดับ",
+        "ทำอาหารกระป๋องต้มกินเพื่อเพิ่มวิตามินแร่ธาตุ",
+        "ทำรองเท้านุ่มป้องภัย และทำผ้าห่มฤดูหนาว",
+        "ผลิตเป็นยานยนต์ขับขี่ และทำกระดาษเขียนหนังสือ"
+      ],
+      answer: "ทำครกหิน สร้างตึกถนนลับมีด และทำเครื่องประดับ",
+      speakPrompt: "ด่านที่แปด ประโยชน์ของก้อนหิน ข้อใดคือนำหินไปใช้ประโยชน์ได้อย่างเหมาะสมคะ",
+      method: "หินแกรนิตแข็งมากใช้ทำครกหินและหินปูพื้น, หินปูนเผาทำปูนซีเมนต์ก่อสร้างตึกถนน, หินทรายลับมีด, และหินมีค่าประเภทพลอย/เพชรทำเป็นเครื่องประดับสวยงามค่ะ",
+      principle: "มนุษย์นำหินมาใช้ตามคุณสมบัติ เช่น หินแกรนิตแข็งทนทานทำครก/ถนน, หินทรายลับมีด, หินอ่อนตกแต่งบ้าน, หินปูนทำปูนซีเมนต์"
+    },
+    {
+      id: 9,
+      emoji: '🌋',
+      label: 'หินหนืดแมกมา',
+      title: "ด่านที่ 9: หินหลอมเหลวแมกมา 🌋",
+      scenario: "กัปตันคะ ตรวจพบหินหนืดร้อนแดงอุณหภูมิเกือบ 1,000 องศาเซลเซียสไหลวนอยู่ ใต้เปลือกโลก สิ่งนี้เรียกว่าอะไรคะ?",
+      choices: ["แมกมา หรือหินหนืด (Magma)", "ลาวาไหลระอุ (Lava)", "หินบะซอลต์เหลว", "น้ำมันร้อนดันสูง"],
+      answer: "แมกมา หรือหินหนืด (Magma)",
+      speakPrompt: "ด่านที่เก้า หินหลอมเหลวแมกมา หินหนืดร้อนแดงที่ไหลวนอยู่ใต้เปลือกโลกเรียกว่าอะไรคะ",
+      method: "หินหลอมเหลวที่อยู่ ใต้เปลือกโลก จะเรียกว่า แมกมา (Magma) แต่หากพ่นปะทุออกมา นอกเปลือกโลก ผ่านทางภูเขาไฟระเบิด จะเปลี่ยนชื่อเรียกว่า ลาวา (Lava) ค่ะ",
+      principle: "เปลือกโลกชั้นในมีความดันและอุณหภูมิสูงมากจนทำให้หินหลอมเหลว เมื่อหลอมเหลวอยู่ข้างในเรียกว่าแมกมา เมื่อพุ่งประทุมาข้างนอกเรียกว่าลาวา"
+    },
+    {
+      id: 10,
+      emoji: '☄️',
+      label: 'แกนกลางโลก',
+      title: "ด่านที่ 10: แกนกลางโลกแสนร้อน ☄️",
+      scenario: "ด่านสุดท้ายยานเจาะมาถึงจุดลึกที่สุดของโลก 'แกนกลางโลก (Earth's Core)' น้องน้ำฟ้ารู้ไหมคะว่าแกนกลางโลกทำมาจากโลหะร้อนจัดชนิดใดเป็นหลักคะ?",
+      choices: [
+        "เหล็กและนิกเกิลร้อนจัด",
+        "ทองคำบริสุทธิ์เหลวระยิบระยับ",
+        "พลาสติกผสมทนความร้อนสูง",
+        "เศษหินทรายและหินตะกอนโบราณ"
+      ],
+      answer: "เหล็กและนิกเกิลร้อนจัด",
+      speakPrompt: "ด่านที่สิบ แกนกลางโลกแสนร้อน แกนกลางโลกทำมาจากโลหะร้อนจัดชนิดใดเป็นหลักคะ",
+      method: "แกนโลก (Earth's Core) ชั้นในสุดทำด้วยโลหะหลักสองชนิดคือ เหล็ก (Iron) และ นิกเกิล (Nickel) ร้อนระอุ มีทั้งส่วนนอกที่เป็นของเหลวและส่วนในสุดที่เป็นของแข็งค่ะ",
+      principle: "โครงสร้างหลักของโลกแบ่งเป็น 3 ชั้น: 1. เปลือกโลก (ดิน หิน ด้านนอกสุด) 2. เนื้อโลก (แมกมาหินหนืดร้อน) 3. แกนโลก (โลหะเหล็กและนิกเกิลร้อนจัด)"
+    }
+  ];
+
+  let playerName = 'น้องน้ำฟ้า';
+  let soundOn = true;
+  let score = 0;
+  let correctCount = 0;
+  let currentIndex = 0;
+  let selectedDrillId = 'excavator';
+
+  // Subterranean falling dust particles
+  function initDust() {
+    const container = document.getElementById('dust-container');
+    container.innerHTML = '';
+    for (let i = 0; i < 15; i++) {
+      const d = document.createElement('div');
+      d.className = 'dust';
+      d.style.left = Math.random() * 100 + 'vw';
+      d.style.width = d.style.height = (Math.random() * 6 + 3) + 'px';
+      d.style.animationDelay = Math.random() * 6 + 's';
+      d.style.animationDuration = (Math.random() * 4 + 5) + 's';
+      container.appendChild(d);
+    }
+  }
+
+  // Subterranean Sound Synthesizer using Web Audio API
+  const synth = {
+    ctx: null,
+    init() {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    },
+    tone(freq, dur, type = 'sine') {
+      if (!soundOn || !this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+      } catch (e) {
+        console.warn('Synth tone failed:', e);
+      }
+    },
+    correct() {
+      // High mineral clink sound
+      this.tone(987.77, 0.1, 'sine'); // B5
+      setTimeout(() => this.tone(1318.51, 0.15, 'sine'), 80); // E6
+    },
+    wrong() {
+      // Rocky rumble collapse
+      this.tone(120, 0.35, 'triangle');
+      setTimeout(() => this.tone(80, 0.4, 'sawtooth'), 120);
+    },
+    victory() {
+      // Ascending triumphant mining chimes
+      [523, 659, 784, 1047].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.4, 'sine'), i * 140);
+      });
+    }
+  };
+
+  // Web Speech Text to Speech in Thai
+  function speakText(text) {
+    window.speechSynthesis.cancel();
+    if (!soundOn) return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'th-TH';
+      utterance.rate = 0.92;
+      utterance.pitch = 1.1;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+    }
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const scr = document.getElementById(id);
+    if (scr) scr.classList.add('active');
+  }
+
+  // Populate interactive Vertical descent trail map
+  function renderSubMap() {
+    const wrapper = document.getElementById('checkpoints-wrapper');
+    wrapper.innerHTML = '';
+    
+    QUESTIONS.forEach((q, idx) => {
+      const dotWrapper = document.createElement('div');
+      dotWrapper.className = 'checkpoint-dot-wrapper';
+      
+      // Drilling avatar on active checkpoint
+      if (idx === currentIndex) {
+        const sub = document.createElement('div');
+        sub.className = 'drill-avatar';
+        sub.innerText = '🚜⚙️';
+        dotWrapper.appendChild(sub);
+      }
+      
+      const dot = document.createElement('div');
+      dot.className = 'checkpoint-dot';
+      
+      // Class status
+      if (idx < currentIndex) {
+        dot.classList.add('completed');
+        dot.innerText = '✅';
+      } else if (idx === currentIndex) {
+        dot.classList.add('active');
+        dot.innerText = q.emoji;
+      } else {
+        dot.classList.add('locked');
+        dot.innerText = idx + 1;
+      }
+      
+      const label = document.createElement('span');
+      label.className = 'checkpoint-label';
+      label.innerText = q.label;
+      
+      dotWrapper.appendChild(dot);
+      dotWrapper.appendChild(label);
+      wrapper.appendChild(dotWrapper);
+    });
+
+    // Auto scroll map
+    setTimeout(() => {
+      const activeDot = wrapper.querySelector('.checkpoint-dot.active');
+      if (activeDot) {
+        activeDot.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+    }, 200);
+  }
+
+  function updateHUD() {
+    document.getElementById('hud-score').innerText = `คะแนน: ${score}`;
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= TOTAL_QUESTIONS) {
+      endGame();
+      return;
+    }
+    
+    renderSubMap();
+    updateHUD();
+    
+    const q = QUESTIONS[currentIndex];
+    document.getElementById('question-text').innerText = q.scenario;
+    document.getElementById('game-title-hud').innerText = `🪨 ด่านที่ ${currentIndex + 1}/10`;
+
+    const grid = document.getElementById('choices-grid');
+    grid.innerHTML = '';
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerText = choice;
+      btn.addEventListener('click', () => handleAnswer(choice, btn, q));
+      grid.appendChild(btn);
+    });
+
+    // Auto speak
+    setTimeout(() => {
+      speakText(q.speakPrompt);
+    }, 500);
+  }
+
+  function handleAnswer(selected, btnEl, q) {
+    const grid = document.getElementById('choices-grid');
+    const buttons = grid.querySelectorAll('.choice-btn');
+    
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (b.innerText === q.answer) {
+        b.classList.add('correct');
+      }
+    });
+
+    const isCorrect = selected === q.answer;
+    if (isCorrect) {
+      score += 10;
+      correctCount++;
+      synth.correct();
+    } else {
+      btnEl.classList.add('wrong');
+      synth.wrong();
+    }
+
+    setTimeout(() => showExplanation(isCorrect, q), 900);
+  }
+
+  function showExplanation(isCorrect, q) {
+    const crew = CREWS[selectedDrillId];
+    
+    document.getElementById('result-icon').innerText = isCorrect ? '🎉' : '💡';
+    document.getElementById('result-title').innerText = isCorrect 
+      ? `เก่งมากกัปตันน้ำฟ้า ${crew.emoji}` 
+      : `ไม่เป็นไรค่ะกัปตันน้ำฟ้า ${crew.emoji}`;
+      
+    document.getElementById('exp-method').innerText = q.method;
+    document.getElementById('exp-principle').innerText = q.principle;
+
+    // Speak
+    const speakExplanation = (isCorrect ? 'ถูกต้องกัปตันน้ำฟ้า! ' : 'มาวิเคราะห์เนื้อโลกและชั้นดินกันนะคะ! ') + q.method;
+    speakText(speakExplanation);
+
+    document.getElementById('explanation-overlay').classList.add('active');
+  }
+
+  function endGame() {
+    synth.victory();
+    
+    // Set scores
+    document.getElementById('summary-score').innerText = score;
+    document.getElementById('summary-correct').innerText = correctCount;
+    
+    // Stars
+    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    
+    // Cert prefill
+    const nameToCert = playerName || 'น้องน้ำฟ้า';
+    document.getElementById('cert-name').value = nameToCert;
+    
+    const crew = CREWS[selectedDrillId];
+    document.getElementById('cert-witness').innerText = `${crew.name} ${crew.emoji}`;
+    
+    const today = new Date();
+    document.getElementById('cert-date').innerText = today.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Speak
+    setTimeout(() => {
+      speakText(`ยินดีด้วยค่ะกัปตันน้ำฟ้า! ขุดเจาะทะลวงแกนโลกสำรวจสำเร็จเรียบร้อย ได้คะแนนทั้งหมด ${score} คะแนนค่ะ น้องน้ำฟ้าเก่งกาจและเป็นยอดนักธรณีวิทยาตัวน้อยที่สุดเลยค่ะ`);
+    }, 400);
+
+    saveLeaderboard();
+    renderLeaderboard();
+    
+    showScreen('screen-summary');
+  }
+
+  function saveLeaderboard() {
+    const entry = { name: playerName, score, date: new Date().toLocaleDateString('th-TH') };
+    
+    // LocalStorage
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+
+    // Firebase
+    if (typeof fbSaveScore === 'function') {
+      fbSaveScore(LEADERBOARD_KEY, entry);
+    }
+  }
+
+  function renderLeaderboardList(list) {
+    const el = document.getElementById('leaderboard-list');
+    el.innerHTML = '';
+    
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div class="lb-row" style="justify-content:center;">ยังไม่มีนักขุดดินเจาะเลยค่ะ โค่นสถิติคนแรกเลย! 🚜</div>';
+      return;
+    }
+    
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <span style="font-weight: 700; color:var(--earth-light);">${idx + 1}. 🚜 ${entry.name}</span>
+        <span style="color:var(--gold); font-weight:700;">${entry.score} คะแนน (${entry.date || '-'})</span>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderLeaderboard() {
+    // Local fallback
+    const localList = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    renderLeaderboardList(localList);
+
+    // Firebase load
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(LEADERBOARD_KEY, (cloudList) => {
+        if (cloudList && cloudList.length) {
+          renderLeaderboardList(cloudList);
+        }
+      });
+    }
+  }
+
+  function initGame() {
+    initDust();
+
+    // Prefill name
+    const savedName = localStorage.getItem('tutorStudentName') || 'น้องน้ำฟ้า';
+    document.getElementById('input-name').value = savedName;
+
+    // Crew Selection Card click
+    const drillCards = document.querySelectorAll('.drill-card');
+    drillCards.forEach(card => {
+      card.addEventListener('click', () => {
+        drillCards.forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedDrillId = card.getAttribute('data-id');
+        
+        synth.init();
+        const crew = CREWS[selectedDrillId];
+        speakText(crew.msg);
+      });
+    });
+
+    // Start Click
+    document.getElementById('btn-start').addEventListener('click', () => {
+      playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+      localStorage.setItem('tutorStudentName', playerName); // Keep name synced
+      
+      const crew = CREWS[selectedDrillId];
+      document.getElementById('guide-avatar').innerText = crew.emoji;
+      document.getElementById('guide-name').innerText = crew.name;
+
+      synth.init();
+      
+      // Log visit to Firebase
+      if (typeof fbLogActivity === 'function') {
+        fbLogActivity(playerName, `นักสำรวจใต้พิภพตัวน้อย (ธรณีวิทยาปฐพี ป.2) - ยาน: ${crew.name}`);
+      }
+
+      score = 0;
+      correctCount = 0;
+      currentIndex = 0;
+
+      showScreen('screen-game');
+      loadQuestion();
+    });
+
+    // Speak Button
+    document.getElementById('btn-speak').addEventListener('click', () => {
+      if (currentIndex < TOTAL_QUESTIONS) {
+        speakText(QUESTIONS[currentIndex].speakPrompt);
+      }
+    });
+
+    // Mute toggle
+    const soundToggleBtn = document.getElementById('btn-toggle-sound');
+    soundToggleBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
+      if (!soundOn) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Next button
+    document.getElementById('btn-next').addEventListener('click', () => {
+      document.getElementById('explanation-overlay').classList.remove('active');
+      window.speechSynthesis.cancel();
+      currentIndex++;
+      loadQuestion();
+    });
+
+    // Again click
+    document.getElementById('btn-again').addEventListener('click', () => {
+      showScreen('screen-register');
+    });
+
+    // Print cert
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Home return
+    document.getElementById('btn-home').addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      window.location.href = 'index.html';
+    });
+  }
+
+  initGame();
+</script>
+</body>
+</html>

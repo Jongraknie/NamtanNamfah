@@ -1432,6 +1432,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const earthBtn = document.getElementById('btn-select-earth');
+  if (earthBtn) {
+    earthBtn.addEventListener('click', () => {
+      sounds.init();
+      speakText('ไปขุดเจาะสำรวจโลกใต้พิภพกันเลยค่ะน้ำฟ้า! 🪨', 'th-TH');
+      setTimeout(() => {
+        window.location.href = 'earth.html';
+      }, 1000);
+    });
+  }
+
   document.querySelectorAll('.btn-back-subject').forEach(btn => {
     btn.addEventListener('click', () => {
       showScreen('subject-menu');

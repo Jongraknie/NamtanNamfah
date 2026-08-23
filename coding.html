@@ -466,7 +466,10 @@
       <!-- Preview grid area (Right) -->
       <div class="editor-right">
         <div class="stage-card">
-          <div class="section-title" id="lesson-chapter-title">บทเรียนที่ 1: ก้าวแรกของหุ่นยนต์ 🤖</div>
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <span id="lesson-chapter-title">บทเรียนที่ 1: ก้าวแรกของหุ่นยนต์ 🤖</span>
+            <button class="icon-btn" id="btn-speak-instruction" title="ฟังเสียงโจทย์" style="font-size:1.2rem; background:#eff6ff; border: 1.5px solid #dbeafe;">🔊</button>
+          </div>
           <p id="lesson-desc" style="font-size: 0.9rem; color:#475569; margin-bottom: 12px; width:100%; text-align:left;">-</p>
           
           <!-- Visual Grid Stage -->
@@ -1251,6 +1254,17 @@
     document.getElementById('btn-reset-insertion').addEventListener('click', () => {
       resetInsertionPoint();
     });
+
+    // Speak Instruction Button
+    const speakInstructionBtn = document.getElementById('btn-speak-instruction');
+    if (speakInstructionBtn) {
+      speakInstructionBtn.addEventListener('click', () => {
+        synth.init();
+        if (currentLevelIdx < TOTAL_LEVELS) {
+          speakText(LEVELS[currentLevelIdx].speakPrompt);
+        }
+      });
+    }
 
     // Sound toggle
     const soundToggleBtn = document.getElementById('btn-toggle-sound');

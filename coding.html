@@ -1,413 +1,1084 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>นักคิดโค้ดดิ้งน้อย | สำหรับ น้ำฟ้า 💖</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth-gate.js"></script>
-  <script src="firebase-helpers.js"></script>
-  <style>
-    :root {
-      --color-dark: #1e40af; --color-medium: #3b82f6; --color-light: #bfdbfe; --color-bg: #eff6ff;
-      --color-accent-orange: #f59e0b; --color-accent-pink: #ec4899; --color-text-dark: #1f2937;
-      --grad-main: linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%);
-      --font-playful: 'Itim', 'Prompt', sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--color-bg); background-image: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%), radial-gradient(circle at 85% 80%, rgba(34, 211, 238, 0.12) 0%, transparent 45%); color: var(--color-text-dark); font-family: var(--font-playful); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
-    .app-header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255, 255, 255, 0.85); padding: 12px 25px; border-radius: 25px; backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(30, 64, 175, 0.08); border: 2px solid rgba(255, 255, 255, 0.5); }
-    .btn-back { font-family: var(--font-playful); font-size: 1rem; padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; color: var(--color-text-dark); cursor: pointer; font-weight: bold; transition: all 0.2s; }
-    .btn-back:hover { background: #f1f5f9; transform: translateX(-3px); }
-    .logo-header { display: flex; align-items: center; gap: 10px; }
-    .logo-header h2 { font-size: 1.25rem; color: var(--color-dark); }
-    .header-controls { display: flex; gap: 10px; }
-    .btn-icon { background: white; border: 2px solid #e2e8f0; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
-    .btn-icon:hover { transform: scale(1.1); border-color: var(--color-medium); }
-    .game-container { width: 100%; max-width: 650px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
-    .hud-bar { display: flex; justify-content: space-between; gap: 15px; }
-    .hud-card { background: white; border-radius: 20px; padding: 10px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(30, 64, 175, 0.06); border-bottom: 4px solid var(--color-light); }
-    .hud-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-    .hud-value { font-size: 1.4rem; font-weight: bold; color: var(--color-dark); }
-    .question-card { background: white; border-radius: 30px; padding: 30px 25px; box-shadow: 0 10px 30px rgba(30, 64, 175, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; border: 3px solid rgba(255, 255, 255, 0.8); }
-    .avatar-area { font-size: 3.5rem; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
-    .sentence-display { font-size: 1.2rem; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 20px; font-weight: 600; }
-    .btn-speak-question { background: var(--color-bg); border: 2px solid var(--color-light); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.3rem; margin-bottom: 10px; transition: all 0.2s; }
-    .btn-speak-question:hover { transform: scale(1.1); background: var(--color-light); color: white; }
-    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; width: 100%; }
-    .choice-btn { font-family: var(--font-playful); font-size: 1.02rem; font-weight: bold; color: var(--color-text-dark); background: white; border: 3px solid #e2e8f0; border-radius: 20px; padding: 16px 10px; cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02); }
-    .choice-btn:hover { transform: translateY(-5px); border-color: var(--color-light); box-shadow: 0 10px 20px rgba(30, 64, 175, 0.08); }
-    .choice-btn:active { transform: scale(0.95); }
-    .choice-btn.correct-ui { background: #ecfdf5; border-color: #10b981; color: #065f46; }
-    .choice-btn.incorrect-ui { background: #fdf2f2; border-color: #f87171; color: #991b1b; }
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 64, 175, 0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px; }
-    .overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-card { background: white; border-radius: 30px; width: 100%; max-width: 500px; padding: 30px 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); text-align: center; border: 4px solid var(--color-light); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .overlay.active .modal-card { transform: scale(1); }
-    .result-icon { font-size: 4rem; margin-bottom: 10px; }
-    .result-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
-    .result-title.correct { color: #10b981; }
-    .result-title.incorrect { color: #ef4444; }
-    .explanation-box { text-align: left; background: #f8fafc; border-radius: 20px; padding: 15px 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; font-size: 0.95rem; line-height: 1.5; }
-    .exp-step { margin-bottom: 12px; }
-    .exp-step:last-child { margin-bottom: 0; }
-    .exp-step-title { font-weight: bold; color: var(--color-dark); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-    .btn-action { font-family: var(--font-playful); font-size: 1.2rem; font-weight: bold; color: white; background: var(--grad-main); border: none; border-radius: 50px; padding: 12px 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35); transition: all 0.2s; }
-    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.45); }
-    .summary-screen { background: white; border-radius: 30px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(30, 64, 175, 0.08); text-align: center; display: none; flex-direction: column; align-items: center; border: 4px solid var(--color-light); }
-    .stars-display { font-size: 3rem; color: var(--color-accent-orange); margin: 15px 0; letter-spacing: 5px; }
-    .certificate-card { border: 8px double var(--color-medium); background: #fcfdfd; border-radius: 20px; padding: 25px; width: 100%; max-width: 480px; margin: 20px 0; position: relative; text-align: center; }
-    .cert-title { font-size: 1.5rem; color: var(--color-dark); font-weight: bold; margin-bottom: 5px; }
-    .cert-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-    .cert-name-input { font-family: var(--font-playful); font-size: 1.4rem; border: none; border-bottom: 2px solid var(--color-medium); background: transparent; text-align: center; color: var(--color-accent-pink); font-weight: bold; width: 70%; margin-bottom: 10px; outline: none; }
-    .cert-desc { font-size: 1rem; line-height: 1.4; color: var(--color-text-dark); }
-    .cert-score { font-size: 1.2rem; font-weight: bold; color: var(--color-medium); margin-top: 5px; }
-    @media print {
-      body * { visibility: hidden; }
-      .summary-screen, .summary-screen *, .certificate-card, .certificate-card * { visibility: visible; }
-      .summary-screen { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
-      .certificate-card { border: 15px double var(--color-medium); width: 90%; max-width: 100%; margin: 50px auto; padding: 40px; }
-      .cert-name-input { border: none; font-size: 2.2rem; }
-      .btn-action, .btn-back, .hud-bar, .app-header { display: none !important; }
-    }
-    .register-input { font-family: var(--font-playful); font-size: 1.1rem; padding: 10px 15px; border: 2px solid var(--color-medium); border-radius: 12px; width: 80%; max-width: 280px; text-align: center; margin-bottom: 15px; outline: none; }
-    .leaderboard-container { margin-top: 15px; width: 100%; max-width: 320px; }
-    .leaderboard-title { font-size: 0.9rem; font-weight: bold; color: var(--color-dark); margin-bottom: 6px; text-transform: uppercase; text-align: center; }
-    .leaderboard-box { background: #f8fafc; border: 1.5px dashed var(--color-light); border-radius: 12px; padding: 8px 12px; font-size: 0.85rem; text-align: left; }
-    @media (max-width: 500px) {
-      .choices-grid { grid-template-columns: 1fr; }
-      .sentence-display { font-size: 1.05rem; }
-      .choice-btn { font-size: 0.95rem; padding: 14px 10px; }
-      .hud-value { font-size: 1.1rem; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นักคิดโค้ดดิ้งน้อย | สำหรับ น้องน้ำฟ้า 💖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-gate.js"></script>
+<script src="firebase-helpers.js"></script>
+<style>
+  :root {
+    --scratch-blue: #4c97ff;
+    --scratch-orange: #ffab19;
+    --scratch-purple: #9966ff;
+    --scratch-green: #2ecc71;
+    --scratch-dark: #2c3e50;
+    --scratch-light: #f9f9f9;
+    --workspace-bg: #eaeaea;
+    --text-dark: #1e293b;
+    --text-light: #f8fafc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Prompt', 'Itim', sans-serif;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    color: var(--text-dark);
+  }
+
+  .screen { display: none; width: 100%; max-width: 900px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  .card {
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 10px 30px rgba(76, 151, 255, 0.15);
+    padding: 30px;
+    width: 100%;
+    text-align: center;
+    border: 3px solid #dbeafe;
+  }
+
+  h1 { font-size: 1.8rem; color: var(--scratch-blue); margin-bottom: 6px; }
+  h2 { font-size: 1.4rem; color: var(--scratch-purple); }
+  .subtitle { color: #64748b; margin-bottom: 20px; font-size: 0.95rem; }
+
+  /* Editor Layout */
+  .editor-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  @media(min-width: 768px) {
+    .editor-container { grid-template-columns: 1.2fr 1fr; }
+  }
+
+  /* Block Interface Styling */
+  .editor-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .toolbox-card, .workspace-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    text-align: left;
+  }
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--scratch-dark);
+    margin-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 6px;
+  }
+  .blocks-toolbox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Coding Blocks styles */
+  .scratch-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  .scratch-block:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+  .block-motion { background-color: var(--scratch-blue); }
+  .block-control { background-color: var(--scratch-orange); }
+  .block-event { background-color: var(--scratch-purple); }
+
+  /* Workspace styling */
+  .blocks-workspace {
+    min-height: 240px;
+    background: var(--workspace-bg);
+    border-radius: 14px;
+    border: 2.5px dashed #cbd5e1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .workspace-block {
+    position: relative;
+    animation: blockPop 0.15s ease-out;
+  }
+  @keyframes blockPop {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .workspace-block::after {
+    content: "❌";
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 0.75rem;
+    background: #ef4444;
+    color: #fff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .workspace-block.active-block {
+    outline: 3px solid #facc15;
+    box-shadow: 0 0 12px #facc15;
+  }
+
+  /* Grid Stage Preview */
+  .editor-right {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .stage-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 18px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* Coding Grid Stage styles */
+  .grid-stage {
+    display: grid;
+    border: 4px solid var(--scratch-blue);
+    border-radius: 14px;
+    background: #eef2ff;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 6px 12px rgba(76, 151, 255, 0.15);
+  }
+  .grid-cell {
+    border: 1px solid rgba(76, 151, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    position: relative;
+  }
+  .grid-cell.obstacle {
+    background: #cbd5e1;
+    font-size: 1.8rem;
+  }
+  .grid-cell.target {
+    background: #fef08a;
+  }
+  
+  /* Robot styling */
+  .robot {
+    font-size: 2.2rem;
+    transition: all 0.3s ease-in-out;
+    z-index: 10;
+  }
+  
+  /* Compass / Direction indicators */
+  .robot.dir-N { transform: rotate(0deg); }
+  .robot.dir-E { transform: rotate(90deg); }
+  .robot.dir-S { transform: rotate(180deg); }
+  .robot.dir-W { transform: rotate(270deg); }
+
+  .hud {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-radius: 20px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(76, 151, 255, 0.1);
+    border: 2px solid #dbeafe;
+  }
+  .hud-title { font-weight: 700; color: var(--scratch-blue); }
+  .hud-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    background: #eff6ff;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .icon-btn:hover { background: #dbeafe; }
+
+  /* Explanation overlay */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 16px;
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    border: 3px solid var(--scratch-blue);
+  }
+  .modal .result-icon { font-size: 3rem; margin-bottom: 8px; }
+  .exp-step { text-align: left; margin-bottom: 14px; background: #eff6ff; border-radius: 14px; padding: 12px 16px; border: 1.5px solid #dbeafe; }
+  .exp-step-title { display: block; font-weight: 700; color: var(--scratch-blue); margin-bottom: 4px; font-size: 0.9rem; }
+  .exp-text { font-size: 0.95rem; line-height: 1.5; color: var(--scratch-dark); }
+
+  .stars { font-size: 2.6rem; margin: 12px 0; }
+  
+  /* Certificate printable styling */
+  .cert-box {
+    border: 8px double var(--scratch-blue);
+    border-radius: 20px;
+    padding: 30px 20px;
+    margin: 20px 0;
+    background: #fffdf9;
+    position: relative;
+    overflow: hidden;
+  }
+  .cert-box::before {
+    content: "🤖";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-box::after {
+    content: "💻";
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    font-size: 4rem;
+    opacity: 0.08;
+  }
+  .cert-title { font-family: 'Itim', cursive; color: var(--scratch-purple); font-size: 2rem; font-weight: bold; }
+  .cert-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--scratch-blue);
+    border: none;
+    border-bottom: 2px solid var(--scratch-purple);
+    text-align: center;
+    background: transparent;
+    width: 80%;
+    font-family: 'Prompt';
+    padding: 4px;
+    outline: none;
+  }
+  .cert-body { margin-top: 14px; font-size: 1.1rem; line-height: 1.6; }
+  
+  .leaderboard { text-align: left; margin-top: 20px; background: #f8fafc; padding: 16px; border-radius: 16px; border: 1.5px dashed var(--scratch-purple); }
+  .leaderboard h2 { font-size: 1.1rem; color: var(--scratch-purple); border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; }
+  .lb-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.95rem; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; left: 0; top: 0; width: 100%; border: 4px double var(--scratch-purple); }
+  }
+</style>
 </head>
 <body>
 
-  <header class="app-header">
-    <button class="btn-back" onclick="navigateBack()">⬅️ เลือกวิชา</button>
-    <div class="logo-header">
-      <span style="font-size: 1.8rem;">🤖💻</span>
-      <h2>นักคิดโค้ดดิ้งน้อย</h2>
+  <!-- Screen 1: Registration Screen -->
+  <div id="screen-register" class="screen active">
+    <div class="card">
+      <div style="font-size:3.8rem; margin-bottom: 10px;">🤖💻🔁</div>
+      <h1>นักคิดโค้ดดิ้งน้อย</h1>
+      <p class="subtitle">ท้าทายสมองขุดพลังตรรกศาสตร์ ลากบล็อกคำสั่งสไตล์ Scratch ช่วยน้องโรบอตตะลุยด่าน!</p>
+      
+      <p style="font-weight: 700; text-align: left; margin-bottom: 6px; color: var(--scratch-blue);">ใส่ชื่อโปรแกรมเมอร์จิ๋วตรงนี้ค่ะ:</p>
+      <input type="text" id="input-name" class="reg-input" placeholder="พิมพ์ชื่อของน้องตรงนี้ค่ะ" value="น้องน้ำฟ้า">
+      
+      <button class="btn btn-amber" id="btn-start" style="width: 100%; max-width: 320px; font-size: 1.2rem; margin-top: 10px;">เปิดหน้าเครื่องสร้างโค้ด 🚀</button>
     </div>
-    <div class="header-controls">
-      <button id="btn-toggle-sound" class="btn-icon" title="เปิด/ปิดเสียงเอฟเฟกต์" onclick="toggleSound()">🔊</button>
-      <button id="btn-toggle-speech" class="btn-icon" title="เปิด/ปิดเสียงอ่านโจทย์" onclick="toggleSpeech()">🗣️</button>
-    </div>
-  </header>
+  </div>
 
-  <main class="game-container">
-    <div id="register-screen" class="question-card" style="padding: 40px 30px;">
-      <div class="avatar-area">🤖✨</div>
-      <h3 style="font-size: 1.4rem; color: var(--color-dark); margin-bottom: 10px;">ยินดีต้อนรับสู่ห้องนักคิดโค้ดดิ้งน้อย</h3>
-      <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">มาฝึกคิดแบบนักเขียนโปรแกรม เรียงลำดับขั้นตอน และแก้ปัญหาแบบฉลาดกันเถอะค่ะ!</p>
-      <input type="text" id="reg-player-name" placeholder="ใส่ชื่อโปรแกรมเมอร์ตัวน้อยตรงนี้ค่ะ..." maxlength="12" class="register-input">
-      <button class="btn-action" onclick="registerAndStart()">เริ่มฝึกคิดแบบโค้ดดิ้ง 🚀</button>
-      <div class="leaderboard-container">
-        <div class="leaderboard-title">🏆 โปรแกรมเมอร์เก่งประจำห้อง</div>
-        <div id="leaderboard-box" class="leaderboard-box"></div>
+  <!-- Screen 2: Game Screen -->
+  <div id="screen-game" class="screen">
+    <!-- HUD Header -->
+    <div class="hud">
+      <span class="hud-title" id="game-title-hud">🤖 นักคิดโค้ดดิ้งน้อย</span>
+      <div class="hud-right">
+        <span id="hud-score" style="font-weight: 700; color: var(--scratch-blue);">คะแนน: 0</span>
+        <button class="icon-btn" id="btn-toggle-sound" title="เปิด/ปิดเสียง">🔊</button>
       </div>
     </div>
 
-    <div id="play-screen" style="display: none; flex-direction: column; gap: 20px;">
-      <div class="hud-bar">
-        <div class="hud-card"><span class="hud-label">โปรแกรมเมอร์</span><span id="hud-name" class="hud-value">-</span></div>
-        <div class="hud-card"><span class="hud-label">ความคืบหน้า</span><span id="hud-progress" class="hud-value">1/15</span></div>
-        <div class="hud-card"><span class="hud-label">คะแนนสะสม</span><span id="hud-score" class="hud-value">0</span></div>
-      </div>
-      <div class="question-card">
-        <button class="btn-speak-question" id="btn-speak" onclick="speakCurrentQuestion()" title="ฟังเสียงอ่านโจทย์">🔊</button>
-        <div class="avatar-area" id="question-avatar">🤖</div>
-        <p class="sentence-display" id="question-sentence">โจทย์โหลด...</p>
-        <div class="choices-grid" id="choices-grid"></div>
-      </div>
-    </div>
-
-    <div id="explanation-overlay" class="overlay">
-      <div class="modal-card">
-        <div id="result-icon" class="result-icon">🎉</div>
-        <h3 id="result-title" class="result-title">ถูกต้องเก่งมากค่ะ!</h3>
-        <div class="explanation-box">
-          <div class="exp-step"><span class="exp-step-title">1. เฉลยคำตอบ:</span><div id="exp-correct" style="color: #059669; font-weight: 600;">-</div></div>
-          <div class="exp-step"><span class="exp-step-title">2. คำอธิบาย:</span><div id="exp-incorrect" style="color: #4b5563;">-</div></div>
-          <div class="exp-step"><span class="exp-step-title">3. เกร็ดความรู้:</span><div id="exp-summary" style="color: #1e3a8a; font-style: italic;">-</div></div>
+    <!-- Main Editor Grid Layout -->
+    <div class="editor-container">
+      
+      <!-- Code stack workspace (Left) -->
+      <div class="editor-left">
+        <!-- Toolbox of Scratch Blocks -->
+        <div class="toolbox-card">
+          <div class="section-title">📂 บล็อกคำสั่ง (Toolbox)</div>
+          <div class="blocks-toolbox" id="blocks-toolbox">
+            <!-- Populated by Level dynamically -->
+          </div>
         </div>
-        <button class="btn-action" onclick="nextQuestion()">ข้อถัดไป ➡️</button>
+
+        <!-- Script Workspace -->
+        <div class="workspace-card">
+          <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>📝 ลำดับคำสั่งเขียนโปรแกรม (Workspace)</span>
+            <button class="btn" style="padding: 6px 14px; font-size: 0.85rem;" id="btn-clear-code">🗑️ ล้างทั้งหมด</button>
+          </div>
+          <div class="blocks-workspace" id="blocks-workspace">
+            <!-- Stack of active blocks -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview grid area (Right) -->
+      <div class="editor-right">
+        <div class="stage-card">
+          <div class="section-title" id="lesson-chapter-title">บทเรียนที่ 1: ก้าวแรกของหุ่นยนต์ 🤖</div>
+          <p id="lesson-desc" style="font-size: 0.9rem; color:#475569; margin-bottom: 12px; width:100%; text-align:left;">-</p>
+          
+          <!-- Visual Grid Stage -->
+          <div class="grid-stage" id="grid-stage">
+            <!-- Generated dynamically by level -->
+          </div>
+
+          <!-- Buttons control panel -->
+          <div style="display:flex; gap:12px; margin-top:16px; width:100%;">
+            <button class="btn btn-amber" id="btn-run" style="flex:1;">▶️ สั่งโรบอตรันโค้ด</button>
+            <button class="btn" id="btn-reset" style="background:#cbd5e1; color:#334155; box-shadow:none;">🔄 รีเซ็ตโรบอต</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Screen 3: Explanation Modal Overlay -->
+  <div id="explanation-overlay" class="overlay">
+    <div class="modal">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <h2 id="result-title" style="margin-bottom: 12px; color: var(--scratch-blue);">ภารกิจสำเร็จเก่งมากค่ะ!</h2>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">🤖 เฉลยแนวคิดโค้ดดิ้ง</span>
+        <div class="exp-text" id="exp-method">-</div>
+      </div>
+      
+      <div class="exp-step">
+        <span class="exp-step-title">💻 สรุปหลักคิดวิทยาการคำนวณ</span>
+        <div class="exp-text" id="exp-principle">-</div>
+      </div>
+      
+      <button class="btn btn-amber" id="btn-next" style="padding: 10px 30px;">เรียนบทถัดไป ➡️</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Summary & Certificate Screen -->
+  <div id="screen-summary" class="screen">
+    <div class="card" id="print-area">
+      <div style="font-size:3.5rem;">🏆💻🤖</div>
+      <h1 style="color:var(--scratch-blue); margin-bottom: 5px;">ผ่านหลักสูตรโค้ดดิ้งจิ๋วแล้ว!</h1>
+      <p style="color: var(--scratch-purple); font-weight: 700;">น้องน้ำฟ้าเขียนบล็อกแก้โจทย์ปัญหาครบ 6 บทเรียนสำเร็จ</p>
+      
+      <div class="stars" id="stars-display">⭐⭐⭐</div>
+      <p style="font-size: 1.1rem; margin-bottom: 15px;">
+        ได้คะแนนทักษะโปรแกรมเมอร์ <span id="summary-score" style="font-weight:700; color:var(--scratch-blue);">0</span> คะแนน
+      </p>
+
+      <!-- Printable Certificate -->
+      <div class="cert-box">
+        <div class="cert-title">เกียรติบัตรนักเขียนโปรแกรมจิ๋ว</div>
+        <p style="margin: 8px 0; font-size: 0.95rem; color: #64748b;">เกียรติบัตรฉบับนี้มอบให้เพื่อแสดงว่า</p>
+        <input type="text" id="cert-name" class="cert-name" readonly value="น้องน้ำฟ้า">
+        <div class="cert-body">
+          ได้เรียนรู้และวางบล็อกชุดคำสั่ง <strong>"นักคิดโค้ดดิ้งน้อย"</strong> (Scratch Blocks)<br>
+          เข้าใจโครงสร้างลำดับขั้นตอน (Sequence) และลูปการทำซ้ำ (Loops) ป.2 ครบถ้วน!
+        </div>
+        <p style="margin-top: 16px; font-size: 0.9rem; color: var(--scratch-purple);">
+          หัวหน้าสถาบันโค้ดดิ้งจิ๋ว: <span id="cert-witness" style="font-weight: 700;">พี่โรบอตแสนรู้ 🤖</span>
+        </p>
+        <p style="margin-top: 4px; font-size: 0.85rem; color: #94a3b8;">
+          วันที่ออกเกียรติบัตร: <span id="cert-date">-</span>
+        </p>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="leaderboard">
+        <h2>🏅 นักคิดโค้ดดิ้งยอดเยี่ยม (5 อันดับสูงสุด)</h2>
+        <div id="leaderboard-list">
+          <!-- Rows dynamic -->
+        </div>
       </div>
     </div>
 
-    <div id="summary-screen" class="summary-screen">
-      <div class="avatar-area">🤖🏆</div>
-      <h2 style="font-size: 2rem; color: var(--color-dark);">เก่งที่สุดเลยค่ะ!</h2>
-      <p style="color: #64748b; margin-bottom: 10px;">ฝึกคิดแบบโค้ดดิ้งครบทุกข้อแล้ว</p>
-      <div id="stars-display" class="stars-display">⭐⭐⭐</div>
-      <div class="certificate-card" id="print-area">
-        <div class="cert-title">ใบประกาศนักคิดโค้ดดิ้งน้อย</div>
-        <div class="cert-subtitle">มอบให้เพื่อชื่นชมการคิดอย่างเป็นระบบ</div>
-        <input type="text" id="cert-name" readonly class="cert-name-input" value="น้องน้ำฟ้า">
-        <p class="cert-desc">ได้ตั้งใจฝึกฝนการคิดเชิงคำนวณที่ห้องนักคิดโค้ดดิ้งน้อย</p>
-        <p class="cert-score" id="cert-score-desc">ด้วยคะแนนรวม 1500 คะแนนเต็ม!</p>
-      </div>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 15px;">
-        <button class="btn-action" onclick="printCertificate()" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);">🖨️ พิมพ์ใบประกาศ</button>
-        <button class="btn-action" onclick="resetToHome()">🔄 เล่นใหม่อีกครั้ง</button>
-      </div>
+    <div style="display:flex; gap:14px; margin-top:20px; flex-wrap:wrap; justify-content:center; width:100%;">
+      <button class="btn btn-amber" id="btn-print">🖨️ พิมพ์เกียรติบัตร</button>
+      <button class="btn" id="btn-again" style="background: linear-gradient(135deg, var(--scratch-purple) 0%, #7c3aed 100%);">🔄 เริ่มเขียนโปรแกรมใหม่</button>
+      <button class="btn" id="btn-home" style="background: linear-gradient(135deg, var(--scratch-blue) 0%, #2563eb 100%);">🏡 กลับหน้าหลัก</button>
     </div>
-  </main>
+  </div>
 
-  <script>
-    let playerName = "";
-    let score = 0;
-    let currentIdx = 0;
-    let soundEnabled = true;
-    let speechEnabled = true;
-    let answersCorrectCount = 0;
-    let questions = [];
+<script>
+  const LEADERBOARD_KEY = 'coding_leaderboard';
+  const TOTAL_LEVELS = 6;
 
-    const synth = {
-      ctx: null,
-      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } },
-      playCorrect() {
-        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-          gain.gain.setValueAtTime(0.08, now + idx * 0.08);
-          gain.gain.linearRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
-          osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.2);
-        });
-      },
-      playIncorrect() {
-        if (!soundEnabled) return; this.init(); if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(120, now);
-        osc.frequency.linearRampToValueAtTime(70, now + 0.35);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(now); osc.stop(now + 0.35);
-      }
-    };
+  // Blocks library metadata
+  const BLOCKS = {
+    'move': { label: '🟦 เดินหน้า 1 ก้าว', cls: 'block-motion', code: 'move' },
+    'turn-right': { label: '↪️ เลี้ยวขวา', cls: 'block-motion', code: 'turn-right' },
+    'turn-left': { label: '↩️ เลี้ยวซ้าย', cls: 'block-motion', code: 'turn-left' },
+    'loop-start-2': { label: '🔁 เริ่มวนซ้ำ 2 ครั้ง', cls: 'block-control', code: 'loop-start-2' },
+    'loop-start-3': { label: '🔁 เริ่มวนซ้ำ 3 ครั้ง', cls: 'block-control', code: 'loop-start-3' },
+    'loop-start-4': { label: '🔁 เริ่มวนซ้ำ 4 ครั้ง', cls: 'block-control', code: 'loop-start-4' },
+    'loop-end': { label: '🔚 จบการทำซ้ำ', cls: 'block-control', code: 'loop-end' }
+  };
 
-    function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
-
-    const questionBank = [
-      { avatar: '🪥', sentence: 'ข้อใดเรียงลำดับขั้นตอนการแปรงฟันได้ถูกต้องคะ?', a: 'บีบยาสีฟันใส่แปรง แปรงฟัน แล้วบ้วนปาก', c: ['บีบยาสีฟันใส่แปรง แปรงฟัน แล้วบ้วนปาก', 'บ้วนปาก แปรงฟัน แล้วบีบยาสีฟัน', 'แปรงฟันก่อนบีบยาสีฟัน', 'บ้วนปากอย่างเดียวไม่ต้องแปรง'],
-        exp1: 'เฉลยคือ บีบยาสีฟันใส่แปรง แปรงฟัน แล้วบ้วนปาก ค่ะ', exp2: 'การทำสิ่งต่างๆ ต้องเรียงลำดับขั้นตอนให้ถูกต้องถึงจะได้ผลลัพธ์ที่ดีค่ะ', exp3: 'เกร็ดความรู้: การเรียงลำดับขั้นตอนแบบนี้ในโค้ดดิ้งเรียกว่า "Sequence" ค่ะ' },
-      { avatar: '🔁', sentence: 'คำสั่งที่บอกให้ทำสิ่งเดิมซ้ำๆ กันหลายครั้ง เรียกว่าอะไรคะ?', a: 'การวนซ้ำ (Loop)', c: ['การวนซ้ำ (Loop)', 'การหยุดทำงาน', 'การลบข้อมูล', 'การจบโปรแกรม'],
-        exp1: 'เฉลยคือ การวนซ้ำ (Loop) ค่ะ', exp2: 'การวนซ้ำใช้เมื่อต้องการให้ทำสิ่งเดิมซ้ำๆ กันหลายครั้งโดยไม่ต้องเขียนคำสั่งซ้ำหลายรอบค่ะ', exp3: 'เกร็ดความรู้: เช่น ถ้าอยากให้หุ่นยนต์กระโดด 5 ครั้ง ก็ใช้คำสั่งวนซ้ำ "กระโดด" 5 รอบค่ะ' },
-      { avatar: '🧱', sentence: 'ถ้าหุ่นยนต์เดินไปชนกำแพงระหว่างทาง ควรทำอย่างไรคะ?', a: 'หยุดแล้วหาวิธีแก้ไขเส้นทางใหม่', c: ['หยุดแล้วหาวิธีแก้ไขเส้นทางใหม่', 'เดินชนกำแพงต่อไปเรื่อยๆ', 'ปิดหุ่นยนต์ทิ้งไปเลย', 'ไม่ต้องสนใจปัญหา'],
-        exp1: 'เฉลยคือ หยุดแล้วหาวิธีแก้ไขเส้นทางใหม่ ค่ะ', exp2: 'การหาจุดผิดพลาดแล้วแก้ไขให้ถูกต้องเรียกว่าการดีบัก (Debug) ค่ะ', exp3: 'เกร็ดความรู้: นักเขียนโปรแกรมทุกคนต้องดีบักแก้ไขข้อผิดพลาดอยู่เสมอค่ะ' },
-      { avatar: '☔', sentence: 'คำสั่ง "ถ้าฝนตก ให้กางร่ม" เป็นการคิดแบบใดคะ?', a: 'การคิดแบบเงื่อนไข (ถ้า...แล้ว...)', c: ['การคิดแบบเงื่อนไข (ถ้า...แล้ว...)', 'การวนซ้ำ', 'การลบข้อมูล', 'การเรียงลำดับตัวเลข'],
-        exp1: 'เฉลยคือ การคิดแบบเงื่อนไข (ถ้า...แล้ว...) ค่ะ', exp2: 'การคิดแบบเงื่อนไขคือการตัดสินใจทำสิ่งใดสิ่งหนึ่งขึ้นอยู่กับสถานการณ์ค่ะ', exp3: 'เกร็ดความรู้: ในโค้ดดิ้งเรียกการคิดแบบนี้ว่า "If-Then" ค่ะ' },
-      { avatar: '🍳', sentence: 'การเขียนขั้นตอนการทำอาหารทีละข้อ ตั้งแต่ข้อ 1 ถึงข้อสุดท้าย เรียกว่าอะไรคะ?', a: 'อัลกอริทึม (ลำดับขั้นตอน)', c: ['อัลกอริทึม (ลำดับขั้นตอน)', 'การวนซ้ำ', 'การลบข้อมูล', 'การปิดโปรแกรม'],
-        exp1: 'เฉลยคือ อัลกอริทึม (ลำดับขั้นตอน) ค่ะ', exp2: 'อัลกอริทึมคือชุดขั้นตอนที่เรียงลำดับไว้เพื่อแก้ปัญหาหรือทำงานให้สำเร็จค่ะ', exp3: 'เกร็ดความรู้: สูตรอาหารก็คืออัลกอริทึมแบบหนึ่งที่เราใช้ในชีวิตประจำวันค่ะ' },
-      { avatar: '➡️', sentence: 'ถ้าอยากให้หุ่นยนต์เดินหน้า 3 ก้าว แล้วเลี้ยวขวา ต้องออกคำสั่งตามลำดับใดคะ?', a: 'เดินหน้า 3 ก้าว แล้วเลี้ยวขวา', c: ['เดินหน้า 3 ก้าว แล้วเลี้ยวขวา', 'เลี้ยวขวา แล้วเดินหน้า 3 ก้าว', 'เลี้ยวขวาอย่างเดียว', 'ไม่ต้องออกคำสั่งอะไรเลย'],
-        exp1: 'เฉลยคือ เดินหน้า 3 ก้าว แล้วเลี้ยวขวา ค่ะ', exp2: 'ต้องออกคำสั่งตามลำดับที่เราต้องการให้เกิดขึ้นก่อนหลังค่ะ', exp3: 'เกร็ดความรู้: ถ้าสลับลำดับคำสั่งผิด หุ่นยนต์จะไปคนละทิศทางเลยค่ะ' },
-      { avatar: '🐞', sentence: 'การหาจุดผิดพลาดในโปรแกรมแล้วแก้ไขให้ถูกต้อง เรียกว่าอะไรคะ?', a: 'การดีบัก (Debug)', c: ['การดีบัก (Debug)', 'การวนซ้ำ', 'การเขียนโค้ดใหม่ทั้งหมด', 'การลบโปรแกรมทิ้ง'],
-        exp1: 'เฉลยคือ การดีบัก (Debug) ค่ะ', exp2: 'คำว่า Debug แปลว่า "กำจัดแมลง" มาจากเรื่องเล่าว่าเคยมีแมลงจริงๆ ติดอยู่ในเครื่องคอมพิวเตอร์ค่ะ', exp3: 'เกร็ดความรู้: การดีบักช่วยให้โปรแกรมทำงานได้ถูกต้องตามที่เราต้องการค่ะ' },
-      { avatar: '🧩', sentence: 'การแบ่งปัญหาใหญ่ให้เป็นปัญหาย่อยๆ เพื่อแก้ทีละส่วน เรียกว่าอะไรคะ?', a: 'การแบ่งปัญหาย่อย', c: ['การแบ่งปัญหาย่อย', 'การรวมปัญหาให้ใหญ่ขึ้น', 'การไม่แก้ปัญหาเลย', 'การลบปัญหาทิ้ง'],
-        exp1: 'เฉลยคือ การแบ่งปัญหาย่อย ค่ะ', exp2: 'การแบ่งปัญหาใหญ่เป็นส่วนย่อยช่วยให้แก้ปัญหาได้ง่ายและเป็นระบบขึ้นค่ะ', exp3: 'เกร็ดความรู้: เช่น การทำความสะอาดห้อง แบ่งเป็น เก็บของเล่น กวาดพื้น เช็ดโต๊ะ ทีละขั้นค่ะ' },
-      { avatar: '🌅', sentence: '"ตื่นนอน แปรงฟัน อาบน้ำ แต่งตัว ไปโรงเรียน" ข้อใดทำเป็นอันดับแรกคะ?', a: 'ตื่นนอน', c: ['ตื่นนอน', 'แปรงฟัน', 'อาบน้ำ', 'แต่งตัว'],
-        exp1: 'เฉลยคือ ตื่นนอน ค่ะ', exp2: 'การเรียงลำดับขั้นตอนเหตุการณ์ในชีวิตประจำวันก็เป็นการคิดแบบโค้ดดิ้งเช่นกันค่ะ', exp3: 'เกร็ดความรู้: ถ้าสลับลำดับผิด เช่น ไปโรงเรียนก่อนแต่งตัว ก็จะดูแปลกใช่ไหมคะ' },
-      { avatar: '🎮', sentence: 'ในเกมบล็อกโค้ดดิ้ง คำสั่ง "เดินหน้า" กับ "หันซ้าย" ต่างกันอย่างไรคะ?', a: 'เดินหน้าคือเคลื่อนที่ไปข้างหน้า หันซ้ายคือเปลี่ยนทิศทาง', c: ['เดินหน้าคือเคลื่อนที่ไปข้างหน้า หันซ้ายคือเปลี่ยนทิศทาง', 'ทั้งสองคำสั่งเหมือนกันทุกอย่าง', 'เดินหน้าคือหยุดนิ่ง', 'หันซ้ายคือกระโดดขึ้นสูง'],
-        exp1: 'เฉลยคือ เดินหน้าคือเคลื่อนที่ไปข้างหน้า หันซ้ายคือเปลี่ยนทิศทาง ค่ะ', exp2: 'คำสั่งแต่ละคำสั่งในโค้ดดิ้งทำหน้าที่ต่างกัน ต้องเลือกใช้ให้ถูกต้องค่ะ', exp3: 'เกร็ดความรู้: การเข้าใจหน้าที่ของแต่ละคำสั่งช่วยให้เขียนโปรแกรมได้ถูกต้องค่ะ' },
-      { avatar: '🍫', sentence: 'ถ้าอยากแบ่งขนมให้เพื่อน 3 คนเท่าๆ กัน ต้องคิดขั้นตอนอย่างไรก่อนคะ?', a: 'นับจำนวนขนมทั้งหมด แล้วหารด้วยจำนวนเพื่อน', c: ['นับจำนวนขนมทั้งหมด แล้วหารด้วยจำนวนเพื่อน', 'แจกขนมมั่วๆ โดยไม่นับ', 'เก็บขนมไว้กินคนเดียว', 'ทิ้งขนมไปเลย'],
-        exp1: 'เฉลยคือ นับจำนวนขนมทั้งหมด แล้วหารด้วยจำนวนเพื่อน ค่ะ', exp2: 'การวางแผนก่อนลงมือทำช่วยให้แก้ปัญหาได้ถูกต้องและยุติธรรมค่ะ', exp3: 'เกร็ดความรู้: การวางแผนก่อนเขียนโปรแกรมเรียกว่าการออกแบบอัลกอริทึมค่ะ' },
-      { avatar: '🚦', sentence: 'คำสั่ง "ถ้าไฟเขียว ให้เดิน ถ้าไฟแดง ให้หยุด" ใช้การคิดแบบใดคะ?', a: 'การคิดแบบเงื่อนไข', c: ['การคิดแบบเงื่อนไข', 'การวนซ้ำไม่มีที่สิ้นสุด', 'การลบข้อมูลทิ้ง', 'การนับเลขถอยหลัง'],
-        exp1: 'เฉลยคือ การคิดแบบเงื่อนไข ค่ะ', exp2: 'การตัดสินใจทำสิ่งต่างๆ ตามสถานการณ์ที่เกิดขึ้น เรียกว่าการคิดแบบเงื่อนไขค่ะ', exp3: 'เกร็ดความรู้: ไฟจราจรเป็นตัวอย่างที่ดีของการเขียนโปรแกรมแบบเงื่อนไขในชีวิตจริงค่ะ' },
-      { avatar: '🔢', sentence: 'ถ้าต้องการให้คอมพิวเตอร์นับเลข 1 ถึง 10 ควรใช้คำสั่งใดคะ?', a: 'การวนซ้ำ (Loop) นับทีละ 1 จนถึง 10', c: ['การวนซ้ำ (Loop) นับทีละ 1 จนถึง 10', 'พิมพ์เลข 1 ถึง 10 ทีละตัวแยกกัน 10 คำสั่ง', 'ไม่ต้องใช้คำสั่งใดเลย', 'ลบเลขทั้งหมดทิ้ง'],
-        exp1: 'เฉลยคือ การวนซ้ำ (Loop) นับทีละ 1 จนถึง 10 ค่ะ', exp2: 'การวนซ้ำช่วยให้เขียนคำสั่งสั้นลงแทนที่จะเขียนคำสั่งเดิมซ้ำๆ หลายรอบค่ะ', exp3: 'เกร็ดความรู้: นี่คือเหตุผลว่าทำไมโปรแกรมเมอร์ถึงใช้ Loop กันบ่อยมากค่ะ' },
-      { avatar: '🧭', sentence: 'ก่อนเขียนโปรแกรมหรือแก้ปัญหาใดๆ ควรทำอะไรก่อนเป็นอันดับแรกคะ?', a: 'วางแผนและคิดขั้นตอนให้ชัดเจนก่อน', c: ['วางแผนและคิดขั้นตอนให้ชัดเจนก่อน', 'ลงมือทำทันทีโดยไม่คิด', 'ถามคำตอบจากคนอื่นอย่างเดียว', 'ข้ามขั้นตอนไปเลย'],
-        exp1: 'เฉลยคือ วางแผนและคิดขั้นตอนให้ชัดเจนก่อน ค่ะ', exp2: 'การวางแผนก่อนลงมือทำช่วยลดข้อผิดพลาดและทำงานได้เร็วขึ้นค่ะ', exp3: 'เกร็ดความรู้: นักเขียนโปรแกรมมืออาชีพมักวางแผนอัลกอริทึมก่อนเขียนโค้ดจริงเสมอค่ะ' },
-      { avatar: '🎯', sentence: 'การคิดเชิงคำนวณ (Computational Thinking) ช่วยเราในชีวิตประจำวันอย่างไรคะ?', a: 'ช่วยให้แก้ปัญหาต่างๆ อย่างเป็นระบบและมีเหตุผล', c: ['ช่วยให้แก้ปัญหาต่างๆ อย่างเป็นระบบและมีเหตุผล', 'ไม่มีประโยชน์ในชีวิตจริงเลย', 'ใช้ได้แค่กับคอมพิวเตอร์เท่านั้น', 'ทำให้แก้ปัญหาได้ช้าลง'],
-        exp1: 'เฉลยคือ ช่วยให้แก้ปัญหาต่างๆ อย่างเป็นระบบและมีเหตุผล ค่ะ', exp2: 'การคิดเชิงคำนวณใช้ได้กับทุกเรื่องในชีวิต ไม่ใช่แค่การเขียนโปรแกรมค่ะ', exp3: 'เกร็ดความรู้: การวางแผนการบ้าน จัดกระเป๋า หรือทำอาหาร ก็ใช้การคิดเชิงคำนวณได้ทั้งนั้นค่ะ' }
-    ];
-
-    function navigateBack() { window.speechSynthesis.cancel(); window.location.href = "index.html"; }
-    function toggleSound() { soundEnabled = !soundEnabled; document.getElementById('btn-toggle-sound').innerText = soundEnabled ? "🔊" : "🔇"; }
-    function toggleSpeech() {
-      speechEnabled = !speechEnabled;
-      document.getElementById('btn-toggle-speech').innerText = speechEnabled ? "🗣️" : "❌";
-      if (!speechEnabled) window.speechSynthesis.cancel();
+  // 6 levels - progressive difficulty curriculum
+  const LEVELS = [
+    {
+      id: 1,
+      title: "บทเรียนที่ 1: ก้าวแรกของหุ่นยนต์ 🤖",
+      desc: "เขียนโค้ดพาหุ่นยนต์เดินหน้าเป็นแนวตรงเพื่อไปเก็บปลาการ์ตูน 🐠! (ใช้บล็อก 'เดินหน้า' 2 บล็อกซ้อนกันค่ะ)",
+      gridW: 3,
+      gridH: 3,
+      start: { x: 0, y: 1, dir: 'E' },
+      target: { x: 2, y: 1 },
+      obstacles: [],
+      targetEmoji: '🐠',
+      toolbox: ['move'],
+      method: "ลำดับขั้นตอน (Sequence) เป็นโครงสร้างแรกในโค้ดดิ้ง โดยคอมพิวเตอร์จะทำงานทีละบล็อกจากบนลงล่าง การใส่ 'เดินหน้า' 2 ครั้ง ทำให้หุ่นเดินไปข้างหน้า 2 ช่องจนถึงปลาพอดีค่ะ",
+      principle: "ลำดับการทำงาน (Sequencing): คือการเรียงลำดับขั้นตอนก่อนหลังอย่างถูกต้อง เพื่อให้งานสำเร็จลุล่วงตรงตามเป้าหมาย"
+    },
+    {
+      id: 2,
+      title: "บทเรียนที่ 2: เลี้ยวลดคดเคี้ยว ↪️",
+      desc: "หุ่นยนต์ต้องเลี้ยวเพื่อหลบปะการังขวางทางไปเก็บดาวนำโชค 🌟! วางลำดับเลี้ยวขวาเลี้ยวซ้ายให้ดีนะคะ",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 2, dir: 'E' },
+      target: { x: 2, y: 1 },
+      obstacles: ['0,1', '1,3', '2,2'],
+      targetEmoji: '🌟',
+      toolbox: ['move', 'turn-right', 'turn-left'],
+      method: "หุ่นยนต์ต้อง: เดินหน้า (ไปช่อง 1,2) -> เลี้ยวซ้าย (หันขึ้นเหนือ) -> เดินหน้า (ไปช่อง 1,1) -> เลี้ยวขวา (หันไปทางขวา) -> เดินหน้า (ไปช่อง 2,1) เพื่อพบดาวสำเร็จค่ะ",
+      principle: "การควบคุมทิศทาง (Spatial Awareness): หุ่นยนต์หันหน้าไปทิศใด การเลี้ยวซ้าย/ขวาจะยึดตามตัวหุ่นยนต์เสมอ"
+    },
+    {
+      id: 3,
+      title: "บทเรียนที่ 3: จอมขยันทำซ้ำ 🔁",
+      desc: "เดินทางตรง 4 ก้าวเพื่อเก็บแบตเตอรี่ 🔋! แนะนำให้ใช้บล็อก 'ทำซ้ำ 4 ครั้ง' ครอบบล็อกเดินหน้าเพื่อลดประหยัดโค้ดนะคะ",
+      gridW: 5,
+      gridH: 5,
+      start: { x: 0, y: 2, dir: 'E' },
+      target: { x: 4, y: 2 },
+      obstacles: ['2,1', '2,3'],
+      targetEmoji: '🔋',
+      toolbox: ['move', 'loop-start-4', 'loop-end'],
+      method: "ใส่บล็อก: เริ่มทำซ้ำ 4 ครั้ง -> เดินหน้า -> จบการทำซ้ำ โค้ดจะวนทำซ้ำก้าวเดินหน้าให้ 4 รอบทันที สะดวกกว่าการวางเดินหน้า 4 บล็อกค่ะ",
+      principle: "การวนลูปทำซ้ำ (Loops): เป็นคำสั่งกู้ประหยัดพื้นที่เขียนโค้ด เพื่อสั่งงานคำสั่งเดิมวนทำซ้ำๆ ตามจำนวนรอบที่ตั้ง"
+    },
+    {
+      id: 4,
+      title: "บทเรียนที่ 4: ลูปปั้นบันได 📶",
+      desc: "หุ่นยนต์ต้องการขึ้นขั้นบันไดไปรับอัญมณี 💎! ลองใส่ลูปทำซ้ำ 3 ครั้ง และใส่โค้ดเดินก้าวบันไดข้างในลูปดูนะคะ",
+      gridW: 4,
+      gridH: 4,
+      start: { x: 0, y: 3, dir: 'N' },
+      target: { x: 3, y: 0 },
+      obstacles: ['0,0', '1,0', '2,0', '0,1', '1,1', '3,2', '3,3'],
+      targetEmoji: '💎',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-3', 'loop-end'],
+      method: "ใส่บล็อกวนซ้ำ 3 ครั้งครอบ: เดินหน้า -> เลี้ยวขวา -> เดินหน้า -> เลี้ยวซ้าย. โรบอตจะก้าวขึ้นและเยื้องขวาเป็นบันได 3 ขั้นไปเก็บบนยอดสุดสำเร็จค่ะ",
+      principle: "ลูปซ้ำแบบโครงสร้างรูปธรรม (Pattern Recognition): คือการมองหารูปแบบเส้นทางที่ซ้ำเดิม แล้วนำมาสรุปย่อเป็นชุดคำสั่งวนลูปเดียว"
+    },
+    {
+      id: 5,
+      title: "บทเรียนที่ 5: เขาวงกตพรางตา 🌀",
+      desc: "ขวางทางด้วยเลี้ยวซิกแซก! เขียนโค้ดพาหุ่นยนต์อ้อมไปหาน้องปลา 🐠 วางแผนใช้บล็อกทำซ้ำย่อยๆ เพื่อรักษาสมดุลความสั้นของโค้ดนะคะ",
+      gridW: 5,
+      gridH: 5,
+      start: { x: 0, y: 4, dir: 'N' },
+      target: { x: 4, y: 0 },
+      obstacles: ['1,4', '2,4', '3,4', '1,3', '3,3', '4,3', '0,1', '1,1', '2,1', '3,1'],
+      targetEmoji: '🐠',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-end'],
+      method: "สูตรสำเร็จ: วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวซ้าย -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า].",
+      principle: "ทักษะการคิดเชิงวิเคราะห์ (Decomposition): ย่อยโจทย์ใหญ่ที่เป็นโค้ดเส้นยาว ให้กลายเป็นโค้ดสั้นๆ แล้วนำมาประกอบร่างกัน"
+    },
+    {
+      id: 6,
+      title: "บทเรียนที่ 6: ยอดโปรแกรมเมอร์ 🏆",
+      desc: "ด่านท้าทายสุดท้ายเพื่อเกียรติบัตร! เขียนโค้ดพาน้องหุ่นยนต์เดินฝ่าช่องแคบไปรับถ้วยรางวัลทองคำ 🏆 ให้ได้ค่ะ!",
+      gridW: 6,
+      gridH: 6,
+      start: { x: 0, y: 5, dir: 'N' },
+      target: { x: 5, y: 0 },
+      obstacles: ['1,5', '2,5', '3,5', '4,5', '1,4', '3,4', '5,4', '1,3', '3,3', '5,3', '1,2', '3,2', '4,2', '1,1', '3,1'],
+      targetEmoji: '🏆',
+      toolbox: ['move', 'turn-right', 'turn-left', 'loop-start-2', 'loop-start-3', 'loop-end'],
+      method: "เส้นทางคือ: วนซ้ำ 3 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวขวา -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวซ้าย -> วนซ้ำ 2 ครั้ง [เดินหน้า] -> เลี้ยวซ้าย -> วนซ้ำ 4 ครั้ง [เดินหน้า] (หรือจัดลูปทับซ้อนอื่นๆ)",
+      principle: "การวางแผนเชิงตรรกศาสตร์ (Logical Planning): ใช้ความคิดสร้างสรรค์ร่วมกับหลักเหตุผล เพื่อออกแบบโปรแกรมที่ทำงานได้อย่างรวดเร็วและไม่มีจุดผิดพลาด"
     }
+  ];
 
-    function registerAndStart() {
-      const nameInput = document.getElementById('reg-player-name');
-      const name = nameInput.value.trim();
-      if (!name) { alert("กรุณากรอกชื่อโปรแกรมเมอร์ตัวน้อยก่อนเริ่มเล่นนะคะ! 😊"); return; }
-      playerName = name;
-      if (typeof fbLogActivity === 'function') fbLogActivity(playerName, 'นักคิดโค้ดดิ้งน้อย (ป.2)');
-      document.getElementById('hud-name').innerText = playerName;
-      document.getElementById('register-screen').style.display = 'none';
-      document.getElementById('play-screen').style.display = 'flex';
-      synth.init();
-      const welcomeMsg = `ยินดีต้อนรับโปรแกรมเมอร์ตัวน้อย ${playerName} เข้าสู่ห้องนักคิดโค้ดดิ้งค่ะ`;
-      if (speechEnabled && 'speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(welcomeMsg);
-        utterance.lang = 'th-TH';
-        window.speechSynthesis.speak(utterance);
+  let playerName = 'น้องน้ำฟ้า';
+  let soundOn = true;
+  let score = 0;
+  let currentLevelIdx = 0;
+  
+  // State for robot simulation
+  let robotState = { x: 0, y: 0, dir: 'E' };
+  let workspaceCode = []; // Flat array of block ids
+  let isRunning = false;
+
+  // Sound Synthesizer using Web Audio API
+  const synth = {
+    ctx: null,
+    init() {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      score = 0; currentIdx = 0; answersCorrectCount = 0;
-      questions = shuffle([...questionBank]);
-      loadQuestion();
-    }
-
-    function loadQuestion() {
-      if (currentIdx >= questions.length) { finishGame(); return; }
-      document.getElementById('hud-progress').innerText = `${currentIdx + 1}/${questions.length}`;
-      document.getElementById('hud-score').innerText = score;
-      const q = questions[currentIdx];
-      document.getElementById('question-avatar').innerText = q.avatar;
-      document.getElementById('question-sentence').innerText = q.sentence;
-
-      const grid = document.getElementById('choices-grid');
-      grid.innerHTML = '';
-      const choices = shuffle([...q.c]);
-      choices.forEach(choice => {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.innerText = choice;
-        btn.setAttribute('data-value', choice);
-        btn.addEventListener('click', () => checkChoice(choice, btn));
-        grid.appendChild(btn);
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    },
+    tone(freq, dur, type = 'sine') {
+      if (!soundOn || !this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + dur);
+      } catch (e) {
+        console.warn('Synth tone failed:', e);
+      }
+    },
+    click() { this.tone(400, 0.05); },
+    correct() {
+      this.tone(523, 0.1);
+      setTimeout(() => this.tone(784, 0.15), 80);
+    },
+    wrong() {
+      this.tone(180, 0.25, 'triangle');
+    },
+    victory() {
+      const melody = [523, 587, 659, 698, 784, 880, 988, 1047];
+      melody.forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.35, 'sine'), i * 110);
       });
-
-      if (speechEnabled) { setTimeout(() => { speakCurrentQuestion(); }, 500); }
     }
+  };
 
-    function speakCurrentQuestion() {
-      if (!('speechSynthesis' in window) || !speechEnabled) return;
-      window.speechSynthesis.cancel();
-      const q = questions[currentIdx];
-      const utterance = new SpeechSynthesisUtterance(`ข้อที่ ${currentIdx + 1}. ${q.sentence}`);
+  // Web Speech Text to Speech in Thai
+  function speakText(text) {
+    window.speechSynthesis.cancel();
+    if (!soundOn) return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'th-TH';
-      utterance.rate = 0.95;
+      utterance.rate = 0.92;
+      utterance.pitch = 1.1;
       window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
     }
+  }
 
-    function checkChoice(value, btnEl) {
-      window.speechSynthesis.cancel();
-      const q = questions[currentIdx];
-      const isCorrect = (value === q.a);
-      const allBtns = document.querySelectorAll('#choices-grid .choice-btn');
-      allBtns.forEach(b => {
-        b.disabled = true;
-        if (b.getAttribute('data-value') === q.a) b.classList.add('correct-ui');
-      });
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const scr = document.getElementById(id);
+    if (scr) scr.classList.add('active');
+  }
 
-      if (isCorrect) {
-        synth.playCorrect();
-        score += 100;
-        answersCorrectCount++;
-        document.getElementById('result-icon').innerText = "🎉";
-        document.getElementById('result-title').innerText = "เก่งมากค่ะ! ถูกต้องนะคะ";
-        document.getElementById('result-title').className = "result-title correct";
-      } else {
-        synth.playIncorrect();
-        btnEl.classList.add('incorrect-ui');
-        document.getElementById('result-icon').innerText = "🤖";
-        document.getElementById('result-title').innerText = "ยังไม่ถูกนะคะ ลองใหม่ได้เลย!";
-        document.getElementById('result-title').className = "result-title incorrect";
-      }
+  // Load level grid onto screen
+  function loadLevelGrid(lvl) {
+    const stage = document.getElementById('grid-stage');
+    stage.innerHTML = '';
+    
+    // Grid box dynamic sizing
+    const cellSize = Math.min(280 / lvl.gridH, 280 / lvl.gridW);
+    stage.style.width = (cellSize * lvl.gridW) + 'px';
+    stage.style.height = (cellSize * lvl.gridH) + 'px';
+    stage.style.gridTemplateColumns = `repeat(${lvl.gridW}, 1fr)`;
+    stage.style.gridTemplateRows = `repeat(${lvl.gridH}, 1fr)`;
 
-      document.getElementById('exp-correct').innerText = q.exp1;
-      document.getElementById('exp-incorrect').innerText = q.exp2;
-      document.getElementById('exp-summary').innerText = q.exp3;
-
-      setTimeout(() => {
-        document.getElementById('explanation-overlay').classList.add('active');
-        if (speechEnabled) {
-          const speakExplanationText = `${isCorrect ? 'ถูกต้องเก่งมากค่ะ!' : 'คำตอบนี้ยังไม่ถูกค่ะ'} ${q.exp1}. ${q.exp2}. ${q.exp3}`;
-          const utterance = new SpeechSynthesisUtterance(speakExplanationText);
-          utterance.lang = 'th-TH';
-          window.speechSynthesis.speak(utterance);
+    for (let y = 0; y < lvl.gridH; y++) {
+      for (let x = 0; x < lvl.gridW; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.id = `cell-${x}-${y}`;
+        
+        // Add obstacles
+        if (lvl.obstacles.includes(`${x},${y}`)) {
+          cell.classList.add('obstacle');
+          cell.innerText = '🪸';
         }
-      }, 700);
-    }
+        
+        // Add target
+        if (lvl.target.x === x && lvl.target.y === y) {
+          cell.classList.add('target');
+          cell.innerText = lvl.targetEmoji;
+        }
 
-    function nextQuestion() {
-      window.speechSynthesis.cancel();
-      document.getElementById('explanation-overlay').classList.remove('active');
-      currentIdx++;
-      loadQuestion();
-    }
-
-    function finishGame() {
-      window.speechSynthesis.cancel();
-      saveLeaderboardData();
-      document.getElementById('play-screen').style.display = 'none';
-      document.getElementById('summary-screen').style.display = 'flex';
-      const starsDisplay = document.getElementById('stars-display');
-      let starStr = "";
-      if (answersCorrectCount >= 13) starStr = "⭐⭐⭐";
-      else if (answersCorrectCount >= 8) starStr = "⭐⭐";
-      else starStr = "⭐";
-      starsDisplay.innerText = starStr;
-      document.getElementById('cert-name').value = playerName;
-      document.getElementById('cert-score-desc').innerText = `ตอบถูกต้องทั้งหมด ${answersCorrectCount} จาก ${questions.length} ข้อ (คะแนนสะสม: ${score} คะแนน)`;
-      if (speechEnabled) {
-        const speakFinish = `เก่งมากๆ เลยค่ะ ${playerName} ฝึกคิดแบบโค้ดดิ้งครบทุกข้อแล้ว ด้วยคะแนนสะสม ${score} คะแนนค่ะ`;
-        const utterance = new SpeechSynthesisUtterance(speakFinish);
-        utterance.lang = 'th-TH';
-        window.speechSynthesis.speak(utterance);
+        stage.appendChild(cell);
       }
     }
 
-    function printCertificate() { window.print(); }
-    function resetToHome() {
-      document.getElementById('summary-screen').style.display = 'none';
-      document.getElementById('register-screen').style.display = 'flex';
-      document.getElementById('reg-player-name').value = "";
-      renderLeaderboard();
-    }
+    // Set initial robot state
+    robotState = { ...lvl.start };
+    renderRobot();
+  }
 
-    function saveLeaderboardData() {
-      let leaderboard = JSON.parse(localStorage.getItem('coding_leaderboard')) || [];
-      const idx = leaderboard.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
-      if (idx !== -1) { if (score > leaderboard[idx].score) leaderboard[idx].score = score; }
-      else { leaderboard.push({ name: playerName, score: score }); }
-      leaderboard.sort((a, b) => b.score - a.score);
-      leaderboard = leaderboard.slice(0, 5);
-      localStorage.setItem('coding_leaderboard', JSON.stringify(leaderboard));
-      if (typeof fbSaveScore === 'function') fbSaveScore('coding_leaderboard', { name: playerName, score: score });
-    }
+  // Render robot position and heading direction
+  function renderRobot() {
+    // Remove old robot if exists
+    const oldRob = document.querySelector('.robot');
+    if (oldRob) oldRob.remove();
 
-    function renderLeaderboardBox(leaderboard) {
-      const box = document.getElementById('leaderboard-box');
-      if (!leaderboard || leaderboard.length === 0) {
-        box.innerHTML = `<div style="text-align: center; color: #64748b; padding: 4px;">ยังไม่มีโปรแกรมเมอร์เก่งประจำห้องค่ะ</div>`;
-        return;
+    const targetCell = document.getElementById(`cell-${robotState.x}-${robotState.y}`);
+    if (targetCell) {
+      const rob = document.createElement('div');
+      rob.className = `robot dir-${robotState.dir}`;
+      rob.innerText = '🤖';
+      targetCell.appendChild(rob);
+    }
+  }
+
+  function renderToolbox(lvl) {
+    const box = document.getElementById('blocks-toolbox');
+    box.innerHTML = '';
+    lvl.toolbox.forEach(bId => {
+      const b = BLOCKS[bId];
+      if (b) {
+        const el = document.createElement('div');
+        el.className = `scratch-block ${b.cls}`;
+        el.innerText = b.label;
+        el.addEventListener('click', () => addBlockToWorkspace(bId));
+        box.appendChild(el);
       }
-      box.innerHTML = leaderboard.map((item, idx) => {
-        const rankColor = idx === 0 ? 'var(--color-accent-orange)' : '#1f2937';
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-        return `<div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: ${rankColor}; font-weight: ${idx === 0 ? 'bold' : 'normal'}"><span>${medal} 🤖 ${item.name}</span><span>${item.score} คะแนน</span></div>`;
-      }).join('');
+    });
+
+    // Loop End block is always available if any loops are available
+    const hasLoops = lvl.toolbox.some(t => t.startsWith('loop-start-'));
+    if (hasLoops) {
+      const b = BLOCKS['loop-end'];
+      const el = document.createElement('div');
+      el.className = `scratch-block ${b.cls}`;
+      el.innerText = b.label;
+      el.addEventListener('click', () => addBlockToWorkspace('loop-end'));
+      box.appendChild(el);
+    }
+  }
+
+  function addBlockToWorkspace(bId) {
+    if (isRunning) return;
+    synth.click();
+    workspaceCode.push(bId);
+    renderWorkspace();
+  }
+
+  function removeBlockFromWorkspace(idx) {
+    if (isRunning) return;
+    synth.click();
+    workspaceCode.splice(idx, 1);
+    renderWorkspace();
+  }
+
+  function renderWorkspace() {
+    const container = document.getElementById('blocks-workspace');
+    container.innerHTML = '';
+    
+    if (workspaceCode.length === 0) {
+      container.innerHTML = '<div style="color:#64748b; font-size:0.9rem; padding: 20px 0; text-align:center; width:100%;">💡 คลิกบล็อกข้างบนเพื่อเขียนโค้ดต่อเรียงบล็อกกันที่นี่ค่ะ!</div>';
+      return;
     }
 
-    function renderLeaderboard() {
-      renderLeaderboardBox(JSON.parse(localStorage.getItem('coding_leaderboard')) || []);
-      if (typeof fbLoadTopScores === 'function') {
-        fbLoadTopScores('coding_leaderboard', cloudList => {
-          if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
-        });
+    workspaceCode.forEach((bId, idx) => {
+      const b = BLOCKS[bId];
+      const div = document.createElement('div');
+      div.className = `scratch-block ${b.cls} workspace-block`;
+      div.id = `workblock-${idx}`;
+      div.innerText = b.label;
+      div.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeBlockFromWorkspace(idx);
+      });
+      container.appendChild(div);
+    });
+  }
+
+  // Parse sequence flat array expanding loop starts and ends
+  function expandBlockArray(list) {
+    let result = [];
+    let i = 0;
+    
+    while (i < list.length) {
+      const item = list[i];
+      if (item.startsWith('loop-start-')) {
+        const count = parseInt(item.replace('loop-start-', ''), 10);
+        
+        // Find matching loop-end
+        let endIdx = -1;
+        let depth = 1;
+        for (let j = i + 1; j < list.length; j++) {
+          if (list[j].startsWith('loop-start-')) depth++;
+          if (list[j] === 'loop-end') depth--;
+          if (depth === 0) {
+            endIdx = j;
+            break;
+          }
+        }
+        
+        if (endIdx !== -1) {
+          const innerBody = list.slice(i + 1, endIdx);
+          const expandedBody = expandBlockArray(innerBody);
+          
+          for (let c = 0; c < count; c++) {
+            // Keep mapping reference for highlighted workspace visual
+            expandedBody.forEach(act => {
+              result.push({ cmd: act.cmd, originIdx: act.originIdx });
+            });
+          }
+          i = endIdx + 1;
+        } else {
+          // Unclosed loop
+          result.push({ cmd: item, originIdx: i });
+          i++;
+        }
+      } else if (item === 'loop-end') {
+        // Unmatched end
+        result.push({ cmd: item, originIdx: i });
+        i++;
+      } else {
+        result.push({ cmd: item, originIdx: i });
+        i++;
       }
     }
+    return result;
+  }
 
+  // Simulate command executions step-by-step
+  async function runCode() {
+    if (isRunning || workspaceCode.length === 0) return;
+    isRunning = true;
+    document.getElementById('btn-run').disabled = true;
+    document.getElementById('btn-clear-code').disabled = true;
+    
+    const lvl = LEVELS[currentLevelIdx];
+    // Reset robot position to start first
+    robotState = { ...lvl.start };
+    renderRobot();
+
+    const actions = expandBlockArray(workspaceCode);
+    let success = false;
+
+    for (let step = 0; step < actions.length; step++) {
+      const act = actions[step];
+      
+      // Highlight code line in Workspace
+      document.querySelectorAll('.workspace-block').forEach(b => b.classList.remove('active-block'));
+      const activeBlockEl = document.getElementById(`workblock-${act.originIdx}`);
+      if (activeBlockEl) activeBlockEl.classList.add('active-block');
+
+      // Command execution
+      const crash = executeCommand(act.cmd, lvl);
+      renderRobot();
+      
+      if (crash) {
+        synth.wrong();
+        speakText('อุ๊ย! หุ่นยนต์ชนปะการังหรือออกนอกแผนที่แล้วค่ะ ลองเขียนโค้ดใหม่นะคะ');
+        break;
+      } else {
+        synth.tone(350, 0.08); // Step tick sound
+      }
+
+      // Check target reach
+      if (robotState.x === lvl.target.x && robotState.y === lvl.target.y) {
+        success = true;
+        break;
+      }
+
+      // 600ms delay per block animation
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+
+    // Clear highlights
+    document.querySelectorAll('.workspace-block').forEach(b => b.classList.remove('active-block'));
+
+    if (success) {
+      score += 10;
+      synth.correct();
+      setTimeout(() => showExplanation(lvl), 500);
+    } else if (!success) {
+      // Failed, reset positions
+      setTimeout(() => {
+        robotState = { ...lvl.start };
+        renderRobot();
+      }, 500);
+    }
+
+    isRunning = false;
+    document.getElementById('btn-run').disabled = false;
+    document.getElementById('btn-clear-code').disabled = false;
+  }
+
+  function executeCommand(cmd, lvl) {
+    let nextX = robotState.x;
+    let nextY = robotState.y;
+
+    if (cmd === 'move') {
+      if (robotState.dir === 'N') nextY--;
+      else if (robotState.dir === 'E') nextX++;
+      else if (robotState.dir === 'S') nextY++;
+      else if (robotState.dir === 'W') nextX--;
+
+      // Boundary or obstacle check
+      if (nextX < 0 || nextX >= lvl.gridW || nextY < 0 || nextY >= lvl.gridH) {
+        return true; // Crash
+      }
+      if (lvl.obstacles.includes(`${nextX},${nextY}`)) {
+        return true; // Crash obstacle
+      }
+
+      robotState.x = nextX;
+      robotState.y = nextY;
+    } else if (cmd === 'turn-right') {
+      const dirs = ['N', 'E', 'S', 'W'];
+      let idx = dirs.indexOf(robotState.dir);
+      robotState.dir = dirs[(idx + 1) % 4];
+    } else if (cmd === 'turn-left') {
+      const dirs = ['N', 'E', 'S', 'W'];
+      let idx = dirs.indexOf(robotState.dir);
+      robotState.dir = dirs[(idx + 3) % 4];
+    }
+    return false; // Safe move
+  }
+
+  function showExplanation(lvl) {
+    document.getElementById('result-icon').innerText = '🏆';
+    document.getElementById('result-title').innerText = `ภารกิจสำเร็จ ยอดเยี่ยมมากค่ะ!`;
+    document.getElementById('exp-method').innerText = lvl.method;
+    document.getElementById('exp-principle').innerText = lvl.principle;
+
+    speakText('ภารกิจสำเร็จเก่งมากค่ะน้ำฟ้า! ' + lvl.method);
+    document.getElementById('explanation-overlay').classList.add('active');
+  }
+
+  function loadLevel(idx) {
+    if (idx >= TOTAL_LEVELS) {
+      endGame();
+      return;
+    }
+    currentLevelIdx = idx;
+    const lvl = LEVELS[currentLevelIdx];
+    
+    document.getElementById('lesson-chapter-title').innerText = lvl.title;
+    document.getElementById('lesson-desc').innerText = lvl.desc;
+    
+    workspaceCode = [];
+    renderWorkspace();
+    renderToolbox(lvl);
+    loadLevelGrid(lvl);
+    
+    speakText(lvl.speakPrompt);
+  }
+
+  function endGame() {
+    synth.victory();
+    
+    // Save scores
+    document.getElementById('summary-score').innerText = score;
+    const stars = score >= 50 ? '⭐⭐⭐' : score >= 30 ? '⭐⭐' : score >= 10 ? '⭐' : '💪';
+    document.getElementById('stars-display').innerText = stars;
+    
+    // Certificate prefill
+    const certName = playerName || 'น้องน้ำฟ้า';
+    document.getElementById('cert-name').value = certName;
+    document.getElementById('cert-date').innerText = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    setTimeout(() => {
+      speakText(`ยินดีด้วยค่ะคุณน้ำฟ้า! จบคอร์สเขียนโปรแกรม นักคิดโค้ดดิ้งน้อย สำเร็จแล้วค่ะ ได้คะแนนทั้งหมด ${score} คะแนนค่ะ`);
+    }, 400);
+
+    saveLeaderboard();
     renderLeaderboard();
-  </script>
+    
+    showScreen('screen-summary');
+  }
+
+  function saveLeaderboard() {
+    const entry = { name: playerName, score, date: new Date().toLocaleDateString('th-TH') };
+    const list = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(list.slice(0, 5)));
+
+    if (typeof fbSaveScore === 'function') {
+      fbSaveScore(LEADERBOARD_KEY, entry);
+    }
+  }
+
+  function renderLeaderboardList(list) {
+    const el = document.getElementById('leaderboard-list');
+    el.innerHTML = '';
+    if (!list || list.length === 0) {
+      el.innerHTML = '<div class="lb-row" style="justify-content:center;">ยังไม่มีนักเขียนโปรแกรมจิ๋วเลยค่ะ โค่นสถิติคนแรกเลย! 💻</div>';
+      return;
+    }
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <span style="font-weight: 700; color:var(--scratch-blue);">${idx + 1}. 💻 ${entry.name}</span>
+        <span style="color:var(--scratch-purple); font-weight:700;">${entry.score} คะแนน (${entry.date || '-'})</span>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderLeaderboard() {
+    const localList = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+    renderLeaderboardList(localList);
+
+    if (typeof fbLoadTopScores === 'function') {
+      fbLoadTopScores(LEADERBOARD_KEY, cloudList => {
+        if (cloudList && cloudList.length) renderLeaderboardList(cloudList);
+      });
+    }
+  }
+
+  function initGame() {
+    const savedName = localStorage.getItem('tutorStudentName') || 'น้องน้ำฟ้า';
+    document.getElementById('input-name').value = savedName;
+
+    // Start Click
+    document.getElementById('btn-start').addEventListener('click', () => {
+      playerName = document.getElementById('input-name').value.trim() || 'น้องน้ำฟ้า';
+      localStorage.setItem('tutorStudentName', playerName); // sync
+      
+      synth.init();
+      
+      if (typeof fbLogActivity === 'function') {
+        fbLogActivity(playerName, `นักคิดโค้ดดิ้งน้อย (Scratch blocks ป.2)`);
+      }
+
+      score = 0;
+      currentLevelIdx = 0;
+
+      showScreen('screen-game');
+      loadLevel(0);
+    });
+
+    // Run code click
+    document.getElementById('btn-run').addEventListener('click', () => {
+      synth.init();
+      runCode();
+    });
+
+    // Reset button
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (isRunning) return;
+      synth.click();
+      const lvl = LEVELS[currentLevelIdx];
+      robotState = { ...lvl.start };
+      renderRobot();
+    });
+
+    // Clear workspace
+    document.getElementById('btn-clear-code').addEventListener('click', () => {
+      if (isRunning) return;
+      synth.click();
+      workspaceCode = [];
+      renderWorkspace();
+    });
+
+    // Sound toggle
+    const soundToggleBtn = document.getElementById('btn-toggle-sound');
+    soundToggleBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundToggleBtn.innerText = soundOn ? '🔊' : '🔇';
+      if (!soundOn) {
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Next Level click
+    document.getElementById('btn-next').addEventListener('click', () => {
+      document.getElementById('explanation-overlay').classList.remove('active');
+      window.speechSynthesis.cancel();
+      loadLevel(currentLevelIdx + 1);
+    });
+
+    // Again click
+    document.getElementById('btn-again').addEventListener('click', () => {
+      showScreen('screen-register');
+    });
+
+    // Print cert
+    document.getElementById('btn-print').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Home return
+    document.getElementById('btn-home').addEventListener('click', () => {
+      window.speechSynthesis.cancel();
+      window.location.href = 'index.html';
+    });
+  }
+
+  initGame();
+</script>
 </body>
 </html>

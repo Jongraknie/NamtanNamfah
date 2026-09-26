@@ -1215,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (exammapBtn) {
     exammapBtn.addEventListener('click', () => {
       sounds.init();
-      speakText('ไปดูแผนที่พิชิตข้อสอบกลางภาคกันเลยค่ะน้ำฟ้า!', 'th-TH');
+      speakText('ไปดูแผนที่พิชิตข้อสอบปลายภาค 1 กันเลยค่ะน้ำฟ้า!', 'th-TH');
       setTimeout(() => {
         window.location.href = 'examprep-map.html';
       }, 1000);

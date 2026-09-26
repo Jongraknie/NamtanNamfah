@@ -15,6 +15,7 @@
   <script src="firebase-helpers.js"></script>
   <script src="examprep-progress.js"></script>
   <script src="namtan-examprep-progress.js"></script>
+  <script src="final-exam-p2t1.js"></script>
   <style>
     :root {
       --t-primary: #ff6b9d;
@@ -1088,6 +1089,9 @@
     }
   };
 
+  // Final-exam (ปลายภาค 1) topics live in final-exam-p2t1.js and are reached from the exam map.
+  if (window.FinalExamP2T1) Object.assign(LESSONS, window.FinalExamP2T1.LESSONS);
+
   // ---------- State ----------
   const urlParams = new URLSearchParams(window.location.search);
   const presetTopic = urlParams.get('topic');
@@ -1229,6 +1233,7 @@
     grid.innerHTML = '';
     Object.keys(LESSONS).forEach(key => {
       const topic = LESSONS[key];
+      if (topic.mapOnly) return;
       const card = document.createElement('div');
       card.className = 'topic-card';
       card.innerHTML = `<span class="subject-tag">${topic.subject}</span><div class="icon">${topic.icon}</div><h4>${topic.title}</h4><p>${topic.desc}</p>`;
@@ -1391,7 +1396,8 @@
     document.getElementById('summary-teacher-stage').innerHTML = buildTeacherSVG(selectedTeacher);
     document.getElementById('summary-teacher-stage').style.width = '150px';
     document.getElementById('summary-teacher-stage').style.height = '150px';
-    const stars = correctCount >= 9 ? '⭐⭐⭐' : correctCount >= 6 ? '⭐⭐' : correctCount >= 3 ? '⭐' : '💪';
+    const ratio = quizQuestions.length ? correctCount / quizQuestions.length : 0;
+    const stars = ratio >= 0.9 ? '⭐⭐⭐' : ratio >= 0.6 ? '⭐⭐' : ratio >= 0.3 ? '⭐' : '💪';
     document.getElementById('stars-display').innerText = stars;
     document.getElementById('summary-msg').innerText = `ตอบถูก ${correctCount} จาก ${quizQuestions.length} ข้อ (คะแนน ${score})`;
 
@@ -1417,7 +1423,7 @@
         if (cloudList && cloudList.length) renderLeaderboardBox(cloudList);
       });
     }
-    const finishMsg = correctCount >= 9
+    const finishMsg = ratio >= 0.9
       ? personalize(`เก่งมากเลยค่ะ {name}! ${TEACHERS[selectedTeacher].name}ภูมิใจในตัวหนูมากค่ะ!`)
       : personalize(`ทำได้ดีมากค่ะ {name} ลองทบทวนอีกนิดแล้วมาลองใหม่ได้นะคะ`);
     speakWithLipSync(finishMsg, '#summary-teacher-stage', 'th-TH');
